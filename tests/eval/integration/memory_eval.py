@@ -19,8 +19,8 @@ from openminion.modules.memory.models import MemoryCandidate, MemoryRecord
 from openminion.modules.memory.service import MemoryService
 from openminion.modules.memory.storage.store import SQLiteMemoryStore
 
-from openminion_eval.scorer import MemoryEvalScorer
 from openminion.base.common.time import utc_now_iso as _utc_now_iso
+from tests.eval.integration.memory_scorer import MemoryEvalScorer
 
 
 def _record_text(record: MemoryRecord) -> str:

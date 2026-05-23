@@ -21,6 +21,7 @@ from .memory_eval import (
     MemoryEvalSetup,
     MemoryEvalTurn,
 )
+from .memory_scorer import MemoryEvalScorer
 from .trace_flywheel import (
     WorkflowCheckObservation,
     WorkflowEvalRubric,
@@ -47,6 +48,7 @@ __all__ = [
     "MemoryEvalSeedCandidate",
     "MemoryEvalSeedRecord",
     "MemoryEvalSession",
+    "MemoryEvalScorer",
     "MemoryEvalSetup",
     "MemoryEvalTurn",
     "WorkflowCheckObservation",

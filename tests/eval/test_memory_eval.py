@@ -14,7 +14,7 @@ from tests.eval.integration.memory_eval import (
     MemoryEvalFixtureLoader,
     MemoryEvalHarness,
 )
-from openminion_eval.scorer import MemoryEvalScorer
+from tests.eval.integration.memory_scorer import MemoryEvalScorer
 from tests.eval.memory_quality_eval import (
     build_memory_quality_target_report,
     load_memory_quality_manifest,
