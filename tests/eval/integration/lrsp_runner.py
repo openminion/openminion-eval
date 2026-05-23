@@ -1,58 +1,4 @@
-"""LRSP — Live Runtime Stateful Probes harness.
-
-Lane: ``LRSP`` (Live Runtime Stateful Probes).
-Owner: openminion-runtime + openminion-eval.
-Tracker: ``docs/trackers/wip/live-runtime-stateful-probes-tracker.md``.
-Spec: ``docs/specs/live-runtime-stateful-probes-spec.md``.
-
-Pinned design rule inherited from the LRSP spec:
-**Live runtime regression detection uses structural assertions against
-captured-evidence per probe — never text-match, never model-evaluation,
-never LLM-judge. Probes fail-closed when the API key is absent; the
-harness never invents responses to avoid skipping.**
-
-This module is the scaffold landed in ``LRSP-01``. It extends the TEFC
-typed bundle/report pattern (``trace_flywheel.py``) and shares the
-captured-evidence structural-assertion discipline from AMEB Phase 2
-(``ameb_phase2_runner.py``) — it does **not** invent a parallel
-measurement architecture.
-
-What this scaffold provides (LRSP-01 surface)
----------------------------------------------
-
-1. Typed ``LiveRuntimeProbe`` shape — closed-set ``probe_kind`` Literal
-   over the 5 probes named in spec §2, structural-assertion contract,
-   expected typed-event sequence.
-2. Typed ``LiveRuntimeProbeResult`` shape — closed-set ``outcome``
-   Literal over ``passed`` / ``failed`` / ``skipped_no_api_key`` /
-   ``skipped_infrastructure_error``.
-3. ``LiveRuntimeProbeKind`` and ``LiveRuntimeProbeOutcome`` closed-set
-   Literals.
-4. API-key-gated entry point — env-var presence check for
-   ``OPENMINION_LIVE_PROBE_KEY`` (provider-agnostic per LRSP-Q2, with
-   MiniMax 2.7 documented as the v1 binding). Absent → all 5 probes
-   emit ``skipped_no_api_key`` and the harness exits cleanly.
-5. Artifact-capture under
-   ``.openminion/runtime/lrsp/<timestamp>/<probe_id>.json`` via
-   ``resolve_generated_root``.
-6. Pytest marker ``live_runtime_probe`` for opt-in invocation.
-
-Probe wiring (LRSP-02..LRSP-06) is intentionally not done in this
-module. Each probe's structural-assertion contract is declared as a
-typed ``LiveRuntimeProbe`` here; per-probe execution wiring lands in
-its own task row.
-
-Anti-LLM discipline (spec §5)
------------------------------
-
-1. No text-match assertions on free-form model output anywhere.
-2. No LLM-as-judge for probe outcomes anywhere.
-3. No model-self-report as success signal anywhere.
-4. ``skipped_no_api_key`` is a first-class typed outcome — never a
-   fake pass to avoid skipping.
-5. Closed-set ``LiveRuntimeProbeKind`` Literal prevents silent probe
-   sprawl.
-"""
+"""Typed LRSP probe declarations and result records."""
 
 from __future__ import annotations
 
@@ -64,11 +10,6 @@ from typing import Any, Literal
 
 from openminion.base.generated_paths import resolve_generated_root
 from openminion.base.common.time import utc_now_iso
-
-
-# ---------------------------------------------------------------------------
-# Closed-set Literals (spec §2 + §3)
-# ---------------------------------------------------------------------------
 
 
 LiveRuntimeProbeKind = Literal[
@@ -90,7 +31,6 @@ LiveRuntimeProbeOutcome = Literal[
 """Closed-set 4-value Literal over LRSP outcomes."""
 
 
-# Exhaustive tuples for closed-set discipline checks.
 ALL_LIVE_RUNTIME_PROBE_KINDS: tuple[LiveRuntimeProbeKind, ...] = (
     "fresh_focus_session_turn",
     "quiet_no_progress_chat",
@@ -107,45 +47,19 @@ ALL_LIVE_RUNTIME_PROBE_OUTCOMES: tuple[LiveRuntimeProbeOutcome, ...] = (
 )
 
 
-# ---------------------------------------------------------------------------
-# API-key gating (spec §3.4 + §5.1.7)
-# ---------------------------------------------------------------------------
-
-
 LRSP_API_KEY_ENV = "OPENMINION_LIVE_PROBE_KEY"
-"""Provider-agnostic LRSP API-key env var (LRSP-Q2 recommendation).
-
-v1 binding: MiniMax 2.7. To run probes against MiniMax 2.7, set
-``OPENMINION_LIVE_PROBE_KEY`` to the MiniMax API key. Absent → all
-probes emit ``skipped_no_api_key`` and the harness exits cleanly.
-"""
+"""Provider-agnostic LRSP API-key env var."""
 
 
 def live_probe_api_key_present() -> bool:
-    """Return whether the LRSP API key env var is structurally present.
-
-    Structural check only (env-var presence + non-empty). No prose,
-    no provider lookup, no model call. Per spec §5.2.4 the gating is
-    structural.
-    """
+    """Return whether the LRSP API key env var is structurally present."""
 
     return bool(os.environ.get(LRSP_API_KEY_ENV, "").strip())
 
 
-# ---------------------------------------------------------------------------
-# Typed structural-assertion contracts (spec §2 + §3.2)
-# ---------------------------------------------------------------------------
-
-
 @dataclass(frozen=True)
 class TypedEventExpectation:
-    """One typed event the probe expects to observe in order.
-
-    Structural shape only. ``event_type`` is the canonical typed event
-    name (e.g. ``run.queued``, ``tool.call``, ``memory.recall``). Each
-    expectation may pin a typed payload field key whose value is
-    asserted via a closed-set assertion kind.
-    """
+    """One typed event the probe expects to observe in order."""
 
     event_type: str
     typed_payload_field: str | None = None
@@ -161,27 +75,21 @@ class TypedEventExpectation:
 
 @dataclass(frozen=True)
 class StructuralAssertionContract:
-    """Closed-set structural-assertion contract for one probe.
-
-    All fields are structural. None of them admit prose-similarity,
-    text-match, or LLM-judge inputs (spec §5.1.1, §5.1.2, §5.1.4).
-    """
+    """Closed-set structural-assertion contract for one probe."""
 
     expected_event_sequence: tuple[TypedEventExpectation, ...]
-    expected_run_terminal_state: Literal[
-        "completed",
-        "failed",
-        "blocked",
-        "needs_human",
-        "budget_exhausted",
-    ] | None = None
+    expected_run_terminal_state: (
+        Literal[
+            "completed",
+            "failed",
+            "blocked",
+            "needs_human",
+            "budget_exhausted",
+        ]
+        | None
+    ) = None
     expected_terminal_state_provenance: str | None = None
     bounded_timeout_seconds: float = 30.0
-
-
-# ---------------------------------------------------------------------------
-# Typed probe + result records (spec §3.2 + §3.3)
-# ---------------------------------------------------------------------------
 
 
 @dataclass(frozen=True)
@@ -233,9 +141,7 @@ class LiveRuntimeProbeResult:
 
     def __post_init__(self) -> None:
         if self.outcome not in ALL_LIVE_RUNTIME_PROBE_OUTCOMES:
-            raise ValueError(
-                f"outcome={self.outcome!r} is outside the closed set"
-            )
+            raise ValueError(f"outcome={self.outcome!r} is outside the closed set")
         if self.outcome != "failed" and self.structural_failure_reason:
             raise ValueError(
                 "structural_failure_reason must be None unless outcome == 'failed'"
@@ -484,7 +390,9 @@ class LiveRuntimeProbeExecutor:
         # per-probe sqlite session-store from the host openminion data
         # tree. ``api_key`` is read from ``OPENMINION_LIVE_PROBE_KEY``
         # when not explicitly injected.
-        self._home_root = Path(home_root) if home_root else artifact_root / "session_home"
+        self._home_root = (
+            Path(home_root) if home_root else artifact_root / "session_home"
+        )
         self._api_key = str(api_key or os.environ.get(LRSP_API_KEY_ENV, "")).strip()
 
     def execute(self, probe: LiveRuntimeProbe) -> LiveRuntimeProbeResult:
@@ -871,9 +779,7 @@ class LiveRuntimeProbeExecutor:
             transcript = capture_typed_events(
                 session_id=session_id, store=handle.sessions
             )
-            return _evaluate_memory_recall_contract(
-                probe=probe, transcript=transcript
-            )
+            return _evaluate_memory_recall_contract(probe=probe, transcript=transcript)
         finally:
             handle.close()
 
@@ -984,9 +890,7 @@ class LiveRuntimeProbeExecutor:
             transcript = capture_typed_events(
                 session_id=session_id, store=handle.sessions
             )
-            return _evaluate_tool_backed_contract(
-                probe=probe, transcript=transcript
-            )
+            return _evaluate_tool_backed_contract(probe=probe, transcript=transcript)
         finally:
             handle.close()
 
@@ -1009,9 +913,7 @@ def _evaluate_fresh_focus_contract(
     """
 
     captured = []
-    completed = transcript.find("run.completed") or transcript.last(
-        "run.completed"
-    )
+    completed = transcript.find("run.completed") or transcript.last("run.completed")
     if completed is None:
         return LiveRuntimeProbeResult(
             probe_id=probe.probe_id,
@@ -1067,9 +969,7 @@ def _evaluate_memory_recall_contract(
             outcome="failed",
             structural_failure_reason="no memory.card_written event observed",
         )
-    captured.append(
-        CapturedEventRef(event_type="memory.card_written", observed=True)
-    )
+    captured.append(CapturedEventRef(event_type="memory.card_written", observed=True))
     if recall_evt is None:
         return LiveRuntimeProbeResult(
             probe_id=probe.probe_id,
@@ -1188,9 +1088,7 @@ def run_live_runtime_probes(
     """
 
     selected_probes = probes if probes is not None else build_canonical_probe_set()
-    artifact_root = default_lrsp_artifact_root(
-        home_root=home_root, timestamp=timestamp
-    )
+    artifact_root = default_lrsp_artifact_root(home_root=home_root, timestamp=timestamp)
     api_key_present = live_probe_api_key_present()
     active_executor = executor or LiveRuntimeProbeExecutor(artifact_root=artifact_root)
 
