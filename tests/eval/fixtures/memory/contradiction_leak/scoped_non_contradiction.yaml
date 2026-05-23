@@ -1,0 +1,24 @@
+version: "1"
+scenario_id: "contradiction-scoped-non-contradiction"
+description: "Context-dependent preferences survive without false contradiction handling."
+eval_dimensions:
+  - "contradiction_leak"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Review preference"
+      content: "Be verbose for code reviews."
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Diff preference"
+      content: "Be terse for diffs."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "when should I be verbose or terse in reviews and diffs?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "verbose for code reviews"
+    - "terse for diffs"

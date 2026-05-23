@@ -1,0 +1,35 @@
+{
+  "version": "1",
+  "dimensions": [
+    {
+      "dimension_id": "on_skill_fidelity",
+      "label": "On-skill fidelity",
+      "reviewer_prompt": "Does the response stay faithful to the selected skill and the concrete task described in the scenario?",
+      "scale": ["weak", "mixed", "strong"]
+    },
+    {
+      "dimension_id": "actionable_steps",
+      "label": "Actionable steps",
+      "reviewer_prompt": "Are the first four adapted steps concrete, sequenced, and useful enough to act on without rewriting the whole answer?",
+      "scale": ["weak", "mixed", "strong"]
+    },
+    {
+      "dimension_id": "verification_quality",
+      "label": "Verification quality",
+      "reviewer_prompt": "Is the verification check relevant, specific, and aligned with the skill's intended workflow?",
+      "scale": ["weak", "mixed", "strong"]
+    },
+    {
+      "dimension_id": "guardrail_quality",
+      "label": "Guardrail quality",
+      "reviewer_prompt": "Is the guardrail concrete, safety-relevant, and realistically helpful for the task?",
+      "scale": ["weak", "mixed", "strong"]
+    },
+    {
+      "dimension_id": "unsupported_drift",
+      "label": "Unsupported drift",
+      "reviewer_prompt": "Does the answer avoid unsupported claims, tool hallucinations, or drift away from the selected skill's domain?",
+      "scale": ["weak", "mixed", "strong"]
+    }
+  ]
+}

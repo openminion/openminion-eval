@@ -1,0 +1,77 @@
+{
+  "version": "1",
+  "targets": [
+    {
+      "target_id": "minimax-m2-5",
+      "provider_family": "official",
+      "provider_lane": "official minimax",
+      "model_label": "MiniMax M2.5"
+    },
+    {
+      "target_id": "minimax-m2-7",
+      "provider_family": "official",
+      "provider_lane": "official minimax",
+      "model_label": "MiniMax M2.7"
+    },
+    {
+      "target_id": "ollamacloud-glm-5",
+      "provider_family": "ollamacloud",
+      "provider_lane": "ollamacloud",
+      "model_label": "GLM-5"
+    },
+    {
+      "target_id": "ollamacloud-minimax-m2-5",
+      "provider_family": "ollamacloud",
+      "provider_lane": "ollamacloud",
+      "model_label": "MiniMax M2.5"
+    },
+    {
+      "target_id": "ollamacloud-minimax-m2-7",
+      "provider_family": "ollamacloud",
+      "provider_lane": "ollamacloud",
+      "model_label": "MiniMax M2.7"
+    },
+    {
+      "target_id": "ollamacloud-kimi-k2-5",
+      "provider_family": "ollamacloud",
+      "provider_lane": "ollamacloud",
+      "model_label": "Kimi K2.5"
+    },
+    {
+      "target_id": "ollamacloud-qwen3-5-397b",
+      "provider_family": "ollamacloud",
+      "provider_lane": "ollamacloud",
+      "model_label": "Qwen3.5 397B"
+    },
+    {
+      "target_id": "openrouter-claude-haiku-3",
+      "provider_family": "openrouter",
+      "provider_lane": "openrouter",
+      "model_label": "Claude Haiku 3"
+    },
+    {
+      "target_id": "openrouter-claude-haiku-4-5",
+      "provider_family": "openrouter",
+      "provider_lane": "openrouter",
+      "model_label": "Claude Haiku 4.5"
+    },
+    {
+      "target_id": "openrouter-gpt-4o",
+      "provider_family": "openrouter",
+      "provider_lane": "openrouter",
+      "model_label": "GPT-4o"
+    },
+    {
+      "target_id": "openrouter-gpt-5-4-mini",
+      "provider_family": "openrouter",
+      "provider_lane": "openrouter",
+      "model_label": "GPT-5.4 Mini"
+    },
+    {
+      "target_id": "openrouter-minimax-m2-7",
+      "provider_family": "openrouter",
+      "provider_lane": "openrouter",
+      "model_label": "MiniMax M2.7"
+    }
+  ]
+}

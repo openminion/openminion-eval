@@ -1,0 +1,50 @@
+{
+  "version": "1",
+  "dimensions": [
+    {
+      "dimension_id": "recall_precision",
+      "label": "Recall precision",
+      "description": "Scores how much of the surfaced memory context is relevant to the scenario query.",
+      "score_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "dimension_id": "recall_relevance",
+      "label": "Recall relevance",
+      "description": "Scores whether the expected memory facts are present in the retrieved context.",
+      "score_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "dimension_id": "behavioral_influence",
+      "label": "Behavioral influence readiness",
+      "description": "Scores whether the model received the needed memory evidence with enough precision to influence behavior. This is measurement-only; runtime does not infer behavior.",
+      "score_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "dimension_id": "promotion_quality",
+      "label": "Promotion quality",
+      "description": "Scores whether promoted memory candidates remain relevant and recallable after consolidation.",
+      "score_range": [
+        0.0,
+        1.0
+      ]
+    },
+    {
+      "dimension_id": "noise_level",
+      "label": "Low-noise recall",
+      "description": "Scores suppression of irrelevant or stale memory in the surfaced context.",
+      "score_range": [
+        0.0,
+        1.0
+      ]
+    }
+  ]
+}

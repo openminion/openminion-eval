@@ -1,0 +1,98 @@
+version: "1"
+scenario_id: "capsule-reflection-insight-quality"
+description: "A recurring correction from session summaries should produce a bounded meta insight that surfaces in the capsule."
+eval_dimensions:
+  - "capsule_precision"
+requires_features:
+  - "reflection"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:r0"
+      title: "session 0"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+        topic_keywords:
+          - "tests"
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Prefer explicit waits."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:r1"
+      title: "session 1"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+        topic_keywords:
+          - "tests"
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Prefer explicit waits."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:r2"
+      title: "session 2"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+        topic_keywords:
+          - "tests"
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Prefer explicit waits."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:r3"
+      title: "session 3"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+        topic_keywords:
+          - "tests"
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Prefer explicit waits."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:r4"
+      title: "session 4"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+        topic_keywords:
+          - "tests"
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Prefer explicit waits."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Team lunch menu"
+      content: "The team lunch menu changes every Wednesday."
+      confidence: 0.8
+sessions:
+  - id: "reflection-query"
+    turns:
+      - user: "do not use ad hoc sleeps in tests"
+        assistant:
+ground_truth:
+  relevance_labels:
+    "do not use ad hoc sleeps in tests": "relevant"
+    "team lunch menu": "irrelevant"

@@ -1,0 +1,30 @@
+version: "1"
+scenario_id: "contradiction-semantic-conflict"
+description: "A semantic contradiction leaves only the newer fact visible."
+eval_dimensions:
+  - "contradiction_leak"
+setup:
+  records:
+    - ref: "old-credential"
+      scope: "agent:eval-agent"
+      type: "fact"
+      key: "ci-credential-old"
+      title: "Old CI credential"
+      content: "CI auth uses a static password."
+      superseded_by: "new-credential"
+    - ref: "new-credential"
+      scope: "agent:eval-agent"
+      type: "fact"
+      key: "ci-credential-new"
+      title: "Current CI credential"
+      content: "CI auth uses a deploy key."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "what does CI auth use?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "deploy key"
+  must_not_surface:
+    - "static password"

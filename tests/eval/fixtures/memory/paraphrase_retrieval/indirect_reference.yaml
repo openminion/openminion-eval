@@ -1,0 +1,19 @@
+version: "1"
+scenario_id: "paraphrase-indirect-reference"
+description: "An indirect reference query records how well the current stack recalls the CI auth fact."
+eval_dimensions:
+  - "paraphrase_retrieval"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "CI auth setup"
+      content: "CI authentication uses a deploy key stored in the secrets manager."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "what was that thing we set up for CI auth?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "deploy key"

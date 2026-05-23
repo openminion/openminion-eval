@@ -1,0 +1,65 @@
+{
+  "version": "1",
+  "scenarios": [
+    {
+      "scenario_id": "claude-api",
+      "skill_id": "claude-api",
+      "fixture_path": "catalog/anthropic/claude-api/SKILL.md",
+      "task_brief": "building a small Claude Messages API integration for a Python app"
+    },
+    {
+      "scenario_id": "news_digest",
+      "skill_id": "news_digest",
+      "fixture_path": "catalog/anthropic/news_digest/SKILL.md",
+      "task_brief": "preparing a Slack-ready digest of this week's AI policy news"
+    },
+    {
+      "scenario_id": "mcp_builder",
+      "skill_id": "mcp_builder",
+      "fixture_path": "catalog/anthropic/mcp_builder/SKILL.md",
+      "task_brief": "building an MCP server for PostgreSQL query tools"
+    },
+    {
+      "scenario_id": "web_artifacts_builder",
+      "skill_id": "web_artifacts_builder",
+      "fixture_path": "catalog/anthropic/web_artifacts_builder/SKILL.md",
+      "task_brief": "creating an interactive web artifact for uptime incident analysis"
+    },
+    {
+      "scenario_id": "webapp-testing",
+      "skill_id": "webapp-testing",
+      "fixture_path": "catalog/anthropic/webapp-testing/SKILL.md",
+      "task_brief": "planning browser-focused tests for a new signup flow"
+    },
+    {
+      "scenario_id": "github_pr",
+      "skill_id": "github_pr",
+      "fixture_path": "catalog/openai/github_pr/SKILL.md",
+      "task_brief": "reviewing and merging a risky Python refactor pull request"
+    },
+    {
+      "scenario_id": "data_export",
+      "skill_id": "data_export",
+      "fixture_path": "catalog/openai/data_export/SKILL.md",
+      "task_brief": "exporting customer usage data to CSV safely"
+    },
+    {
+      "scenario_id": "figma_code_connect_components",
+      "skill_id": "figma_code_connect_components",
+      "fixture_path": "catalog/openai/figma_code_connect_components/SKILL.md",
+      "task_brief": "mapping Figma components to a React design system"
+    },
+    {
+      "scenario_id": "figma_generate_design",
+      "skill_id": "figma_generate_design",
+      "fixture_path": "catalog/openai/figma_generate_design/SKILL.md",
+      "task_brief": "creating an initial dashboard design from a product brief"
+    },
+    {
+      "scenario_id": "playwright",
+      "skill_id": "playwright",
+      "fixture_path": "catalog/openai/playwright/SKILL.md",
+      "task_brief": "writing browser tests for a checkout flow"
+    }
+  ]
+}

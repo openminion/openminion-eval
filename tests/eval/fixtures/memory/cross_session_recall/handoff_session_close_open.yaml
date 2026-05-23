@@ -1,0 +1,48 @@
+version: "1"
+scenario_id: "handoff-session-close-open"
+description: "A first-turn session handoff should surface the relevant prior deployment context without dragging in unrelated recent summaries."
+eval_dimensions:
+  - "cross_session_recall"
+  - "capsule_precision"
+requires_features:
+  - "session_handoff"
+sessions:
+  - id: "session-deploy"
+    turns:
+      - user: "remember: deploy key rotates every 90 days. We agreed to keep deployment automation on Tuesdays. No issues found with the staging rollout."
+        assistant: "Captured. We'll keep the deploy key rotation and Tuesday deployment plan in mind."
+  - id: "session-ui"
+    turns:
+      - user: "This session focused on routine interface cleanup, backlog grooming, and maintenance notes that did not change delivery priorities. Actually, lunch vendor comparison matrix still needs another tab."
+        assistant: "Noted. The UI cleanup pass stayed routine aside from the lunch vendor spreadsheet note."
+  - id: "session-sidebar"
+    turns:
+      - user: "This session focused on routine interface cleanup, backlog grooming, and maintenance notes that did not change delivery priorities. Actually, sidebar spacing audit needs one more pass."
+        assistant: "Okay. The sidebar review stayed routine except for the spacing audit follow-up."
+  - id: "session-dashboard"
+    turns:
+      - user: "This session focused on routine interface cleanup, backlog grooming, and maintenance notes that did not change delivery priorities. Actually, benchmark dashboard color pass still needs a final review."
+        assistant: "Understood. The dashboard work remains routine except for the color pass review."
+  - id: "session-retro"
+    turns:
+      - user: "This session focused on routine interface cleanup, backlog grooming, and maintenance notes that did not change delivery priorities. Actually, retro emoji poll still needs a final tally."
+        assistant: "Got it. The retro poll follow-up is the only lingering item from that session."
+  - id: "session-board"
+    turns:
+      - user: "This session focused on routine interface cleanup, backlog grooming, and maintenance notes that did not change delivery priorities. Actually, kanban swimlane tidy-up still needs one more sweep."
+        assistant: "Sounds good. The swimlane tidy-up is the only lingering note from that session."
+  - id: "session-query"
+    turns:
+      - user: "what did we discuss about deployment and the deploy key rotation?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "deploy key rotates every 90 days"
+  relevance_labels:
+    "deploy key rotates every 90 days": "relevant"
+    "lunch vendor comparison matrix": "irrelevant"
+    "sidebar spacing audit": "irrelevant"
+    "benchmark dashboard color pass": "irrelevant"
+    "retro emoji poll": "irrelevant"
+    "kanban swimlane tidy-up": "irrelevant"
+    "no issues found with the staging rollout": "irrelevant"

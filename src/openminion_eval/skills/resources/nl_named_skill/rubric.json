@@ -1,0 +1,25 @@
+{
+  "version": "1",
+  "dimensions": [
+    {
+      "dimension_id": "selection_accuracy",
+      "label": "Selection accuracy",
+      "description": "Whether the named skill was selected exactly."
+    },
+    {
+      "dimension_id": "selection_confidence",
+      "label": "Selection confidence",
+      "description": "Whether a skill.selected event carried the correct primary skill id."
+    },
+    {
+      "dimension_id": "fallback_behavior",
+      "label": "Fallback behavior",
+      "description": "Whether failure was empty/fail-closed or drifted to the wrong skill."
+    },
+    {
+      "dimension_id": "prompt_sensitivity",
+      "label": "Prompt sensitivity",
+      "description": "Whether the same skill succeeds across simple, complex, and minimal NL variants."
+    }
+  ]
+}

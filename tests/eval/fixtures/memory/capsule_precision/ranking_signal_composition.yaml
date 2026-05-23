@@ -1,0 +1,50 @@
+version: "1"
+scenario_id: "ranking-signal-composition"
+description: "Unified scoring should favor fresher, feedback-rich, and correction records over stale or irrelevant matches."
+eval_dimensions:
+  - "capsule_precision"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "correction"
+      title: "Correction: don't skip rollback verification"
+      content: "Don't skip rollback verification in the deploy checklist."
+      created_at: "2026-03-26T00:00:00+00:00"
+      updated_at: "2026-03-26T00:00:00+00:00"
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Fresh deploy checklist note"
+      content: "The deploy checklist requires smoke tests before rollout."
+      created_at: "2026-03-27T00:00:00+00:00"
+      updated_at: "2026-03-27T00:00:00+00:00"
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Feedback-rich deploy checklist note"
+      content: "The deploy checklist also requires rollback rehearsals."
+      created_at: "2026-03-25T00:00:00+00:00"
+      updated_at: "2026-03-25T00:00:00+00:00"
+      meta:
+        hit_count: 4
+        feedback_score: 0.4
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Old retired deploy checklist archive"
+      content: "An old retired deploy checklist skipped verification in the legacy pipeline."
+      created_at: "2025-01-01T00:00:00+00:00"
+      updated_at: "2025-01-01T00:00:00+00:00"
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Team lunch menu"
+      content: "The team lunch menu changes every Wednesday."
+sessions:
+  - id: "ranking-signal-session"
+    turns:
+      - user: "what deploy checklist should I follow?"
+        assistant:
+ground_truth:
+  relevance_labels:
+    "don't skip rollback verification": "relevant"
+    "fresh deploy checklist note": "relevant"
+    "feedback-rich deploy checklist note": "relevant"
+    "old retired deploy checklist archive": "irrelevant"
+    "team lunch menu": "irrelevant"

@@ -1,0 +1,39 @@
+version: "1"
+scenario_id: "plan-resumption-snapshot"
+description: "A stored plan snapshot should surface the next unfinished step in a later session."
+eval_dimensions:
+  - "cross_session_recall"
+  - "capsule_precision"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "plan_snapshot"
+      key: "plan:release-checklist"
+      title: "Plan snapshot: release checklist"
+      content:
+        plan_id: "release-checklist"
+        status: "incomplete"
+        current_step_id: "qa-signoff"
+        next_step: "Collect QA signoff before publishing the release notes."
+      confidence: 0.9
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "fact"
+      key: "fact:retro-poll"
+      title: "Retro poll note"
+      content: "The retro emoji poll still needs a final tally."
+      confidence: 0.8
+      source: "validated"
+sessions:
+  - id: "plan-query"
+    turns:
+      - user: "what is the next step for the release checklist?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "Collect QA signoff before publishing the release notes"
+    - "qa-signoff"
+  relevance_labels:
+    "Collect QA signoff before publishing the release notes": "relevant"
+    "qa-signoff": "relevant"
+    "retro emoji poll": "irrelevant"

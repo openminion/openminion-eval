@@ -1,0 +1,34 @@
+version: "1"
+scenario_id: "outcome-feedback-precision-bias"
+description: "Capsule precision should favor the relevant memory when outcome feedback has positively reinforced it."
+eval_dimensions:
+  - "capsule_precision"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Outcome-backed deploy note"
+      content: "Successful deploys require a rollback rehearsal before rollout."
+      created_at: "2026-03-20T00:00:00+00:00"
+      updated_at: "2026-03-20T00:00:00+00:00"
+      meta:
+        feedback_score: 0.8
+        outcome_success_count: 4
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Unreinforced deploy archive"
+      content: "A historical deploy archive skipped rollback rehearsal in the legacy flow."
+      created_at: "2026-03-27T00:00:00+00:00"
+      updated_at: "2026-03-27T00:00:00+00:00"
+      confidence: 0.2
+      meta:
+        feedback_score: 0.0
+sessions:
+  - id: "outcome-feedback-precision-session"
+    turns:
+      - user: "what deploy checklist should I follow?"
+        assistant:
+ground_truth:
+  relevance_labels:
+    "Outcome-backed deploy note": "relevant"
+    "Unreinforced deploy archive": "irrelevant"

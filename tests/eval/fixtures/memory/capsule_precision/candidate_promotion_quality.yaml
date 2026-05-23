@@ -1,0 +1,68 @@
+version: "1"
+scenario_id: "candidate-promotion-quality"
+description: "Candidate-first learning promotes evidence-backed candidates, rejects contradicted ones, and GC's stale unproven candidates before capsule build."
+eval_dimensions:
+  - "cross_session_recall"
+  - "capsule_precision"
+setup:
+  candidates:
+    - candidate_id: "cand-dark-mode"
+      session_id: "candidate-stage"
+      proposed_scope: "agent:eval-agent"
+      type: "user_preference"
+      title: "Preference: dark mode"
+      content: "I prefer dark mode."
+      confidence: 0.4
+      created_at: "2026-01-01T00:00:00+00:00"
+      updated_at: "2026-01-01T00:00:00+00:00"
+      meta:
+        reconfirmation_count: 2
+    - candidate_id: "cand-concise"
+      session_id: "candidate-stage"
+      proposed_scope: "agent:eval-agent"
+      type: "user_preference"
+      title: "Preference: concise summaries"
+      content: "I prefer concise summaries."
+      confidence: 0.6
+      created_at: "2026-01-01T00:00:00+00:00"
+      updated_at: "2026-01-01T00:00:00+00:00"
+      meta:
+        retrieval_hit_count: 3
+    - candidate_id: "cand-contradicted"
+      session_id: "candidate-stage"
+      proposed_scope: "agent:eval-agent"
+      type: "project_convention"
+      title: "Convention: pytest"
+      content: "We use pytest."
+      confidence: 0.4
+      created_at: "2026-01-01T00:00:00+00:00"
+      updated_at: "2026-01-01T00:00:00+00:00"
+      meta:
+        contradicted: true
+    - candidate_id: "cand-expired"
+      session_id: "candidate-stage"
+      proposed_scope: "agent:eval-agent"
+      type: "fact"
+      title: "Shell note"
+      content: "My shell is fish."
+      confidence: 0.4
+      created_at: "2026-01-01T00:00:00+00:00"
+      updated_at: "2026-01-01T00:00:00+00:00"
+sessions:
+  - id: "candidate-stage"
+    turns:
+      - user: "Quick check-in: nothing new today."
+        assistant: "Okay, keeping the current preferences in mind."
+  - id: "candidate-query"
+    turns:
+      - user: "what preferences should I follow?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "dark mode"
+    - "concise summaries"
+  relevance_labels:
+    "dark mode": "relevant"
+    "concise summaries": "relevant"
+    "we use pytest": "irrelevant"
+    "shell is fish": "irrelevant"

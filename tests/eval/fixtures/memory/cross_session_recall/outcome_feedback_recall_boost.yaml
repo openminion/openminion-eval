@@ -1,0 +1,30 @@
+version: "1"
+scenario_id: "outcome-feedback-recall-boost"
+description: "Cross-session recall should keep surfacing a memory that has been reinforced by successful outcomes."
+eval_dimensions:
+  - "cross_session_recall"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Preferred deploy approval rule"
+      content: "The deploy approval rule requires a rollback rehearsal before rollout."
+      created_at: "2026-03-20T00:00:00+00:00"
+      updated_at: "2026-03-20T00:00:00+00:00"
+      meta:
+        feedback_score: 0.7
+        outcome_success_count: 3
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Archived deploy rumor"
+      content: "An archived deploy rumor said approvals could skip rollback rehearsals."
+      created_at: "2026-03-27T00:00:00+00:00"
+      updated_at: "2026-03-27T00:00:00+00:00"
+sessions:
+  - id: "outcome-feedback-recall-session"
+    turns:
+      - user: "what deploy approval rule should I remember?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "requires a rollback rehearsal before rollout"

@@ -1,0 +1,94 @@
+version: "1"
+scenario_id: "promoted-correction-quality"
+description: "Reflection promotion should surface a durable correction above remaining insight noise in the capsule."
+eval_dimensions:
+  - "capsule_precision"
+requires_features:
+  - "reflection"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:rc0"
+      title: "session 0"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+          - "Use ruff rather than flake8."
+        topic_keywords: []
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Use ruff rather than flake8."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:rc1"
+      title: "session 1"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+          - "Use ruff rather than flake8."
+        topic_keywords: []
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Use ruff rather than flake8."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:rc2"
+      title: "session 2"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+          - "Use ruff rather than flake8."
+        topic_keywords: []
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Use ruff rather than flake8."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:rc3"
+      title: "session 3"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+          - "Use ruff rather than flake8."
+        topic_keywords: []
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Use ruff rather than flake8."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:rc4"
+      title: "session 4"
+      content:
+        decisions: []
+        open_questions: []
+        corrections:
+          - "Do not use ad hoc sleeps in tests."
+          - "Use ruff rather than flake8."
+        topic_keywords: []
+        turn_count: 4
+        summary_text: "Do not use ad hoc sleeps in tests. Use ruff rather than flake8."
+      confidence: 0.8
+      source: "validated"
+sessions:
+  - id: "reflection-promotion-query"
+    turns:
+      - user: "what testing correction should I follow?"
+        assistant:
+ground_truth:
+  relevance_labels:
+    "do not use ad hoc sleeps in tests": "relevant"
+    "use ruff rather than flake8": "relevant"
+    "across recent sessions": "irrelevant"

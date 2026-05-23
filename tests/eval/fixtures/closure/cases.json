@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "answer-now",
+      "prompt": "Tell me the result.",
+      "expected_action": "answer"
+    },
+    {
+      "case_id": "need-clarification",
+      "prompt": "Help me with it.",
+      "expected_action": "clarify"
+    }
+  ]
+}

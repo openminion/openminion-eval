@@ -1,0 +1,114 @@
+{
+  "execution_mode": "deterministic_memory_harness",
+  "manifest_version": "1",
+  "rubric_version": "1",
+  "target_count": 7,
+  "target_set": "representative",
+  "targets": [
+    {
+      "agent_id": "minimax-m2-5",
+      "config_path": "test-configs/per-agent-minimax-official.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/minimax-m2-5.json",
+      "scenario_count": 5,
+      "target_id": "minimax-m2-5"
+    },
+    {
+      "agent_id": "minimax-m2-7",
+      "config_path": "test-configs/per-agent-minimax-official.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/minimax-m2-7.json",
+      "scenario_count": 5,
+      "target_id": "minimax-m2-7"
+    },
+    {
+      "agent_id": "ollamacloud-glm-5",
+      "config_path": "test-configs/per-agent-ollamacloud-glm-5.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/ollamacloud-glm-5.json",
+      "scenario_count": 5,
+      "target_id": "ollamacloud-glm-5"
+    },
+    {
+      "agent_id": "ollamacloud-minimax-m2-7",
+      "config_path": "test-configs/per-agent-ollamacloud-minimax-m2-7.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/ollamacloud-minimax-m2-7.json",
+      "scenario_count": 5,
+      "target_id": "ollamacloud-minimax-m2-7"
+    },
+    {
+      "agent_id": "openrouter-minimax-m2-7",
+      "config_path": "test-configs/per-agent-openrouter-minimax-m2-7.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/openrouter-minimax-m2-7.json",
+      "scenario_count": 5,
+      "target_id": "openrouter-minimax-m2-7"
+    },
+    {
+      "agent_id": "openrouter-claude-haiku-4-5",
+      "config_path": "test-configs/per-agent-openrouter-claude-haiku-4-5.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/openrouter-claude-haiku-4-5.json",
+      "scenario_count": 5,
+      "target_id": "openrouter-claude-haiku-4-5"
+    },
+    {
+      "agent_id": "openrouter-gpt-4o",
+      "config_path": "test-configs/per-agent-openrouter-gpt-4o.json",
+      "dimension_summary": {
+        "behavioral_influence": 0.875,
+        "noise_level": 0.9,
+        "promotion_quality": 1.0,
+        "recall_precision": 0.8,
+        "recall_relevance": 1.0
+      },
+      "overall_score": 0.915,
+      "report_path": "openminion/tests/eval/baselines/memory_quality_representative_baseline/openrouter-gpt-4o.json",
+      "scenario_count": 5,
+      "target_id": "openrouter-gpt-4o"
+    }
+  ]
+}

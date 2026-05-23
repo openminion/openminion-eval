@@ -1,0 +1,19 @@
+version: "1"
+scenario_id: "paraphrase-synonym-substitution"
+description: "A synonym-heavy query still retrieves the stored credential fact."
+eval_dimensions:
+  - "paraphrase_retrieval"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "CI auth credential"
+      content: "CI auth uses a deploy key, also described as a deployment credential."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "which deployment credential does CI use?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "deploy key"

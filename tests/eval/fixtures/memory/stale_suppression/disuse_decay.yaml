@@ -1,0 +1,23 @@
+version: "1"
+scenario_id: "stale-suppression-disuse-decay"
+description: "A durable record that has not been retrieved in over 30 days decays faster and stays out of the capsule."
+eval_dimensions:
+  - "stale_memory_suppression"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Legacy cache policy"
+      content: "The legacy cache policy keeps a 48 hour TTL."
+      confidence: 0.35
+      last_hit_at: "2025-01-01T00:00:00+00:00"
+      created_at: "2025-01-01T00:00:00+00:00"
+      updated_at: "2025-01-01T00:00:00+00:00"
+sessions:
+  - id: "stale-query"
+    turns:
+      - user: "what legacy cache policy is still active?"
+        assistant:
+ground_truth:
+  must_not_surface:
+    - "legacy cache policy keeps a 48 hour ttl"

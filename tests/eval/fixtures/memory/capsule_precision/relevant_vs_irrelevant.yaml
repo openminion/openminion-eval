@@ -1,0 +1,24 @@
+version: "1"
+scenario_id: "capsule-precision-relevant-vs-irrelevant"
+description: "Only the relevant credential fact should surface for the credential query."
+eval_dimensions:
+  - "capsule_precision"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Deploy key policy"
+      content: "CI uses a deploy key for authentication."
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Team lunch menu"
+      content: "The team lunch menu changes every Wednesday."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "what credential does CI use?"
+        assistant:
+ground_truth:
+  relevance_labels:
+    "deploy key": "relevant"
+    "team lunch menu": "irrelevant"

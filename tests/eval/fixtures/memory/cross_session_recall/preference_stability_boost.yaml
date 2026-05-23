@@ -1,0 +1,94 @@
+version: "1"
+scenario_id: "preference-stability-boost"
+description: "Reflection should strengthen a stable preference so it remains easy to recall across sessions."
+eval_dimensions:
+  - "cross_session_recall"
+requires_features:
+  - "reflection"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "user_preference"
+      key: "pref:dark-mode"
+      title: "Preference: dark mode"
+      content: "I prefer dark mode."
+      confidence: 0.4
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ps0"
+      title: "session 0"
+      content:
+        decisions: []
+        open_questions: []
+        corrections: []
+        topic_keywords:
+          - "ui"
+        turn_count: 4
+        summary_text: "I prefer dark mode."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ps1"
+      title: "session 1"
+      content:
+        decisions: []
+        open_questions: []
+        corrections: []
+        topic_keywords:
+          - "ui"
+        turn_count: 4
+        summary_text: "I prefer dark mode."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ps2"
+      title: "session 2"
+      content:
+        decisions: []
+        open_questions: []
+        corrections: []
+        topic_keywords:
+          - "ui"
+        turn_count: 4
+        summary_text: "I prefer dark mode."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ps3"
+      title: "session 3"
+      content:
+        decisions: []
+        open_questions: []
+        corrections: []
+        topic_keywords:
+          - "ui"
+        turn_count: 4
+        summary_text: "I prefer dark mode."
+      confidence: 0.8
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ps4"
+      title: "session 4"
+      content:
+        decisions: []
+        open_questions: []
+        corrections: []
+        topic_keywords:
+          - "ui"
+        turn_count: 4
+        summary_text: "I prefer dark mode."
+      confidence: 0.8
+      source: "validated"
+sessions:
+  - id: "preference-query"
+    turns:
+      - user: "what interface preference should I remember?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "dark mode"

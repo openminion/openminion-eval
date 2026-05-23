@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "latest-weather",
+      "prompt": "What's the current weather in Oakland?",
+      "requires_freshness": true,
+      "requires_exact_date": true,
+      "requires_source_grounding": true
+    },
+    {
+      "case_id": "timeless-definition",
+      "prompt": "Explain what a compiler is.",
+      "requires_freshness": false
+    }
+  ]
+}

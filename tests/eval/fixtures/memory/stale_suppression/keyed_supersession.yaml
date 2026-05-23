@@ -1,0 +1,27 @@
+version: "1"
+scenario_id: "stale-suppression-keyed-supersession"
+description: "A keyed upsert supersedes the older record and keeps it out of the capsule."
+eval_dimensions:
+  - "stale_memory_suppression"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      key: "deployment-window"
+      title: "Old deploy window"
+      content: "Deployment window is Tuesday morning."
+    - scope: "agent:eval-agent"
+      type: "fact"
+      key: "deployment-window"
+      title: "Current deploy window"
+      content: "Deployment window is Wednesday morning."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "when is the deployment window?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "Wednesday morning"
+  must_not_surface:
+    - "Tuesday morning"

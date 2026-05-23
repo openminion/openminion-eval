@@ -1,0 +1,48 @@
+version: "1"
+scenario_id: "semantic-session-summary-relevance"
+description: "A semantically relevant session summary should outrank an unrelated newer summary."
+eval_dimensions:
+  - "cross_session_recall"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ssr-storage"
+      title: "artifact store decision"
+      content:
+        decisions:
+          - "Use Postgres for the artifact store."
+        open_questions:
+          - "Who owns the backfill runbook?"
+        corrections:
+          - "SQLite is only for local smoke tests."
+        topic_keywords:
+          - "artifact"
+          - "postgres"
+        turn_count: 6
+        summary_text: "We chose Postgres for the artifact store migration."
+      confidence: 0.9
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "session_summary"
+      key: "session_summary:ssr-travel"
+      title: "travel planning"
+      content:
+        decisions:
+          - "Stay near Midtown."
+        open_questions: []
+        corrections: []
+        topic_keywords:
+          - "travel"
+        turn_count: 4
+        summary_text: "Booked the hotel and planned the Midtown itinerary."
+      confidence: 0.85
+      source: "validated"
+sessions:
+  - id: "session-query"
+    turns:
+      - user: "what did we decide about the artifact store postgres migration?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "Use Postgres for the artifact store."

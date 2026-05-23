@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=77", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "openminion-eval"
+version = "0.1.0"
+description = "Standalone non-memory evaluation toolkit for OpenMinion"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "OpenMinion Contributors" }]
+keywords = ["openminion", "evaluation", "eval", "agents", "testing"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Software Development :: Quality Assurance",
+  "Topic :: Software Development :: Testing",
+]
+dependencies = [
+  "pyyaml",
+]
+
+[project.urls]
+Homepage = "https://github.com/openminion/openminion-eval"
+Repository = "https://github.com/openminion/openminion-eval"
+Issues = "https://github.com/openminion/openminion-eval/issues"
+Documentation = "https://github.com/openminion/openminion-eval#readme"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0,<9",
+  "ruff>=0.11,<1",
+]
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"openminion_eval.skills" = ["resources/**/*"]
+
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib -p no:cacheprovider"
+markers = [
+  "memory_eval: marks memory harness integration tests",
+  "memory_eval_benchmark: marks memory eval benchmark scenarios",
+  "live_runtime_probe: LRSP opt-in live-runtime stateful probes; gated on OPENMINION_LIVE_PROBE_KEY",
+]

@@ -1,0 +1,23 @@
+version: "1"
+scenario_id: "contradiction-type-aware-threshold"
+description: "Correction records should supersede lower-overlap conflicts that generic fact thresholds would miss."
+eval_dimensions:
+  - "contradiction_leak"
+sessions:
+  - id: "correction-session-1"
+    turns:
+      - user: "remember: use mocks for network tests."
+        assistant: "Okay."
+  - id: "correction-session-2"
+    turns:
+      - user: "remember: actually avoid mocks for network tests."
+        assistant: "Updated."
+  - id: "correction-query"
+    turns:
+      - user: "what testing guidance should I remember?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "avoid mocks for network tests"
+  must_not_surface:
+    - "use mocks for network tests"

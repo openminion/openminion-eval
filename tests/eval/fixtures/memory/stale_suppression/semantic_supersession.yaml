@@ -1,0 +1,30 @@
+version: "1"
+scenario_id: "stale-suppression-semantic-supersession"
+description: "A semantically superseded record stays out of the capsule."
+eval_dimensions:
+  - "stale_memory_suppression"
+setup:
+  records:
+    - ref: "old-style"
+      scope: "agent:eval-agent"
+      type: "fact"
+      key: "review-style-old"
+      title: "Old review style"
+      content: "Code reviews should always be verbose."
+      superseded_by: "new-style"
+    - ref: "new-style"
+      scope: "agent:eval-agent"
+      type: "fact"
+      key: "review-style-new"
+      title: "Current review style"
+      content: "Code reviews should be terse by default."
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "how should code reviews be written?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "terse by default"
+  must_not_surface:
+    - "always be verbose"

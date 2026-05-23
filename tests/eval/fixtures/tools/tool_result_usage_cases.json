@@ -1,0 +1,17 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "weather-grounded-answer",
+      "prompt": "Answer using the tool result only.",
+      "required_facts": ["16C", "San Diego"],
+      "forbidden_claims": ["18C"]
+    },
+    {
+      "case_id": "search-grounded-summary",
+      "prompt": "Summarize the fetched source without adding extra claims.",
+      "required_facts": ["source=serpapi"],
+      "forbidden_claims": ["source=openai"]
+    }
+  ]
+}

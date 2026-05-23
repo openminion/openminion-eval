@@ -1,0 +1,43 @@
+version: "1"
+scenario_id: "outcome-utility-balanced-ranking"
+description: "Capsule precision should prefer outcome-proven memories over otherwise-similar neutral and failed peers."
+eval_dimensions:
+  - "capsule_precision"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Successful deploy policy"
+      content: "Deploys require a rollback rehearsal before rollout."
+      created_at: "2026-03-20T00:00:00+00:00"
+      updated_at: "2026-03-20T00:00:00+00:00"
+      meta:
+        feedback_score: 0.8
+        outcome_success_count: 4
+        outcome_failure_count: 0
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Failed deploy policy"
+      content: "Deploys require a rollback rehearsal before rollout."
+      created_at: "2026-03-20T00:00:00+00:00"
+      updated_at: "2026-03-20T00:00:00+00:00"
+      meta:
+        feedback_score: 0.0
+        outcome_success_count: 0
+        outcome_failure_count: 4
+    - scope: "agent:eval-agent"
+      type: "fact"
+      title: "Neutral deploy policy"
+      content: "Deploys require a rollback rehearsal before rollout."
+      created_at: "2026-03-20T00:00:00+00:00"
+      updated_at: "2026-03-20T00:00:00+00:00"
+sessions:
+  - id: "outcome-utility-balanced-session"
+    turns:
+      - user: "what deploy policy should I follow?"
+        assistant:
+ground_truth:
+  relevance_labels:
+    "Successful deploy policy": "relevant"
+    "Failed deploy policy": "irrelevant"
+    "Neutral deploy policy": "irrelevant"

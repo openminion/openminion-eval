@@ -1,0 +1,23 @@
+version: "1"
+scenario_id: "contradiction-paraphrased-conflict"
+description: "Expanded negation patterns should supersede an older durable fact."
+eval_dimensions:
+  - "contradiction_leak"
+sessions:
+  - id: "contradiction-session-1"
+    turns:
+      - user: "remember: tmux is required during pairing sessions."
+        assistant: "I will remember that."
+  - id: "contradiction-session-2"
+    turns:
+      - user: "remember: actually tmux is never required during pairing sessions."
+        assistant: "Understood."
+  - id: "contradiction-query"
+    turns:
+      - user: "what pairing-session guidance should I keep in mind?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "tmux is never required during pairing sessions"
+  must_not_surface:
+    - "tmux is required during pairing sessions"

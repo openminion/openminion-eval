@@ -1,0 +1,49 @@
+version: "1"
+scenario_id: "cross-session-ten-session-chain"
+description: "A remembered fact survives ten sessions with irrelevant chatter in between."
+eval_dimensions:
+  - "cross_session_recall"
+sessions:
+  - id: "session-1"
+    turns:
+      - user: "remember: the incident review happens on Friday afternoon"
+        assistant: "Stored."
+  - id: "session-2"
+    turns:
+      - user: "we updated the docs today"
+        assistant: "Acknowledged."
+  - id: "session-3"
+    turns:
+      - user: "the CI pipeline is green"
+        assistant: "Good to hear."
+  - id: "session-4"
+    turns:
+      - user: "we merged the auth fix"
+        assistant: "Logged."
+  - id: "session-5"
+    turns:
+      - user: "please review the cron patch"
+        assistant: "Will do."
+  - id: "session-6"
+    turns:
+      - user: "the storage migration shipped"
+        assistant: "Recorded."
+  - id: "session-7"
+    turns:
+      - user: "we should revisit the eval harness"
+        assistant: "Captured."
+  - id: "session-8"
+    turns:
+      - user: "the debug traces look clean"
+        assistant: "Thanks."
+  - id: "session-9"
+    turns:
+      - user: "we finalized the rollout plan"
+        assistant: "Logged."
+  - id: "session-10"
+    turns:
+      - user: "when does the incident review happen?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "incident review happens on Friday afternoon"

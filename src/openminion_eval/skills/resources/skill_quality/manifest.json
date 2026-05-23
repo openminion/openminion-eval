@@ -1,0 +1,135 @@
+{
+  "version": "1",
+  "scenarios": [
+    {
+      "scenario_id": "claude-api",
+      "skill_id": "claude-api",
+      "fixture_path": "catalog/anthropic/claude-api/SKILL.md",
+      "prompt": "Use the exact skill claude-api. I need to plan a small Claude Messages API integration for a Python app. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "news_digest",
+      "skill_id": "news_digest",
+      "fixture_path": "catalog/anthropic/news_digest/SKILL.md",
+      "prompt": "Use the exact skill news_digest. I need a Slack-ready digest of the most important AI policy news from this week. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "mcp_builder",
+      "skill_id": "mcp_builder",
+      "fixture_path": "catalog/anthropic/mcp_builder/SKILL.md",
+      "prompt": "Use the exact skill mcp_builder. I need to build an MCP server for PostgreSQL query tools. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "web_artifacts_builder",
+      "skill_id": "web_artifacts_builder",
+      "fixture_path": "catalog/anthropic/web_artifacts_builder/SKILL.md",
+      "prompt": "Use the exact skill web_artifacts_builder. I need an interactive web artifact for uptime incident analysis. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "webapp-testing",
+      "skill_id": "webapp-testing",
+      "fixture_path": "catalog/anthropic/webapp-testing/SKILL.md",
+      "prompt": "Use the exact skill webapp-testing. I need a browser-focused test plan for a new signup flow. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "github_pr",
+      "skill_id": "github_pr",
+      "fixture_path": "catalog/openai/github_pr/SKILL.md",
+      "prompt": "Use the exact skill github_pr. I need a pull-request review and merge plan for a risky Python refactor. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "data_export",
+      "skill_id": "data_export",
+      "fixture_path": "catalog/openai/data_export/SKILL.md",
+      "prompt": "Use the exact skill data_export. I need to export customer usage data to CSV safely. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "figma_code_connect_components",
+      "skill_id": "figma_code_connect_components",
+      "fixture_path": "catalog/openai/figma_code_connect_components/SKILL.md",
+      "prompt": "Use the exact skill figma_code_connect_components. I need to map Figma components to our React design system. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "figma_generate_design",
+      "skill_id": "figma_generate_design",
+      "fixture_path": "catalog/openai/figma_generate_design/SKILL.md",
+      "prompt": "Use the exact skill figma_generate_design. I need an initial dashboard design from a product brief. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    },
+    {
+      "scenario_id": "playwright",
+      "skill_id": "playwright",
+      "fixture_path": "catalog/openai/playwright/SKILL.md",
+      "prompt": "Use the exact skill playwright. I need browser tests for a checkout flow. Give the first four adapted steps, one verification check, and one guardrail.",
+      "evaluation_dimensions": [
+        "on_skill_fidelity",
+        "actionable_steps",
+        "verification_quality",
+        "guardrail_quality",
+        "unsupported_drift"
+      ]
+    }
+  ]
+}

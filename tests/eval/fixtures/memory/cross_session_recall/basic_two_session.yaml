@@ -1,0 +1,17 @@
+version: "1"
+scenario_id: "cross-session-basic-two-session"
+description: "An explicit remember fact survives into a later session query."
+eval_dimensions:
+  - "cross_session_recall"
+sessions:
+  - id: "session-1"
+    turns:
+      - user: "remember: our deployment window is Tuesday morning"
+        assistant: "Noted."
+  - id: "session-2"
+    turns:
+      - user: "when is our deployment window?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "deployment window is Tuesday morning"

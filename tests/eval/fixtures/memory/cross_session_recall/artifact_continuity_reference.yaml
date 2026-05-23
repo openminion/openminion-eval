@@ -1,0 +1,39 @@
+version: "1"
+scenario_id: "artifact-continuity-reference"
+description: "A cross-session artifact digest should surface the produced artifact reference without adding unrelated memory noise."
+eval_dimensions:
+  - "cross_session_recall"
+  - "capsule_precision"
+setup:
+  records:
+    - scope: "agent:eval-agent"
+      type: "artifact_digest"
+      key: "artifact:release-notes"
+      title: "Artifact: release notes draft"
+      content:
+        artifact_ref: "artifact://release-notes-draft.md"
+        label: "release notes draft"
+        producer_session_id: "session-release"
+        path: "docs/releases/2026-04-15.md"
+      confidence: 0.9
+      source: "validated"
+    - scope: "agent:eval-agent"
+      type: "fact"
+      key: "fact:unrelated-dashboard"
+      title: "Unrelated dashboard note"
+      content: "The benchmark dashboard color pass still needs review."
+      confidence: 0.8
+      source: "validated"
+sessions:
+  - id: "artifact-query"
+    turns:
+      - user: "which release notes artifact did we produce?"
+        assistant:
+ground_truth:
+  must_recall:
+    - "artifact://release-notes-draft.md"
+    - "release notes draft"
+  relevance_labels:
+    "artifact://release-notes-draft.md": "relevant"
+    "release notes draft": "relevant"
+    "benchmark dashboard color pass": "irrelevant"

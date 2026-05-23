@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "single-answer",
+      "prompt": "What is 2 + 2?",
+      "expected_mode": "respond"
+    },
+    {
+      "case_id": "multi-step-research",
+      "prompt": "Research current GPU options and compare them.",
+      "expected_mode": "decompose"
+    }
+  ]
+}

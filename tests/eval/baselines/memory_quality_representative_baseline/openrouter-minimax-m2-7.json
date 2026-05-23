@@ -1,0 +1,131 @@
+{
+  "agent_id": "openrouter-minimax-m2-7",
+  "config_path": "test-configs/per-agent-openrouter-minimax-m2-7.json",
+  "engine_name": "default",
+  "execution_mode": "deterministic_memory_harness",
+  "generated_at": "2026-04-16T08:40:03.214075+00:00",
+  "manifest_version": "1",
+  "report_version": "1",
+  "rubric_version": "1",
+  "scenario_results": [
+    {
+      "memory_scenario_id": "preference-stability-boost",
+      "observations": {
+        "measurement_boundary": "deterministic_memory_context_quality; no runtime memory modification",
+        "query_count": 1
+      },
+      "scenario_family": "preference_recall",
+      "scenario_id": "preference_recall",
+      "scores": {
+        "behavioral_influence": 1.0,
+        "noise_level": 1.0,
+        "recall_precision": 1.0,
+        "recall_relevance": 1.0
+      },
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/preference_stability_boost.yaml",
+      "source_metrics": {
+        "cross_session_recall.precision_at_5": 1.0,
+        "cross_session_recall.recall_at_5": 1.0
+      }
+    },
+    {
+      "memory_scenario_id": "outcome-feedback-recall-boost",
+      "observations": {
+        "measurement_boundary": "deterministic_memory_context_quality; no runtime memory modification",
+        "query_count": 1
+      },
+      "scenario_family": "tool_outcome_recall",
+      "scenario_id": "tool_outcome_recall",
+      "scores": {
+        "behavioral_influence": 0.5,
+        "noise_level": 0.5,
+        "recall_precision": 0.5,
+        "recall_relevance": 1.0
+      },
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/outcome_feedback_recall_boost.yaml",
+      "source_metrics": {
+        "cross_session_recall.precision_at_5": 0.5,
+        "cross_session_recall.recall_at_5": 1.0
+      }
+    },
+    {
+      "memory_scenario_id": "artifact-continuity-reference",
+      "observations": {
+        "measurement_boundary": "deterministic_memory_context_quality; no runtime memory modification",
+        "query_count": 1
+      },
+      "scenario_family": "artifact_continuity",
+      "scenario_id": "artifact_continuity",
+      "scores": {
+        "behavioral_influence": 1.0,
+        "noise_level": 1.0,
+        "recall_precision": 1.0,
+        "recall_relevance": 1.0
+      },
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/artifact_continuity_reference.yaml",
+      "source_metrics": {
+        "capsule_precision.capsule_noise_rate": 0.0,
+        "capsule_precision.capsule_precision": 1.0,
+        "cross_session_recall.precision_at_5": 1.0,
+        "cross_session_recall.recall_at_5": 1.0
+      }
+    },
+    {
+      "memory_scenario_id": "plan-resumption-snapshot",
+      "observations": {
+        "measurement_boundary": "deterministic_memory_context_quality; no runtime memory modification",
+        "query_count": 1
+      },
+      "scenario_family": "plan_resumption",
+      "scenario_id": "plan_resumption",
+      "scores": {
+        "behavioral_influence": 1.0,
+        "noise_level": 1.0,
+        "recall_precision": 0.5,
+        "recall_relevance": 1.0
+      },
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/plan_resumption_snapshot.yaml",
+      "source_metrics": {
+        "capsule_precision.capsule_noise_rate": 0.0,
+        "capsule_precision.capsule_precision": 0.0,
+        "cross_session_recall.precision_at_5": 0.5,
+        "cross_session_recall.recall_at_5": 1.0
+      }
+    },
+    {
+      "memory_scenario_id": "candidate-promotion-quality",
+      "observations": {
+        "measurement_boundary": "deterministic_memory_context_quality; no runtime memory modification",
+        "query_count": 1
+      },
+      "scenario_family": "consolidation_quality",
+      "scenario_id": "consolidation_quality",
+      "scores": {
+        "noise_level": 1.0,
+        "promotion_quality": 1.0,
+        "recall_precision": 1.0,
+        "recall_relevance": 1.0
+      },
+      "source_fixture": "tests/eval/fixtures/memory/capsule_precision/candidate_promotion_quality.yaml",
+      "source_metrics": {
+        "capsule_precision.capsule_noise_rate": 0.0,
+        "capsule_precision.capsule_precision": 1.0,
+        "cross_session_recall.precision_at_5": 1.0,
+        "cross_session_recall.recall_at_5": 1.0
+      }
+    }
+  ],
+  "summary": {
+    "baseline_scope": "provider-shaped deterministic baseline; live model behavioral influence scoring can consume the same contract later",
+    "dimension_summary": {
+      "behavioral_influence": 0.875,
+      "noise_level": 0.9,
+      "promotion_quality": 1.0,
+      "recall_precision": 0.8,
+      "recall_relevance": 1.0
+    },
+    "overall_score": 0.915,
+    "scenario_count": 5
+  },
+  "target_id": "openrouter-minimax-m2-7"
+}

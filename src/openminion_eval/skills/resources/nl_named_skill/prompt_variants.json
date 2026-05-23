@@ -1,0 +1,20 @@
+{
+  "version": "1",
+  "variants": [
+    {
+      "variant_id": "simple",
+      "label": "Simple NL naming",
+      "prompt_template": "Use skill {skill_id}."
+    },
+    {
+      "variant_id": "complex",
+      "label": "Complex NL naming",
+      "prompt_template": "Use skill {skill_id} and give me the first 4 adapted steps for {task_brief}. Include one verification check and one guardrail."
+    },
+    {
+      "variant_id": "minimal",
+      "label": "Minimal NL naming",
+      "prompt_template": "{skill_id}"
+    }
+  ]
+}

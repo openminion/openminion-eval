@@ -1,0 +1,23 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "search-latest-release",
+      "prompt": "Find the latest OpenAI API release notes.",
+      "expected_family": "search",
+      "forbidden_families": ["weather"]
+    },
+    {
+      "case_id": "weather-forecast",
+      "prompt": "What is the weather in Oakland tomorrow?",
+      "expected_family": "weather",
+      "forbidden_families": ["search"]
+    },
+    {
+      "case_id": "no-tool-small-talk",
+      "prompt": "Say hello politely.",
+      "expected_family": "",
+      "allowed_no_tool": true
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "version": "1",
+  "scenarios": [
+    {
+      "scenario_id": "preference_recall",
+      "label": "Preference recall",
+      "scenario_family": "preference_recall",
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/preference_stability_boost.yaml",
+      "memory_scenario_id": "preference-stability-boost",
+      "evaluation_dimensions": [
+        "recall_precision",
+        "recall_relevance",
+        "behavioral_influence",
+        "noise_level"
+      ]
+    },
+    {
+      "scenario_id": "tool_outcome_recall",
+      "label": "Tool outcome recall",
+      "scenario_family": "tool_outcome_recall",
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/outcome_feedback_recall_boost.yaml",
+      "memory_scenario_id": "outcome-feedback-recall-boost",
+      "evaluation_dimensions": [
+        "recall_precision",
+        "recall_relevance",
+        "behavioral_influence",
+        "noise_level"
+      ]
+    },
+    {
+      "scenario_id": "artifact_continuity",
+      "label": "Artifact continuity",
+      "scenario_family": "artifact_continuity",
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/artifact_continuity_reference.yaml",
+      "memory_scenario_id": "artifact-continuity-reference",
+      "evaluation_dimensions": [
+        "recall_precision",
+        "recall_relevance",
+        "behavioral_influence",
+        "noise_level"
+      ]
+    },
+    {
+      "scenario_id": "plan_resumption",
+      "label": "Plan resumption",
+      "scenario_family": "plan_resumption",
+      "source_fixture": "tests/eval/fixtures/memory/cross_session_recall/plan_resumption_snapshot.yaml",
+      "memory_scenario_id": "plan-resumption-snapshot",
+      "evaluation_dimensions": [
+        "recall_precision",
+        "recall_relevance",
+        "behavioral_influence",
+        "noise_level"
+      ]
+    },
+    {
+      "scenario_id": "consolidation_quality",
+      "label": "Consolidation quality",
+      "scenario_family": "consolidation_quality",
+      "source_fixture": "tests/eval/fixtures/memory/capsule_precision/candidate_promotion_quality.yaml",
+      "memory_scenario_id": "candidate-promotion-quality",
+      "evaluation_dimensions": [
+        "recall_precision",
+        "recall_relevance",
+        "promotion_quality",
+        "noise_level"
+      ]
+    }
+  ]
+}

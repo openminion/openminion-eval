@@ -1,0 +1,17 @@
+version: "1"
+scenario_id: "latency-scaling-500"
+description: "Latency baseline at 500 generated records."
+eval_dimensions:
+  - "latency_regression"
+setup:
+  generated_records:
+    - scope: "agent:eval-agent"
+      type: "fact"
+      count: 500
+      content_prefix: "Generated latency fact"
+      title_prefix: "Latency fact"
+sessions:
+  - id: "query-session"
+    turns:
+      - user: "what does memory know about latency?"
+        assistant:
