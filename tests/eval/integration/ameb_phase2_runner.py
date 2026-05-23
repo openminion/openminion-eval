@@ -1,105 +1,4 @@
-"""AMEB Phase 2 captured-evidence baseline runner.
-
-Lane: ``AMEB`` (autonomous mission empirical benchmark, Phase 2 measurement).
-Owner: openminion-brain.
-Tracker: ``docs/trackers/wip/autonomous-mission-empirical-benchmark-tracker.md``
-(re-closing to ``qa/`` after this run).
-
-Pinned design rule inherited from the parent AMEB spec:
-**Capability measurement uses reproducible captured-evidence against typed
-structural oracles — never LLM-judge approximations, prose-similarity
-scoring, or contamination-vulnerable public benchmarks treated as ground
-truth.**
-
-What this module is
--------------------
-
-A typed Phase 2 captured-evidence baseline runner that drives each of
-the 8 corpus tasks from the frozen 2026-05-13 artifact (§2) through:
-
-1. a typed ``Goal`` (TGCR — ``modules/brain/schemas/goals.py``),
-2. a ``MissionVerifierExpectation`` lookup (MTRR —
-   ``modules/brain/schemas/missions.py``),
-3. an ``ExploratoryDisclosure`` emission for exploratory missions (MTRR),
-4. a sequence of ``VerifierInvocation`` → ``VerifierResult`` records
-   over the goal's success criteria and deliverables (TGCR —
-   ``modules/brain/runtime/policy_verify.py``),
-5. a structural ``is_run_completion_confirmed(...)`` reduction to a
-   typed ``RunTerminalState`` (TGCR —
-   ``modules/brain/runtime/policy_verify.py`` +
-   ``services/runtime/run_status.py``),
-6. a typed ``BenchmarkTaskOutcome`` row aggregating the captured
-   evidence, and finally
-7. a ``BenchmarkBaselineReport`` aggregating the 8 typed rows by
-   ``MissionType``.
-
-Why this shape (honest scope of evidence)
------------------------------------------
-
-The AMEB spec Phase 2 execution contract names "agent runs autonomously
-against current openminion ``HEAD``, oracle confirms". At openminion HEAD
-``f5b16747`` (the rebaseline commit landing TGCR+APBR+MTRR+ASRR+AATR+SPRR
-vocabulary chain), the typed verifier surface (``VerifierInvocation`` /
-``VerifierResult`` / ``run_verifier`` / ``is_run_completion_confirmed``)
-is the structural truth source the spec requires. It is **defined and
-exercisable** in this module — but the production agent-loop binding that
-wires "model proposes completion → runtime invokes verifier surface per
-``Goal`` child → run terminates via ``is_run_completion_confirmed``" is
-not yet present in ``src/openminion/services/`` or
-``src/openminion/modules/brain/loop/``. ``run_verifier`` and
-``is_run_completion_confirmed`` currently have zero production call sites
-(only tests at ``tests/brain/test_tgcr_verifier_contract.py`` and
-``tests/integration/test_tgcr_goal_run_lifecycle.py``).
-
-Per TSBR/TGCR precedent ("honest scope-of-evidence beats inflated
-claims"), this runner does NOT fabricate an end-to-end agent run. It
-captures the structural reality at HEAD ``f5b16747``:
-
-1. each of the 8 corpus tasks is built as a typed ``Goal`` (proves the
-   corpus is benchmark-shaped against the now-landed TGCR schema),
-2. each task's ``MissionVerifierExpectation`` is looked up via the MTRR
-   registry (proves mission-type dispatch is live and structural),
-3. each criterion+deliverable is exercised through ``run_verifier``
-   with a synthetic ``ActionResult`` representing the **no-evidence /
-   no-execution baseline** — the structurally honest captured state
-   when no agent loop has driven the goal,
-4. exploratory tasks emit ``ExploratoryDisclosure`` at run-start per
-   MTRR-Q4 and explicitly assert the absence of a completion verifier,
-5. the typed ``RunTerminalState`` reduction follows fail-closed semantics
-   (``RUN_TERMINAL_FAILED`` for unmet autonomous-completion goals;
-   ``RUN_TERMINAL_BLOCKED`` for exploratory disclosure-only outcomes),
-6. AATR ``ClarificationTrigger`` and APBR ``ProgressSignal`` / budget
-   events are out of scope for scoring per operator decision 2026-05-14
-   and are not consulted here.
-
-The honest Phase 2 outcome from this captured evidence is therefore
-``baseline_partial``: the typed-oracle infrastructure is proved live and
-exercisable on the full 8-task corpus, but the end-to-end agent-loop /
-verifier-surface binding (the actual "did openminion solve the task"
-measurement) is the documented gap. This is the structurally honest
-captured baseline at HEAD ``f5b16747``.
-
-Scoring discipline (operator-approved 2026-05-14, NON-NEGOTIABLE)
------------------------------------------------------------------
-
-1. Scoring is via TGCR verifier surfaces (``run_verifier``,
-   ``VerifierResult``, ``is_run_completion_confirmed``) + MTRR
-   (``MissionType``, ``MissionVerifierExpectation``,
-   ``ExploratoryDisclosure``) only.
-2. AATR ``ClarificationTrigger`` / APBR ``ProgressSignal`` /
-   ``BudgetExtensionTrigger`` are explicitly out of scope for scoring;
-   captured passively in §7 supplemental observations on the artifact
-   only (this runner emits zero such signals because no agent loop drove
-   the goals).
-3. No LLM-as-judge call path exists in this module.
-4. No prose-similarity scoring; comparison is typed-equal / typed
-   verifier verdict only.
-5. No model-claimed "I solved it" is treated as success.
-6. Contamination disclosure on the 2 ``public_*`` tasks is recorded on
-   the typed task row and the artifact §5.
-7. Fail-closed: when zero verifier results pass, the task is recorded
-   as not solved, never as solved-with-warning.
-"""
+"""Typed Phase 2 AMEB baseline runner for captured-evidence task scoring."""
 
 from __future__ import annotations
 
@@ -1141,8 +1040,12 @@ def _resolve_phase2_outcome(
         for row in outcomes
         if not row.verifier_expectation.autonomous_completion_supported
     ]
-    all_autonomous_confirmed = all(row.completion_confirmed for row in autonomous_outcomes)
-    all_disclosed = all(row.oracle_outcome == "disclosed" for row in exploratory_outcomes)
+    all_autonomous_confirmed = all(
+        row.completion_confirmed for row in autonomous_outcomes
+    )
+    all_disclosed = all(
+        row.oracle_outcome == "disclosed" for row in exploratory_outcomes
+    )
     if all_autonomous_confirmed and all_disclosed:
         return (
             "baseline_captured",

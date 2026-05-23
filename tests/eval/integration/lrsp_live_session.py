@@ -1,37 +1,4 @@
-"""LRPB live session helper module.
-
-Lane: ``LRPB`` (Live Runtime Provider Binding). Helper module for the
-five LRSP per-probe executor methods (see ``lrsp_runner.py``).
-Spec: ``docs/specs/live-runtime-provider-binding-spec.md``.
-Tracker: ``docs/trackers/wip/live-runtime-provider-binding-tracker.md``.
-
-This module replaces the LRSP scaffold's ``skipped_infrastructure_error``
-returns with real subprocess + in-process invocation primitives. It is
-deliberately small and typed: closed-set Literals where possible,
-frozen dataclasses for handles, no prose-similarity / LLM-judge
-content.
-
-Pinned design rule (inherited from LRSP §5):
-**No silent provider substitution. ``ProviderName`` is a closed-set
-Literal (LRPB-Q5: ``Literal["minimax_27"]`` for v1). Provider
-configuration construction is structural; the resolver fails-closed
-when the configured provider is unavailable. No prose-derived
-intent / no model self-report / no retry-until-pass.**
-
-Surfaces (spec §3)
-------------------
-
-1. ``ProviderConfig`` — typed provider binding with closed-set
-   ``ProviderName`` Literal.
-2. ``build_minimax27_provider_config(api_key, ...)`` — v1 single
-   binding.
-3. ``build_in_process_gateway(provider_config) -> GatewayTurnRunner``
-   — uses real ``APIRuntime`` composition root.
-4. ``spawn_chat_subprocess(...)`` — bounded subprocess wrapper for
-   probes 2 + 5.
-5. ``capture_typed_events(...)`` — typed event-extraction reading
-   typed payload fields from ``SessionStore`` (never stdout text).
-"""
+"""Live-session helpers for LRSP provider-bound probe execution."""
 
 from __future__ import annotations
 
@@ -43,56 +10,21 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Literal, Sequence
 
-# ---------------------------------------------------------------------------
-# Closed-set Literals (spec §3 + LRPB-Q5)
-# ---------------------------------------------------------------------------
-
-
 ProviderName = Literal["minimax_27"]
-"""Closed-set v1 provider Literal (LRPB-Q5 single binding)."""
+"""Closed-set v1 provider literal."""
 
 
 ALL_PROVIDER_NAMES: tuple[ProviderName, ...] = ("minimax_27",)
 
 
-# v1 default OpenRouter model identifier for MiniMax 2.7. LRPB-Q1: direct
-# API recommended for v1; OpenRouter pass-through is structurally
-# equivalent because both surfaces use the standard ``api_key_env`` +
-# ``base_url`` provider config shape. The default chosen here mirrors the
-# memory-anchor identity profile ``ollamacloud-minimax-m2-5`` which is
-# the documented v1 binding model.
+# Default v1 binding for MiniMax 2.7 over the OpenRouter-shaped adapter family.
 DEFAULT_MINIMAX27_MODEL = "MiniMax-M2.5"
 DEFAULT_MINIMAX27_PROVIDER_FAMILY = "openrouter"
 
 
-# ---------------------------------------------------------------------------
-# Typed provider config (spec §3.1 + §5.1.6)
-# ---------------------------------------------------------------------------
-
-
 @dataclass(frozen=True)
 class ProviderConfig:
-    """Typed provider binding for the LRPB live session helper.
-
-    Frozen + extra-forbid-by-dataclass-shape. The Literal type for
-    ``provider_name`` enforces closed-set discipline at the type-check
-    boundary; runtime validation is in ``__post_init__``.
-
-    Field semantics:
-
-    1. ``provider_name``: closed-set ``Literal["minimax_27"]``. v1
-       single binding (LRPB-Q5).
-    2. ``model``: the typed model identifier passed to the provider
-       factory (e.g. ``MiniMax-M2.5``).
-    3. ``api_key``: the live API key. Caller is responsible for
-       sourcing this from a typed env var (we recommend
-       ``OPENMINION_LIVE_PROBE_KEY`` per LRSP).
-    4. ``base_url``: HTTP base URL for the provider gateway. Optional;
-       empty means use the provider factory's default.
-    5. ``provider_family``: which adapter family (``openrouter`` /
-       ``anthropic`` / etc.) the underlying runtime uses to talk to
-       the model. v1 default is ``openrouter``.
-    """
+    """Typed provider binding for LRSP live-session helpers."""
 
     provider_name: ProviderName
     model: str
@@ -122,25 +54,15 @@ def build_minimax27_provider_config(
     base_url: str = "",
     provider_family: str = DEFAULT_MINIMAX27_PROVIDER_FAMILY,
 ) -> ProviderConfig:
-    """Construct a typed MiniMax 2.7 provider config.
-
-    Spec §3.1: typed binding for the v1 single provider. Anti-LLM rule
-    §5.1.6 (no silent provider substitution): caller must explicitly
-    name a model; the resolver does NOT silently swap providers.
-
-    Args:
-        api_key: live API key; non-empty required.
-        model: model identifier; defaults to ``MiniMax-M2.5``.
-        base_url: HTTP base URL (empty → provider factory default).
-        provider_family: adapter family; defaults to ``openrouter``.
-    """
+    """Construct the typed MiniMax 2.7 provider binding."""
 
     return ProviderConfig(
         provider_name="minimax_27",
         model=str(model).strip() or DEFAULT_MINIMAX27_MODEL,
         api_key=str(api_key).strip(),
         base_url=str(base_url).strip(),
-        provider_family=str(provider_family).strip() or DEFAULT_MINIMAX27_PROVIDER_FAMILY,
+        provider_family=str(provider_family).strip()
+        or DEFAULT_MINIMAX27_PROVIDER_FAMILY,
     )
 
 

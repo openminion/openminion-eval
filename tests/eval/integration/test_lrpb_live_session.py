@@ -206,8 +206,7 @@ def test_run_live_runtime_probes_clean_skip_when_key_absent(tmp_path: Path) -> N
 
 
 def test_executor_constructor_picks_up_api_key_from_env(tmp_path: Path) -> None:
-    """The executor reads ``OPENMINION_LIVE_PROBE_KEY`` at construction.
-    """
+    """The executor reads ``OPENMINION_LIVE_PROBE_KEY`` at construction."""
 
     saved = os.environ.get(LRSP_API_KEY_ENV)
     os.environ[LRSP_API_KEY_ENV] = "test-key-lrpb"

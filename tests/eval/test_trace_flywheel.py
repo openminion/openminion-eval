@@ -37,8 +37,13 @@ def test_build_trace_eval_flywheel_report_passes_all_checks(tmp_path: Path) -> N
     assert report.summary.passed is True
     assert report.summary.average_score == 1.0
     assert report.rubric.scorer_name == "exact_match"
-    assert report.summary.results[0].metadata["trace_source_kind"] == "workflow_smoke_checks"
-    assert report.summary.results[0].metadata["determinism_class"] == "deterministic_local"
+    assert (
+        report.summary.results[0].metadata["trace_source_kind"]
+        == "workflow_smoke_checks"
+    )
+    assert (
+        report.summary.results[0].metadata["determinism_class"] == "deterministic_local"
+    )
 
 
 def test_build_trace_eval_flywheel_report_records_failed_checks(tmp_path: Path) -> None:
@@ -137,7 +142,9 @@ def test_bundle_optionally_carries_one_self_eval_submission(tmp_path: Path) -> N
         },
         evidence_refs=["memory:1"],
     )
-    enriched_bundle = bundle.__class__(**{**bundle.__dict__, "self_eval_submission": self_eval})
+    enriched_bundle = bundle.__class__(
+        **{**bundle.__dict__, "self_eval_submission": self_eval}
+    )
 
     assert enriched_bundle.self_eval_submission == self_eval
     report = build_trace_eval_flywheel_report(enriched_bundle)

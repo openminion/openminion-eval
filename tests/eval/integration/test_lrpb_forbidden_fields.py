@@ -184,9 +184,7 @@ def _load_lrsp_roster() -> tuple[str, ...]:
     import importlib.util
     from pathlib import Path
 
-    module_path = (
-        Path(__file__).resolve().parent / "test_lrsp_forbidden_fields.py"
-    )
+    module_path = Path(__file__).resolve().parent / "test_lrsp_forbidden_fields.py"
     spec = importlib.util.spec_from_file_location(
         "_lrpb_cross_roster_test_lrsp_forbidden_fields",
         module_path,

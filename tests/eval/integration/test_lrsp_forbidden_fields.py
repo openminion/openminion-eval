@@ -93,9 +93,7 @@ def test_live_runtime_probe_rejects_construction_with_forbidden_field(
         "probe_id": "lrsp-test",
         "probe_kind": "fresh_focus_session_turn",
         "contract": StructuralAssertionContract(
-            expected_event_sequence=(
-                TypedEventExpectation(event_type="run.queued"),
-            ),
+            expected_event_sequence=(TypedEventExpectation(event_type="run.queued"),),
         ),
         forbidden_field: "any-prose-shaped-value",
     }
