@@ -115,7 +115,9 @@ def test_autonomous_completion_tasks_fail_closed_under_no_evidence() -> None:
     autonomous_specs = [
         spec
         for spec in corpus
-        if get_mission_verifier_expectation(spec.mission_type).autonomous_completion_supported
+        if get_mission_verifier_expectation(
+            spec.mission_type
+        ).autonomous_completion_supported
     ]
     assert len(autonomous_specs) == 6  # coding + research + operations (2 each)
     for spec in autonomous_specs:
@@ -128,9 +130,7 @@ def test_autonomous_completion_tasks_fail_closed_under_no_evidence() -> None:
         assert outcome.run_terminal_state == RUN_TERMINAL_FAILED
         assert outcome.oracle_outcome in {"fail", "partial"}
         # Every criterion + every deliverable must have a verifier result.
-        expected_targets = (
-            len(spec.success_criteria) + len(spec.deliverables)
-        )
+        expected_targets = len(spec.success_criteria) + len(spec.deliverables)
         assert len(outcome.verifier_results) == expected_targets
         # Fail-closed: zero verifier results passed in this baseline.
         assert all(not row.passed for row in outcome.verifier_results)
@@ -145,7 +145,10 @@ def test_run_phase2_baseline_returns_typed_partial_report() -> None:
     assert report.phase2_outcome == "baseline_partial"
     # Domain coverage contamination flag must fire for research +
     # exploratory (the two domains carrying public_*-class tasks).
-    flags = {row.mission_type: row.contamination_disclosure_flag for row in report.domain_coverage}
+    flags = {
+        row.mission_type: row.contamination_disclosure_flag
+        for row in report.domain_coverage
+    }
     assert flags == {
         "coding": False,
         "research": True,

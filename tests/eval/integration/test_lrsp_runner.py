@@ -108,7 +108,9 @@ def test_live_runtime_probe_result_rejects_out_of_set_outcome() -> None:
         )
 
 
-def test_live_runtime_probe_result_rejects_failure_reason_on_non_failed_outcome() -> None:
+def test_live_runtime_probe_result_rejects_failure_reason_on_non_failed_outcome() -> (
+    None
+):
     # ``skipped_no_api_key`` must not carry a structural failure reason —
     # inflating a skip with a prose-shaped failure reason is forbidden.
     with pytest.raises(ValueError):
@@ -126,7 +128,9 @@ def test_api_key_absent_path_produces_clean_skipped_report(
     monkeypatch.delenv(LRSP_API_KEY_ENV, raising=False)
     assert live_probe_api_key_present() is False
 
-    report = run_live_runtime_probes(home_root=tmp_path, timestamp="2026-05-15T00-00-00Z")
+    report = run_live_runtime_probes(
+        home_root=tmp_path, timestamp="2026-05-15T00-00-00Z"
+    )
 
     assert report.api_key_present is False
     assert len(report.results) == 5
@@ -172,8 +176,7 @@ def test_api_key_present_path_records_real_outcomes_post_lrpb(
     outcomes = tuple(row.outcome for row in report.results)
     for row in report.results:
         assert row.outcome in allowed, (
-            f"probe {row.probe_id}: outcome {row.outcome!r} not in"
-            f" closed-set {allowed}"
+            f"probe {row.probe_id}: outcome {row.outcome!r} not in closed-set {allowed}"
         )
         # Anti-LLM §5.1.6 + spec §9: with a fake key, ``passed`` is only
         # acceptable if backed by real captured-evidence (which requires
@@ -248,7 +251,12 @@ def test_canonical_probe_set_per_probe_assertion_contracts() -> None:
 
     fresh = probes["fresh_focus_session_turn"]
     fresh_events = tuple(e.event_type for e in fresh.contract.expected_event_sequence)
-    assert fresh_events == ("run.queued", "run.running", "run.responding", "run.completed")
+    assert fresh_events == (
+        "run.queued",
+        "run.running",
+        "run.responding",
+        "run.completed",
+    )
     final_fresh = fresh.contract.expected_event_sequence[-1]
     assert final_fresh.assertion_kind == "typed_integer_equals"
     assert final_fresh.expected_typed_value == 4
@@ -279,10 +287,14 @@ def test_canonical_probe_set_per_probe_assertion_contracts() -> None:
     result_event = tool.contract.expected_event_sequence[1]
     assert result_event.assertion_kind == "typed_iso8601_parseable"
     # LRSP-Q6: ALVB typed binding provenance is pinned.
-    assert tool.contract.expected_terminal_state_provenance == "typed_verifier_reduction"
+    assert (
+        tool.contract.expected_terminal_state_provenance == "typed_verifier_reduction"
+    )
 
     exit_probe = probes["clean_exit_shutdown"]
-    exit_events = tuple(e.event_type for e in exit_probe.contract.expected_event_sequence)
+    exit_events = tuple(
+        e.event_type for e in exit_probe.contract.expected_event_sequence
+    )
     assert exit_events == ("runtime.shutdown", "process.exit_code_zero")
     # Tight bounded timeout per LRSP-Q5.
     assert exit_probe.contract.bounded_timeout_seconds <= 5.0

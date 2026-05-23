@@ -48,7 +48,14 @@ for path in (_OPENMINION_SRC, _OPENMINION_ROOT):
 def _cleanup_python_artifacts(root: Path) -> None:
     """Remove repo-local Python cache/build residue under the package root."""
 
-    for pattern in ("__pycache__", ".pytest_cache", ".ruff_cache", "build", "dist", "*.egg-info"):
+    for pattern in (
+        "__pycache__",
+        ".pytest_cache",
+        ".ruff_cache",
+        "build",
+        "dist",
+        "*.egg-info",
+    ):
         for path in root.rglob(pattern):
             if path.is_dir():
                 shutil.rmtree(path, ignore_errors=True)
