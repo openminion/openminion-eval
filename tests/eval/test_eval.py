@@ -43,6 +43,9 @@ def test_eval_scorer_exact_match():
 
     scored = scorer.score(result, scorer_name="exact_match")
     assert scored.score == 1.0
+    assert scored.scorer_name == "exact_match"
+    assert result.score == 0.0
+    assert result.scorer_name == "pending"
 
 
 def test_eval_scorer_exact_match_fail():

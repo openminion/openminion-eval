@@ -12,6 +12,15 @@ if TYPE_CHECKING:
 EVAL_INTERFACE_VERSION = "v1"
 
 
+class EvalInterfaceError(Exception):
+    """Raised when an eval owner fails the declared public interface contract."""
+
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
 class EvalRunnerInterface(Protocol):
     """Eval Runner interface contract."""
 
@@ -83,115 +92,63 @@ class EvalSuiteInterface(Protocol):
     ) -> Any: ...  # EvalSummary
 
 
+def _validate_contract_and_methods(
+    obj: Any,
+    *,
+    required_methods: list[str],
+    error_code: str,
+    label: str,
+    strict: bool,
+) -> tuple[bool, list[str]]:
+    errors: list[str] = []
+    if not hasattr(obj, "contract_version"):
+        errors.append("Missing contract_version attribute")
+    elif obj.contract_version != EVAL_INTERFACE_VERSION:
+        errors.append(
+            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, got {obj.contract_version}"
+        )
+    for method in required_methods:
+        if not hasattr(obj, method) or not callable(getattr(obj, method)):
+            errors.append(f"Missing required method: {method}")
+    if errors and strict:
+        raise EvalInterfaceError(error_code, f"{label} incompatible: {errors}")
+    return not errors, errors
+
+
 def ensure_eval_runner_compatibility(
     runner: Any, strict: bool = True
 ) -> tuple[bool, list[str]]:
     """Validate eval runner implements the required interface."""
-    errors = []
-
-    # Check contract version
-    if not hasattr(runner, "contract_version"):
-        errors.append("Missing contract_version attribute")
-    elif runner.contract_version != EVAL_INTERFACE_VERSION:
-        errors.append(
-            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, "
-            f"got {runner.contract_version}"
-        )
-
-    # Check required methods
-    required_methods = ["replay", "replay_sync"]
-
-    for method in required_methods:
-        if not hasattr(runner, method) or not callable(getattr(runner, method)):
-            errors.append(f"Missing required method: {method}")
-
-    if errors:
-        if strict:
-
-            class EvalError(Exception):
-                def __init__(self, code, message):
-                    self.code = code
-                    self.message = message
-
-            raise EvalError(
-                "EVAL_RUNNER_INTERFACE_VIOLATION", f"Eval runner incompatible: {errors}"
-            )
-        return False, errors
-
-    return True, []
+    return _validate_contract_and_methods(
+        runner,
+        required_methods=["replay", "replay_sync"],
+        error_code="EVAL_RUNNER_INTERFACE_VIOLATION",
+        label="Eval runner",
+        strict=strict,
+    )
 
 
 def ensure_eval_scorer_compatibility(
     scorer: Any, strict: bool = True
 ) -> tuple[bool, list[str]]:
     """Validate eval scorer implements the required interface."""
-    errors = []
-
-    # Check contract version
-    if not hasattr(scorer, "contract_version"):
-        errors.append("Missing contract_version attribute")
-    elif scorer.contract_version != EVAL_INTERFACE_VERSION:
-        errors.append(
-            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, "
-            f"got {scorer.contract_version}"
-        )
-
-    # Check required methods
-    required_methods = ["score", "score_results", "register_scorer"]
-
-    for method in required_methods:
-        if not hasattr(scorer, method) or not callable(getattr(scorer, method)):
-            errors.append(f"Missing required method: {method}")
-
-    if errors:
-        if strict:
-
-            class EvalError(Exception):
-                def __init__(self, code, message):
-                    self.code = code
-                    self.message = message
-
-            raise EvalError(
-                "EVAL_SCORER_INTERFACE_VIOLATION", f"Eval scorer incompatible: {errors}"
-            )
-        return False, errors
-
-    return True, []
+    return _validate_contract_and_methods(
+        scorer,
+        required_methods=["score", "score_results", "register_scorer"],
+        error_code="EVAL_SCORER_INTERFACE_VIOLATION",
+        label="Eval scorer",
+        strict=strict,
+    )
 
 
 def ensure_eval_suite_compatibility(
     suite: Any, strict: bool = True
 ) -> tuple[bool, list[str]]:
     """Validate eval suite implements the required interface."""
-    errors = []
-
-    # Check contract version
-    if not hasattr(suite, "contract_version"):
-        errors.append("Missing contract_version attribute")
-    elif suite.contract_version != EVAL_INTERFACE_VERSION:
-        errors.append(
-            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, "
-            f"got {suite.contract_version}"
-        )
-
-    # Check required methods
-    required_methods = ["run", "run_single"]
-
-    for method in required_methods:
-        if not hasattr(suite, method) or not callable(getattr(suite, method)):
-            errors.append(f"Missing required method: {method}")
-
-    if errors:
-        if strict:
-
-            class EvalError(Exception):
-                def __init__(self, code, message):
-                    self.code = code
-                    self.message = message
-
-            raise EvalError(
-                "EVAL_SUITE_INTERFACE_VIOLATION", f"Eval suite incompatible: {errors}"
-            )
-        return False, errors
-
-    return True, []
+    return _validate_contract_and_methods(
+        suite,
+        required_methods=["run", "run_single"],
+        error_code="EVAL_SUITE_INTERFACE_VIOLATION",
+        label="Eval suite",
+        strict=strict,
+    )

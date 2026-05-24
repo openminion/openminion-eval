@@ -6,11 +6,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from openminion_eval.family_support import (
+    FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    count_truthy_metrics,
     count_pass_fail,
-    load_versioned_json_fixture,
+    load_versioned_cases,
     utc_now_iso,
     write_json_report,
 )
@@ -38,26 +40,20 @@ FreshnessReport = FamilyEvalReport
 
 
 def load_freshness_cases(path: str | Path) -> tuple[FreshnessCase, ...]:
-    payload = load_versioned_json_fixture(path)
-    cases: list[FreshnessCase] = []
-    seen_ids: set[str] = set()
-    for item in payload.get("cases", []):
-        case_id = str(item.get("case_id", "") or "").strip()
-        if not case_id or case_id in seen_ids:
-            raise ValueError(f"invalid or duplicate freshness case_id: {case_id!r}")
-        seen_ids.add(case_id)
-        cases.append(
-            FreshnessCase(
-                case_id=case_id,
-                prompt=str(item.get("prompt", "") or "").strip(),
-                requires_freshness=bool(item.get("requires_freshness", False)),
-                requires_exact_date=bool(item.get("requires_exact_date", False)),
-                requires_source_grounding=bool(
-                    item.get("requires_source_grounding", False)
-                ),
-            )
-        )
-    return tuple(cases)
+    return load_versioned_cases(
+        path,
+        case_key="cases",
+        family_label="freshness",
+        factory=lambda item: FreshnessCase(
+            case_id=str(item.get("case_id", "") or "").strip(),
+            prompt=str(item.get("prompt", "") or "").strip(),
+            requires_freshness=bool(item.get("requires_freshness", False)),
+            requires_exact_date=bool(item.get("requires_exact_date", False)),
+            requires_source_grounding=bool(
+                item.get("requires_source_grounding", False)
+            ),
+        ),
+    )
 
 
 def evaluate_freshness_case(
@@ -104,21 +100,18 @@ def build_freshness_report(
         case_count=len(results),
         passed_count=passed_count,
         failed_count=failed_count,
-        metrics={
-            "obligation_match_count": sum(
-                1 for r in results if bool(r.metrics["obligation_match"])
-            ),
-            "freshness_compliance_count": sum(
-                1 for r in results if bool(r.metrics["freshness_compliance"])
-            ),
-            "grounded_count": sum(1 for r in results if bool(r.metrics["grounded"])),
-            "stale_answer_leak_count": sum(
-                1 for r in results if bool(r.metrics["stale_answer_leak"])
-            ),
-        },
+        metrics=count_truthy_metrics(
+            results,
+            {
+                "obligation_match_count": "obligation_match",
+                "freshness_compliance_count": "freshness_compliance",
+                "grounded_count": "grounded",
+                "stale_answer_leak_count": "stale_answer_leak",
+            },
+        ),
     )
     return FreshnessReport(
-        report_version="1",
+        report_version=FAMILY_REPORT_VERSION,
         generated_at=utc_now_iso(),
         family_id="freshness",
         cases=results,

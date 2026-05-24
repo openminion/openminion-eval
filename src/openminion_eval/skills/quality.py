@@ -9,12 +9,17 @@ import re
 from typing import Any, Iterable
 
 from openminion_eval.family_support import utc_now_iso
+from openminion_eval.paths import skill_fixture_root
+from openminion_eval.skills.constants import (
+    CANONICAL_EVAL_FAMILY,
+    FAMILY_REPORT_VERSION,
+    SKILL_QUALITY_PENDING_REVIEW_STATUS,
+)
 from openminion_eval.skills.support import (
     extract_assistant_messages,
     official_skill_matrix_target_ids,
     packaged_skill_fixture_path,
     representative_skill_quality_target_ids as _representative_skill_quality_target_ids,
-    skill_resources_root,
 )
 
 
@@ -77,10 +82,10 @@ class SkillQualityTargetReport:
 
 
 def default_skill_quality_fixture_root() -> Path:
-    return skill_resources_root() / "skill_quality"
+    return skill_fixture_root("skill_quality")
 
 
-def default_manifest_path() -> Path:
+def default_skill_quality_manifest_path() -> Path:
     return default_skill_quality_fixture_root() / "manifest.json"
 
 
@@ -88,16 +93,15 @@ def default_rubric_path() -> Path:
     return default_skill_quality_fixture_root() / "rubric.json"
 
 
-CANONICAL_EVAL_FAMILY = "skills"
-
-
 def load_skill_quality_manifest(
     path: str | Path | None = None,
 ) -> tuple[str, tuple[SkillQualityScenario, ...]]:
-    manifest_path = Path(path) if path is not None else default_manifest_path()
+    manifest_path = (
+        Path(path) if path is not None else default_skill_quality_manifest_path()
+    )
     payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     version = str(payload.get("version", "") or "").strip()
-    if version != "1":
+    if version != FAMILY_REPORT_VERSION:
         raise ValueError(f"unsupported skill quality manifest version: {version!r}")
 
     scenarios: list[SkillQualityScenario] = []
@@ -136,7 +140,7 @@ def load_skill_quality_rubric(
     rubric_path = Path(path) if path is not None else default_rubric_path()
     payload = json.loads(rubric_path.read_text(encoding="utf-8"))
     version = str(payload.get("version", "") or "").strip()
-    if version != "1":
+    if version != FAMILY_REPORT_VERSION:
         raise ValueError(f"unsupported skill quality rubric version: {version!r}")
 
     dimensions: list[SkillQualityRubricDimension] = []
@@ -286,7 +290,7 @@ def build_skill_quality_target_report(
                     "label": dimension.label,
                     "reviewer_prompt": dimension.reviewer_prompt,
                     "scale": list(dimension.scale),
-                    "status": "pending_review",
+                    "status": SKILL_QUALITY_PENDING_REVIEW_STATUS,
                     "rating": None,
                     "notes": "",
                 }
@@ -335,7 +339,7 @@ def build_skill_quality_target_report(
         ),
     }
     return SkillQualityTargetReport(
-        report_version="1",
+        report_version=FAMILY_REPORT_VERSION,
         generated_at=utc_now_iso(),
         target_id=target_id,
         agent_id=agent_id,
@@ -368,7 +372,7 @@ __all__ = [
     "SkillQualityTargetReport",
     "build_skill_quality_target_report",
     "collect_routing_artifact_paths",
-    "default_manifest_path",
+    "default_skill_quality_manifest_path",
     "default_rubric_path",
     "iter_routing_target_records",
     "load_skill_quality_manifest",

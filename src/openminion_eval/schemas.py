@@ -13,7 +13,7 @@ class EvalTranscript:
     tags: list[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(frozen=True)
 class EvalResult:
     """Result of evaluating a single turn."""
 

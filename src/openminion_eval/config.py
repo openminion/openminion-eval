@@ -3,7 +3,8 @@
 The standalone public package currently has no runtime-loaded configuration
 contract. This module stays in place as a narrow compatibility seam for any
 external code that may already import ``openminion_eval.config`` directly while
-the package remains pre-1.0.
+the package remains pre-1.0. Removal target: revisit once the package reaches
+1.0 and downstream imports are audited away.
 """
 
 from __future__ import annotations

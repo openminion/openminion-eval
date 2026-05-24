@@ -45,6 +45,11 @@ lint: $(DEV_STAMP)
 	$(RUFF) check "$(REPO_ROOT)"
 
 test: $(DEV_STAMP)
+	@printf '%s\n' \
+		'Ignoring tests/eval/integration: live credentials or external runtime state required.' \
+		'Ignoring tests/eval/test_eval_adjacent_owner_dispositions.py: enforced by main workspace gates.' \
+		'Ignoring tests/eval/test_memory_eval.py: yaml-backed optional fixture suite outside the standalone public slice.' \
+		'Ignoring tests/eval/test_trace_flywheel.py: broader integration owner than the standalone public package gate.'
 	PYTHONPATH="$(REPO_ROOT)/src" $(PYTEST) -q "$(REPO_ROOT)/tests/eval" \
 		--ignore="$(REPO_ROOT)/tests/eval/integration" \
 		--ignore="$(REPO_ROOT)/tests/eval/test_eval_adjacent_owner_dispositions.py" \

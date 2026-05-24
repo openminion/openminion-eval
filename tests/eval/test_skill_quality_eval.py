@@ -7,6 +7,7 @@ from openminion_eval.skills import (
     SkillQualityRubricDimension,
     SkillQualityScenario,
     build_skill_quality_target_report,
+    default_skill_quality_manifest_path,
     iter_routing_target_records,
     load_skill_quality_manifest,
     load_skill_quality_rubric,
@@ -16,6 +17,7 @@ from openminion_eval.skills import (
 
 
 def test_skill_quality_manifest_and_rubric_load_cleanly() -> None:
+    assert default_skill_quality_manifest_path().name == "manifest.json"
     manifest_version, scenarios = load_skill_quality_manifest()
     rubric_version, rubric_dimensions = load_skill_quality_rubric()
 
