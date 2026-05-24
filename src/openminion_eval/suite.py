@@ -99,7 +99,7 @@ def load_golden_transcripts(path: str) -> list[EvalTranscript]:
     if not transcripts_dir.exists():
         return []
 
-    for file in transcripts_dir.glob("*.json"):
+    for file in sorted(transcripts_dir.glob("*.json")):
         with open(file) as f:
             data = json.load(f)
             transcripts.append(

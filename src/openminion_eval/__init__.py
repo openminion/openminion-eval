@@ -2,6 +2,7 @@
 
 from openminion_eval.interfaces import (
     EVAL_INTERFACE_VERSION,
+    EvalInterfaceError,
     EvalRunnerInterface,
     EvalScorerInterface,
     EvalSuiteInterface,
@@ -66,7 +67,7 @@ from openminion_eval.skills import (
     SkillQualityTargetReport,
     build_nl_named_skill_target_report,
     build_skill_quality_target_report,
-    default_manifest_path as default_skill_quality_manifest_path,
+    default_skill_quality_manifest_path,
     default_nl_named_skill_manifest_path,
     load_nl_named_skill_manifest,
     load_nl_named_skill_prompt_variants,
@@ -144,6 +145,7 @@ __all__ = [
     "FamilyCertificationSignal",
     "apply_family_signals_to_certification_cells",
     "EVAL_INTERFACE_VERSION",
+    "EvalInterfaceError",
     "EvalRunnerInterface",
     "EvalScorerInterface",
     "EvalSuiteInterface",

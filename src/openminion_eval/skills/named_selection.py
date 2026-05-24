@@ -8,12 +8,22 @@ from pathlib import Path
 from typing import Any
 
 from openminion_eval.family_support import utc_now_iso
+from openminion_eval.paths import skill_fixture_root
+from openminion_eval.skills.constants import (
+    CANONICAL_EVAL_FAMILY,
+    FALLBACK_BEHAVIOR_CORRECT,
+    FALLBACK_BEHAVIOR_EMPTY,
+    FALLBACK_BEHAVIOR_WRONG_SKILL,
+    FAMILY_REPORT_VERSION,
+    PROMPT_SENSITIVITY_STABLE_FAILURE,
+    PROMPT_SENSITIVITY_STABLE_SUCCESS,
+    PROMPT_SENSITIVITY_VARIANT_SENSITIVE,
+)
 from openminion_eval.skills.support import (
     extract_assistant_messages,
     official_skill_matrix_target_ids,
     packaged_skill_fixture_path,
     representative_nl_named_skill_target_ids as _representative_nl_named_skill_target_ids,
-    skill_resources_root,
 )
 
 
@@ -74,7 +84,7 @@ class NLNamedSkillTargetReport:
 
 
 def default_nl_named_skill_fixture_root() -> Path:
-    return skill_resources_root() / "nl_named_skill"
+    return skill_fixture_root("nl_named_skill")
 
 
 def default_nl_named_skill_manifest_path() -> Path:
@@ -89,9 +99,6 @@ def default_nl_named_skill_rubric_path() -> Path:
     return default_nl_named_skill_fixture_root() / "rubric.json"
 
 
-CANONICAL_EVAL_FAMILY = "skills"
-
-
 def load_nl_named_skill_manifest(
     path: str | Path | None = None,
 ) -> tuple[str, tuple[NLNamedSkillScenario, ...]]:
@@ -100,7 +107,7 @@ def load_nl_named_skill_manifest(
     )
     payload = json.loads(manifest_path.read_text(encoding="utf-8"))
     version = str(payload.get("version", "") or "").strip()
-    if version != "1":
+    if version != FAMILY_REPORT_VERSION:
         raise ValueError(f"unsupported NL named-skill manifest version: {version!r}")
 
     scenarios: list[NLNamedSkillScenario] = []
@@ -136,7 +143,7 @@ def load_nl_named_skill_prompt_variants(
     )
     payload = json.loads(variant_path.read_text(encoding="utf-8"))
     version = str(payload.get("version", "") or "").strip()
-    if version != "1":
+    if version != FAMILY_REPORT_VERSION:
         raise ValueError(
             f"unsupported NL named-skill prompt variant version: {version!r}"
         )
@@ -166,7 +173,7 @@ def load_nl_named_skill_rubric(
     )
     payload = json.loads(rubric_path.read_text(encoding="utf-8"))
     version = str(payload.get("version", "") or "").strip()
-    if version != "1":
+    if version != FAMILY_REPORT_VERSION:
         raise ValueError(f"unsupported NL named-skill rubric version: {version!r}")
 
     dimensions: list[NLNamedSkillRubricDimension] = []
@@ -235,11 +242,11 @@ def _prompt_sensitivity_by_scenario(
     result: dict[str, str] = {}
     for scenario_id, outcomes in scenario_map.items():
         if all(outcomes):
-            result[scenario_id] = "stable_success"
+            result[scenario_id] = PROMPT_SENSITIVITY_STABLE_SUCCESS
         elif any(outcomes):
-            result[scenario_id] = "variant_sensitive"
+            result[scenario_id] = PROMPT_SENSITIVITY_VARIANT_SENSITIVE
         else:
-            result[scenario_id] = "stable_failure"
+            result[scenario_id] = PROMPT_SENSITIVITY_STABLE_FAILURE
     return result
 
 
@@ -298,11 +305,11 @@ def build_nl_named_skill_target_report(
             and selected_skill_id == scenario.skill_id
         )
         if selection_accuracy:
-            fallback_behavior = "correct"
+            fallback_behavior = FALLBACK_BEHAVIOR_CORRECT
         elif selected_skill_id:
-            fallback_behavior = "wrong_skill"
+            fallback_behavior = FALLBACK_BEHAVIOR_WRONG_SKILL
         else:
-            fallback_behavior = "empty"
+            fallback_behavior = FALLBACK_BEHAVIOR_EMPTY
 
         dimensions = {
             "selection_accuracy": selection_accuracy,
@@ -379,10 +386,14 @@ def build_nl_named_skill_target_report(
                 1 for attempt in relevant if attempt.selection_confidence
             ),
             "empty_fallback_count": sum(
-                1 for attempt in relevant if attempt.fallback_behavior == "empty"
+                1
+                for attempt in relevant
+                if attempt.fallback_behavior == FALLBACK_BEHAVIOR_EMPTY
             ),
             "wrong_skill_count": sum(
-                1 for attempt in relevant if attempt.fallback_behavior == "wrong_skill"
+                1
+                for attempt in relevant
+                if attempt.fallback_behavior == FALLBACK_BEHAVIOR_WRONG_SKILL
             ),
         }
 
@@ -397,19 +408,21 @@ def build_nl_named_skill_target_report(
             1 for attempt in updated_attempts if attempt.selection_confidence
         ),
         "empty_fallback_count": sum(
-            1 for attempt in updated_attempts if attempt.fallback_behavior == "empty"
+            1
+            for attempt in updated_attempts
+            if attempt.fallback_behavior == FALLBACK_BEHAVIOR_EMPTY
         ),
         "wrong_skill_count": sum(
             1
             for attempt in updated_attempts
-            if attempt.fallback_behavior == "wrong_skill"
+            if attempt.fallback_behavior == FALLBACK_BEHAVIOR_WRONG_SKILL
         ),
         "variant_summary": variant_summary,
         "prompt_sensitivity_by_scenario": sensitivity_map,
     }
 
     return NLNamedSkillTargetReport(
-        report_version="1",
+        report_version=FAMILY_REPORT_VERSION,
         generated_at=utc_now_iso(),
         target_id=target_id,
         agent_id=agent_id,

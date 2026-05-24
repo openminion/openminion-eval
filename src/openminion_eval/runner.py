@@ -28,37 +28,8 @@ class EvalRunner:
         return f"Mock response to: {user_input}"
 
     async def replay(self, transcript: EvalTranscript) -> list[EvalResult]:
-        """
-        Replay a transcript and return results for each turn.
-
-        Args:
-            transcript: The transcript to replay.
-
-        Returns:
-            List of EvalResult for each turn.
-        """
-        results = []
-
-        for i, turn in enumerate(transcript.turns):
-            user_input = turn.get("user", "")
-            expected = turn.get("expected", "")
-
-            # Execute the turn through the agent
-            actual = self._agent_executor(user_input)
-
-            results.append(
-                EvalResult(
-                    turn_index=i,
-                    user_input=user_input,
-                    expected=expected,
-                    actual=actual,
-                    score=0.0,  # Score will be set by scorer
-                    scorer_name="pending",
-                    metadata={},
-                )
-            )
-
-        return results
+        """Replay a transcript and return results for each turn."""
+        return self.replay_sync(transcript)
 
     def replay_sync(self, transcript: EvalTranscript) -> list[EvalResult]:
         """Synchronous version of replay."""

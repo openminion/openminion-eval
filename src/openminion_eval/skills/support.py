@@ -4,6 +4,12 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from openminion_eval.paths import skill_resources_root as _skill_resources_root
+from openminion_eval.skills.constants import (
+    TRANSCRIPT_AGENT_PREFIX_TEMPLATE,
+    TRANSCRIPT_NEXT_USER_MARKER_TEMPLATE,
+)
+
 
 _OFFICIAL_SKILL_TARGET_IDS = ("minimax-m2-5", "minimax-m2-7")
 _REPRESENTATIVE_SKILL_TARGET_IDS = (
@@ -14,18 +20,13 @@ _REPRESENTATIVE_SKILL_TARGET_IDS = (
     "openrouter-gpt-4o",
 )
 _REPRESENTATIVE_NL_NAMED_SKILL_TARGET_IDS = (
-    "minimax-m2-5",
-    "minimax-m2-7",
-    "ollamacloud-glm-5",
-    "ollamacloud-minimax-m2-7",
-    "openrouter-minimax-m2-7",
-    "openrouter-claude-haiku-4-5",
-    "openrouter-gpt-4o",
+    *_OFFICIAL_SKILL_TARGET_IDS,
+    *_REPRESENTATIVE_SKILL_TARGET_IDS,
 )
 
 
 def skill_resources_root() -> Path:
-    return Path(__file__).resolve().parent / "resources"
+    return _skill_resources_root()
 
 
 def packaged_skill_fixture_path(relative_path: str | Path) -> Path:
@@ -47,8 +48,14 @@ def representative_nl_named_skill_target_ids() -> tuple[str, ...]:
 def extract_assistant_messages(
     *, transcript: str, session_id: str, agent_id: str
 ) -> list[str]:
-    prefix = f"[{session_id}|{agent_id}] {agent_id}:"
-    next_user_marker = f"\n[{session_id}|{agent_id}] you>"
+    prefix = TRANSCRIPT_AGENT_PREFIX_TEMPLATE.format(
+        session_id=session_id,
+        agent_id=agent_id,
+    )
+    next_user_marker = TRANSCRIPT_NEXT_USER_MARKER_TEMPLATE.format(
+        session_id=session_id,
+        agent_id=agent_id,
+    )
     messages: list[str] = []
     start = 0
     while True:

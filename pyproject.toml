@@ -21,9 +21,7 @@ classifiers = [
   "Topic :: Software Development :: Quality Assurance",
   "Topic :: Software Development :: Testing",
 ]
-dependencies = [
-  "pyyaml",
-]
+dependencies = []
 
 [project.urls]
 Homepage = "https://github.com/openminion/openminion-eval"
@@ -35,6 +33,7 @@ Documentation = "https://github.com/openminion/openminion-eval#readme"
 dev = [
   "pytest>=8.0,<9",
   "ruff>=0.11,<1",
+  "pyyaml",
 ]
 
 [tool.setuptools]

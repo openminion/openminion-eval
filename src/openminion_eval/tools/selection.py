@@ -6,11 +6,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from openminion_eval.family_support import (
+    FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    count_truthy_metrics,
     count_pass_fail,
-    load_versioned_json_fixture,
+    load_versioned_cases,
     utc_now_iso,
     write_json_report,
 )
@@ -35,30 +37,22 @@ ToolSelectionReport = FamilyEvalReport
 
 
 def load_tool_selection_cases(path: str | Path) -> tuple[ToolSelectionCase, ...]:
-    payload = load_versioned_json_fixture(path)
-    cases: list[ToolSelectionCase] = []
-    seen_ids: set[str] = set()
-    for item in payload.get("cases", []):
-        case_id = str(item.get("case_id", "") or "").strip()
-        if not case_id or case_id in seen_ids:
-            raise ValueError(
-                f"invalid or duplicate tool-selection case_id: {case_id!r}"
-            )
-        seen_ids.add(case_id)
-        cases.append(
-            ToolSelectionCase(
-                case_id=case_id,
-                prompt=str(item.get("prompt", "") or "").strip(),
-                expected_family=str(item.get("expected_family", "") or "").strip(),
-                allowed_no_tool=bool(item.get("allowed_no_tool", False)),
-                forbidden_families=tuple(
-                    str(value).strip()
-                    for value in item.get("forbidden_families", [])
-                    if str(value).strip()
-                ),
-            )
-        )
-    return tuple(cases)
+    return load_versioned_cases(
+        path,
+        case_key="cases",
+        family_label="tool-selection",
+        factory=lambda item: ToolSelectionCase(
+            case_id=str(item.get("case_id", "") or "").strip(),
+            prompt=str(item.get("prompt", "") or "").strip(),
+            expected_family=str(item.get("expected_family", "") or "").strip(),
+            allowed_no_tool=bool(item.get("allowed_no_tool", False)),
+            forbidden_families=tuple(
+                str(value).strip()
+                for value in item.get("forbidden_families", [])
+                if str(value).strip()
+            ),
+        ),
+    )
 
 
 def evaluate_tool_selection_case(
@@ -120,19 +114,18 @@ def build_tool_selection_report(
                 for case, result in zip(cases, results)
                 if case.expected_family and bool(result.metrics["correct_family"])
             ),
-            "unnecessary_tool_count": sum(
-                1 for result in results if bool(result.metrics["unnecessary_tool"])
-            ),
-            "missing_tool_count": sum(
-                1 for result in results if bool(result.metrics["missing_tool"])
-            ),
-            "forbidden_family_hit_count": sum(
-                1 for result in results if bool(result.metrics["forbidden_family_hit"])
+            **count_truthy_metrics(
+                results,
+                {
+                    "unnecessary_tool_count": "unnecessary_tool",
+                    "missing_tool_count": "missing_tool",
+                    "forbidden_family_hit_count": "forbidden_family_hit",
+                },
             ),
         },
     )
     return ToolSelectionReport(
-        report_version="1",
+        report_version=FAMILY_REPORT_VERSION,
         generated_at=utc_now_iso(),
         family_id="tools.selection",
         cases=results,

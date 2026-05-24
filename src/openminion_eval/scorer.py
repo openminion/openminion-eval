@@ -1,5 +1,6 @@
 """Eval scorer for OpenMinion."""
 
+from dataclasses import replace
 from typing import Callable, Optional
 from openminion_eval.schemas import EvalResult
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
@@ -67,9 +68,7 @@ class EvalScorer:
             raise ValueError(f"Unknown scorer: {scorer_name}")
         score = scorer(actual, exp)
 
-        result.score = score
-        result.scorer_name = scorer_name
-        return result
+        return replace(result, score=score, scorer_name=scorer_name)
 
     def score_results(
         self,

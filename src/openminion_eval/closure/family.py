@@ -6,11 +6,13 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from openminion_eval.family_support import (
+    FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    count_truthy_metrics,
     count_pass_fail,
-    load_versioned_json_fixture,
+    load_versioned_cases,
     utc_now_iso,
     write_json_report,
 )
@@ -34,22 +36,16 @@ ClosureReport = FamilyEvalReport
 
 
 def load_closure_cases(path: str | Path) -> tuple[ClosureCase, ...]:
-    payload = load_versioned_json_fixture(path)
-    cases: list[ClosureCase] = []
-    seen_ids: set[str] = set()
-    for item in payload.get("cases", []):
-        case_id = str(item.get("case_id", "") or "").strip()
-        if not case_id or case_id in seen_ids:
-            raise ValueError(f"invalid or duplicate closure case_id: {case_id!r}")
-        seen_ids.add(case_id)
-        cases.append(
-            ClosureCase(
-                case_id=case_id,
-                prompt=str(item.get("prompt", "") or "").strip(),
-                expected_action=str(item.get("expected_action", "") or "").strip(),
-            )
-        )
-    return tuple(cases)
+    return load_versioned_cases(
+        path,
+        case_key="cases",
+        family_label="closure",
+        factory=lambda item: ClosureCase(
+            case_id=str(item.get("case_id", "") or "").strip(),
+            prompt=str(item.get("prompt", "") or "").strip(),
+            expected_action=str(item.get("expected_action", "") or "").strip(),
+        ),
+    )
 
 
 def evaluate_closure_case(
@@ -83,20 +79,17 @@ def build_closure_report(
         case_count=len(results),
         passed_count=passed_count,
         failed_count=failed_count,
-        metrics={
-            "action_match_count": sum(
-                1 for r in results if bool(r.metrics["action_match"])
-            ),
-            "answer_complete_count": sum(
-                1 for r in results if bool(r.metrics["answer_complete"])
-            ),
-            "unnecessary_followup_count": sum(
-                1 for r in results if bool(r.metrics["unnecessary_followup"])
-            ),
-        },
+        metrics=count_truthy_metrics(
+            results,
+            {
+                "action_match_count": "action_match",
+                "answer_complete_count": "answer_complete",
+                "unnecessary_followup_count": "unnecessary_followup",
+            },
+        ),
     )
     return ClosureReport(
-        report_version="1",
+        report_version=FAMILY_REPORT_VERSION,
         generated_at=utc_now_iso(),
         family_id="closure",
         cases=results,

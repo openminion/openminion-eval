@@ -3,6 +3,7 @@
 import pytest
 from openminion_eval.interfaces import (
     EVAL_INTERFACE_VERSION,
+    EvalInterfaceError,
     ensure_eval_runner_compatibility,
     ensure_eval_scorer_compatibility,
     ensure_eval_suite_compatibility,
@@ -84,8 +85,9 @@ class TestEvalRunnerCompatibilityValidator:
             contract_version = "v99"  # Wrong version
 
         runner = BadRunner()
-        with pytest.raises(Exception):  # EvalError will be raised
+        with pytest.raises(EvalInterfaceError) as excinfo:
             ensure_eval_runner_compatibility(runner, strict=True)
+        assert excinfo.value.code == "EVAL_RUNNER_INTERFACE_VIOLATION"
 
 
 class TestEvalScorerCompatibilityValidator:
@@ -130,8 +132,9 @@ class TestEvalScorerCompatibilityValidator:
             contract_version = "v99"  # Wrong version
 
         scorer = BadScorer()
-        with pytest.raises(Exception):  # EvalError will be raised
+        with pytest.raises(EvalInterfaceError) as excinfo:
             ensure_eval_scorer_compatibility(scorer, strict=True)
+        assert excinfo.value.code == "EVAL_SCORER_INTERFACE_VIOLATION"
 
 
 class TestEvalSuiteCompatibilityValidator:
@@ -176,5 +179,6 @@ class TestEvalSuiteCompatibilityValidator:
             contract_version = "v99"  # Wrong version
 
         suite = BadSuite()
-        with pytest.raises(Exception):  # EvalError will be raised
+        with pytest.raises(EvalInterfaceError) as excinfo:
             ensure_eval_suite_compatibility(suite, strict=True)
+        assert excinfo.value.code == "EVAL_SUITE_INTERFACE_VIOLATION"
