@@ -1,12 +1,14 @@
 """Eval runner for OpenMinion."""
 
-from typing import Optional, Callable
-from openminion_eval.schemas import EvalTranscript, EvalResult
+from time import perf_counter
+from typing import Callable, Optional
+
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
+from openminion_eval.schemas import EvalResult, EvalTranscript
 
 
 class EvalRunner:
-    """Runner that replays a session transcript through the agent runtime."""
+    """Replay transcripts through an executor."""
 
     contract_version = EVAL_INTERFACE_VERSION
 
@@ -14,17 +16,9 @@ class EvalRunner:
         self,
         agent_executor: Optional[Callable[[str], str]] = None,
     ) -> None:
-        """
-        Initialize the eval runner.
-
-        Args:
-            agent_executor: Optional function that takes a user input and returns
-                           the agent's response. If not provided, uses a mock.
-        """
         self._agent_executor = agent_executor or self._default_executor
 
     def _default_executor(self, user_input: str) -> str:
-        """Default mock executor for testing."""
         return f"Mock response to: {user_input}"
 
     async def replay(self, transcript: EvalTranscript) -> list[EvalResult]:
@@ -32,13 +26,19 @@ class EvalRunner:
         return self.replay_sync(transcript)
 
     def replay_sync(self, transcript: EvalTranscript) -> list[EvalResult]:
-        """Synchronous version of replay."""
         results = []
 
         for i, turn in enumerate(transcript.turns):
             user_input = turn.get("user", "")
             expected = turn.get("expected", "")
-            actual = self._agent_executor(user_input)
+            start = perf_counter()
+            executor_error = None
+            try:
+                actual = self._agent_executor(user_input)
+            except Exception as exc:  # noqa: BLE001
+                actual = ""
+                executor_error = str(exc)
+            duration_ms = max((perf_counter() - start) * 1000.0, 0.001)
 
             results.append(
                 EvalResult(
@@ -48,7 +48,10 @@ class EvalRunner:
                     actual=actual,
                     score=0.0,
                     scorer_name="pending",
-                    metadata={},
+                    metadata={
+                        "duration_ms": duration_ms,
+                        "executor_error": executor_error,
+                    },
                 )
             )
 

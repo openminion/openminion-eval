@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -11,7 +11,7 @@ from openminion.modules.brain.runtime.self_eval_rubric import SelfEvalSubmission
 from openminion_eval.family_support import utc_now_iso
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
-from openminion_eval.schemas import EvalSummary, EvalTranscript
+from openminion_eval.schemas import EvalResult, EvalSummary, EvalTranscript
 
 
 @dataclass(frozen=True)
@@ -148,19 +148,26 @@ def build_trace_eval_flywheel_report(
     observation_by_check_id = {
         observation.check_id: observation for observation in bundle.observations
     }
+    annotated_results: list[EvalResult] = []
     for result in results:
         observation = observation_by_check_id[result.user_input]
-        result.metadata = {
-            "check_id": observation.check_id,
-            "details": observation.details,
-            "passed": observation.passed,
-            "actual_status": observation.actual_status,
-            "expected_status": observation.expected_status,
-            "trace_source_kind": bundle.trace_source_kind,
-            "determinism_class": bundle.determinism_class,
-        }
+        annotated_results.append(
+            replace(
+                result,
+                metadata={
+                    **result.metadata,
+                    "check_id": observation.check_id,
+                    "details": observation.details,
+                    "passed": observation.passed,
+                    "actual_status": observation.actual_status,
+                    "expected_status": observation.expected_status,
+                    "trace_source_kind": bundle.trace_source_kind,
+                    "determinism_class": bundle.determinism_class,
+                },
+            )
+        )
     scorer = EvalScorer()
-    scored_results = scorer.score_results(results, scorer_name=scorer_name)
+    scored_results = scorer.score_results(annotated_results, scorer_name=scorer_name)
     scores = [result.score for result in scored_results]
     average_score = sum(scores) / len(scores) if scores else 0.0
     summary = EvalSummary(

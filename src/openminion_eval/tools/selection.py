@@ -4,16 +4,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from openminion_eval.family_support import (
     FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    OnMissingObservation,
+    build_family_results,
     count_truthy_metrics,
     count_pass_fail,
     load_versioned_cases,
-    utc_now_iso,
+    report_generated_at,
     write_json_report,
 )
 
@@ -26,6 +29,13 @@ class ToolSelectionObservation:
 
 @dataclass(frozen=True)
 class ToolSelectionCase:
+    """Expected tool-family outcome.
+
+    Truth table: expected family + tool -> pass; expected family + no tool -> fail;
+    no expected family + allowed no tool + no tool -> pass; no expected family +
+    allowed no tool + tool -> unnecessary tool failure.
+    """
+
     case_id: str
     prompt: str
     expected_family: str
@@ -70,7 +80,9 @@ def evaluate_tool_selection_case(
         selected_families[0] if selected_families else ""
     )
     correct_family = chosen_family == case.expected_family
-    unnecessary_tool = bool(case.allowed_no_tool and has_tool)
+    unnecessary_tool = bool(
+        case.allowed_no_tool and has_tool and not case.expected_family
+    )
     missing_tool = bool((not case.allowed_no_tool) and not has_tool)
     forbidden_hit = any(
         family in selected_families for family in case.forbidden_families
@@ -99,9 +111,15 @@ def build_tool_selection_report(
     *,
     cases: tuple[ToolSelectionCase, ...],
     observations: dict[str, ToolSelectionObservation],
+    on_missing: OnMissingObservation = "raise",
+    now_provider: Callable[[], str] = report_generated_at,
 ) -> ToolSelectionReport:
-    results = tuple(
-        evaluate_tool_selection_case(case, observations[case.case_id]) for case in cases
+    results = build_family_results(
+        cases,
+        observations,
+        evaluate_tool_selection_case,
+        family_label="tools.selection",
+        on_missing=on_missing,
     )
     passed_count, failed_count = count_pass_fail(results)
     summary = FamilyEvalSummary(
@@ -112,7 +130,7 @@ def build_tool_selection_report(
             "correct_family_count": sum(
                 1
                 for case, result in zip(cases, results)
-                if case.expected_family and bool(result.metrics["correct_family"])
+                if case.expected_family and bool(result.metrics.get("correct_family"))
             ),
             **count_truthy_metrics(
                 results,
@@ -126,7 +144,7 @@ def build_tool_selection_report(
     )
     return ToolSelectionReport(
         report_version=FAMILY_REPORT_VERSION,
-        generated_at=utc_now_iso(),
+        generated_at=now_provider(),
         family_id="tools.selection",
         cases=results,
         summary=summary,

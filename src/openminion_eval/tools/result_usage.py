@@ -4,16 +4,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from openminion_eval.family_support import (
     FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    OnMissingObservation,
+    build_family_results,
     count_truthy_metrics,
     count_pass_fail,
     load_versioned_cases,
-    utc_now_iso,
+    report_generated_at,
     write_json_report,
 )
 
@@ -26,6 +29,8 @@ class ToolResultUsageObservation:
 
 @dataclass(frozen=True)
 class ToolResultUsageCase:
+    """Required grounding facts with selective forbidden-claim enforcement."""
+
     case_id: str
     prompt: str
     required_facts: tuple[str, ...]
@@ -74,7 +79,7 @@ def evaluate_tool_result_usage_case(
     missing_facts = tuple(sorted(required - cited))
     forbidden_hits = tuple(sorted(forbidden & unsupported))
     grounded = not missing_facts
-    unsupported_clean = not forbidden_hits and not unsupported
+    unsupported_clean = not forbidden_hits
     passed = grounded and unsupported_clean
     return FamilyEvalCaseResult(
         case_id=case.case_id,
@@ -95,10 +100,15 @@ def build_tool_result_usage_report(
     *,
     cases: tuple[ToolResultUsageCase, ...],
     observations: dict[str, ToolResultUsageObservation],
+    on_missing: OnMissingObservation = "raise",
+    now_provider: Callable[[], str] = report_generated_at,
 ) -> ToolResultUsageReport:
-    results = tuple(
-        evaluate_tool_result_usage_case(case, observations[case.case_id])
-        for case in cases
+    results = build_family_results(
+        cases,
+        observations,
+        evaluate_tool_result_usage_case,
+        family_label="tools.result_usage",
+        on_missing=on_missing,
     )
     passed_count, failed_count = count_pass_fail(results)
     summary = FamilyEvalSummary(
@@ -114,13 +124,15 @@ def build_tool_result_usage_report(
                 },
             ),
             "unsupported_claim_case_count": sum(
-                1 for result in results if bool(result.metrics["unsupported_claims"])
+                1
+                for result in results
+                if bool(result.metrics.get("unsupported_claims"))
             ),
         },
     )
     return ToolResultUsageReport(
         report_version=FAMILY_REPORT_VERSION,
-        generated_at=utc_now_iso(),
+        generated_at=now_provider(),
         family_id="tools.result_usage",
         cases=results,
         summary=summary,

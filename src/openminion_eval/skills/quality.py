@@ -6,9 +6,9 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import re
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 
-from openminion_eval.family_support import utc_now_iso
+from openminion_eval.family_support import report_generated_at
 from openminion_eval.paths import skill_fixture_root
 from openminion_eval.skills.constants import (
     CANONICAL_EVAL_FAMILY,
@@ -243,6 +243,7 @@ def build_skill_quality_target_report(
     scenarios: tuple[SkillQualityScenario, ...],
     rubric_version: str,
     rubric_dimensions: tuple[SkillQualityRubricDimension, ...],
+    now_provider: Callable[[], str] = report_generated_at,
 ) -> SkillQualityTargetReport:
     scenario_lookup = {scenario.scenario_id: scenario for scenario in scenarios}
     rubric_lookup = {
@@ -340,7 +341,7 @@ def build_skill_quality_target_report(
     }
     return SkillQualityTargetReport(
         report_version=FAMILY_REPORT_VERSION,
-        generated_at=utc_now_iso(),
+        generated_at=now_provider(),
         target_id=target_id,
         agent_id=agent_id,
         config_path=config_path,

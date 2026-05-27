@@ -22,7 +22,7 @@ class EvalInterfaceError(Exception):
 
 
 class EvalRunnerInterface(Protocol):
-    """Eval Runner interface contract."""
+    """Eval runner interface contract."""
 
     contract_version: ClassVar[str] = EVAL_INTERFACE_VERSION
 
@@ -31,17 +31,13 @@ class EvalRunnerInterface(Protocol):
         agent_executor: Optional[Callable[[str], str]] = None,
     ) -> None: ...
 
-    async def replay(
-        self, transcript: Any
-    ) -> list[Any]: ...  # EvalTranscript -> EvalResult
+    async def replay(self, transcript: Any) -> list[Any]: ...
 
-    def replay_sync(
-        self, transcript: Any
-    ) -> list[Any]: ...  # EvalTranscript -> EvalResult
+    def replay_sync(self, transcript: Any) -> list[Any]: ...
 
 
 class EvalScorerInterface(Protocol):
-    """Eval Scorer interface contract."""
+    """Eval scorer interface contract."""
 
     contract_version: ClassVar[str] = EVAL_INTERFACE_VERSION
 
@@ -55,41 +51,42 @@ class EvalScorerInterface(Protocol):
 
     def score(
         self,
-        result: Any,  # EvalResult
+        result: Any,
         expected: Optional[str] = None,
         scorer_name: str = "substring_match",
-    ) -> Any: ...  # returns EvalResult
+    ) -> Any: ...
 
     def score_results(
         self,
-        results: list[Any],  # List[EvalResult]
+        results: list[Any],
         scorer_name: str = "substring_match",
-    ) -> list[Any]: ...  # List[EvalResult]
+    ) -> list[Any]: ...
 
 
 class EvalSuiteInterface(Protocol):
-    """Eval Suite interface contract."""
+    """Eval suite interface contract."""
 
     contract_version: ClassVar[str] = EVAL_INTERFACE_VERSION
 
     def __init__(
         self,
-        runner: Optional[Any] = None,  # EvalRunner
-        scorer: Optional[Any] = None,  # EvalScorer
+        runner: Optional[Any] = None,
+        scorer: Optional[Any] = None,
         threshold: float = 0.80,
     ) -> None: ...
 
     def run(
         self,
-        transcripts: list[Any],  # List[EvalTranscript]
+        transcripts: list[Any],
         scorer_name: str = "substring_match",
-    ) -> Any: ...  # EvlSuiteResult
+        on_case: Optional[Callable[[Any], None]] = None,
+    ) -> Any: ...
 
     def run_single(
         self,
-        transcript: Any,  # EvalTranscript
+        transcript: Any,
         scorer_name: str = "substring_match",
-    ) -> Any: ...  # EvalSummary
+    ) -> Any: ...
 
 
 def _validate_contract_and_methods(

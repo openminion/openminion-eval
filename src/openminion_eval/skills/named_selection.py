@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
-from openminion_eval.family_support import utc_now_iso
+from openminion_eval.family_support import report_generated_at
 from openminion_eval.paths import skill_fixture_root
 from openminion_eval.skills.constants import (
     CANONICAL_EVAL_FAMILY,
@@ -259,6 +259,7 @@ def build_nl_named_skill_target_report(
     prompt_variants: tuple[NLNamedSkillPromptVariant, ...],
     rubric_version: str,
     rubric_dimensions: tuple[NLNamedSkillRubricDimension, ...],
+    now_provider: Callable[[], str] = report_generated_at,
 ) -> NLNamedSkillTargetReport:
     scenario_lookup = {scenario.scenario_id: scenario for scenario in scenarios}
     variant_lookup = {variant.variant_id: variant for variant in prompt_variants}
@@ -423,7 +424,7 @@ def build_nl_named_skill_target_report(
 
     return NLNamedSkillTargetReport(
         report_version=FAMILY_REPORT_VERSION,
-        generated_at=utc_now_iso(),
+        generated_at=now_provider(),
         target_id=target_id,
         agent_id=agent_id,
         config_path=config_path,

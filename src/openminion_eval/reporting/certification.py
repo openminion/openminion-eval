@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Iterable
 
 
 @dataclass(frozen=True)
@@ -20,10 +20,12 @@ def apply_family_signals_to_certification_cells(
     base_status: str,
     base_evidence_paths: tuple[str, ...],
     base_notes: tuple[str, ...],
-    signals: Iterable[FamilyCertificationSignal],
+    signals: Sequence[FamilyCertificationSignal],
     target_id: str,
     dimension: str,
 ) -> tuple[str, tuple[str, ...], tuple[str, ...]]:
+    if not isinstance(signals, Sequence):
+        raise TypeError("signals must be an ordered sequence")
     matching = [
         signal
         for signal in signals

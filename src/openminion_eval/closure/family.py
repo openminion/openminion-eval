@@ -4,16 +4,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from openminion_eval.family_support import (
     FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    OnMissingObservation,
+    build_family_results,
     count_truthy_metrics,
     count_pass_fail,
     load_versioned_cases,
-    utc_now_iso,
+    report_generated_at,
     write_json_report,
 )
 
@@ -69,10 +72,18 @@ def evaluate_closure_case(
 
 
 def build_closure_report(
-    *, cases: tuple[ClosureCase, ...], observations: dict[str, ClosureObservation]
+    *,
+    cases: tuple[ClosureCase, ...],
+    observations: dict[str, ClosureObservation],
+    on_missing: OnMissingObservation = "raise",
+    now_provider: Callable[[], str] = report_generated_at,
 ) -> ClosureReport:
-    results = tuple(
-        evaluate_closure_case(case, observations[case.case_id]) for case in cases
+    results = build_family_results(
+        cases,
+        observations,
+        evaluate_closure_case,
+        family_label="closure",
+        on_missing=on_missing,
     )
     passed_count, failed_count = count_pass_fail(results)
     summary = FamilyEvalSummary(
@@ -90,7 +101,7 @@ def build_closure_report(
     )
     return ClosureReport(
         report_version=FAMILY_REPORT_VERSION,
-        generated_at=utc_now_iso(),
+        generated_at=now_provider(),
         family_id="closure",
         cases=results,
         summary=summary,
