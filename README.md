@@ -1,6 +1,33 @@
-# openminion-eval
+<p align="center">
+  <img src="docs/assets/openminion-eval-logo.png" alt="OpenMinion Eval logo" width="128" />
+</p>
 
-## Official links and impersonation warning
+<h1 align="center">OpenMinion Eval</h1>
+
+<p align="center">
+  <strong>Standalone evaluation toolkit for agent quality, routing, tools, policy, and closure.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/openminion/openminion-eval">GitHub</a>
+  · <a href="https://pypi.org/project/openminion-eval/">PyPI</a>
+  · <a href="#install">Install</a>
+  · <a href="#public-release-contract">Public Contract</a>
+  · <a href="https://www.openminion.com">Website</a>
+</p>
+
+<p align="center">
+  <a href="https://pypi.org/project/openminion-eval/"><img alt="PyPI" src="https://img.shields.io/pypi/v/openminion-eval?color=3775A9"></a>
+  <a href="https://pypi.org/project/openminion-eval/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/openminion-eval"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
+  <img alt="Status" src="https://img.shields.io/badge/status-alpha-6B7280">
+</p>
+
+`openminion-eval` is the standalone non-memory evaluation package for
+OpenMinion. It gives downstream projects a small, installable surface for
+repeatable agent-quality checks without pulling in the full runtime.
+
+## Trust and Brand Safety
 
 - Official GitHub: `https://github.com/openminion`
 - Official website: `https://www.openminion.com`
@@ -22,6 +49,8 @@ attribution. Forks, clones, and derivative distributions must not present
 themselves as the official OpenMinion Eval package or imply affiliation,
 endorsement, or maintenance by OpenMinion contributors unless that is actually
 true.
+
+## Package Shape
 
 Standalone distribution for the canonical OpenMinion eval surface.
 
