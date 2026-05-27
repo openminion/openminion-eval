@@ -4,16 +4,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Callable
 
 from openminion_eval.family_support import (
     FAMILY_REPORT_VERSION,
     FamilyEvalCaseResult,
     FamilyEvalReport,
     FamilyEvalSummary,
+    OnMissingObservation,
+    build_family_results,
     count_truthy_metrics,
     count_pass_fail,
     load_versioned_cases,
-    utc_now_iso,
+    report_generated_at,
     write_json_report,
 )
 
@@ -72,10 +75,18 @@ def evaluate_routing_case(
 
 
 def build_routing_report(
-    *, cases: tuple[RoutingCase, ...], observations: dict[str, RoutingObservation]
+    *,
+    cases: tuple[RoutingCase, ...],
+    observations: dict[str, RoutingObservation],
+    on_missing: OnMissingObservation = "raise",
+    now_provider: Callable[[], str] = report_generated_at,
 ) -> RoutingReport:
-    results = tuple(
-        evaluate_routing_case(case, observations[case.case_id]) for case in cases
+    results = build_family_results(
+        cases,
+        observations,
+        evaluate_routing_case,
+        family_label="routing",
+        on_missing=on_missing,
     )
     passed_count, failed_count = count_pass_fail(results)
     summary = FamilyEvalSummary(
@@ -94,7 +105,7 @@ def build_routing_report(
     )
     return RoutingReport(
         report_version=FAMILY_REPORT_VERSION,
-        generated_at=utc_now_iso(),
+        generated_at=now_provider(),
         family_id="routing",
         cases=results,
         summary=summary,

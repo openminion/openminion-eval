@@ -44,10 +44,7 @@ def test_extract_assistant_messages_returns_empty_without_assistant_prefix() -> 
 
 
 def test_extract_assistant_messages_skips_blank_assistant_bodies() -> None:
-    transcript = (
-        "[session|agent] agent:\n"
-        "[session|agent] you> hi there\n"
-    )
+    transcript = "[session|agent] agent:\n[session|agent] you> hi there\n"
     assert (
         extract_assistant_messages(
             transcript=transcript,

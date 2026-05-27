@@ -7,7 +7,7 @@ PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
 
-.PHONY: help venv dev-install fix format format-check lint test test-all check
+.PHONY: help venv dev-install fix format format-check lint test test-all check clean
 
 help:
 	@printf '%s\n' \
@@ -19,7 +19,8 @@ help:
 		'  make lint          Run Ruff lint' \
 		'  make test          Run standalone public package pytest suite' \
 		'  make test-all      Run all repo-local tests, including OpenMinion integration tests' \
-		'  make check         Run format-check, lint, and test'
+		'  make check         Run format-check, lint, and test' \
+		'  make clean         Remove repo-local cache/build artifacts'
 
 venv:
 	@test -x "$(PYTHON)" || python3.11 -m venv "$(VENV)"
@@ -60,3 +61,9 @@ test-all: $(DEV_STAMP)
 	PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src" $(PYTEST) -q "$(REPO_ROOT)/tests"
 
 check: format-check lint test
+
+clean:
+	find "$(REPO_ROOT)" \
+		-path "$(VENV)" -prune -o \
+		\( -name __pycache__ -o -name .pytest_cache -o -name .ruff_cache -o -name build -o -name dist -o -name '*.egg-info' \) \
+		-prune -exec rm -rf {} +

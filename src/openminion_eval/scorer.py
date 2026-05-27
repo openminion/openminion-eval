@@ -19,26 +19,19 @@ class EvalScorer:
         }
 
     def _exact_match(self, actual: str, expected: str) -> float:
-        """Score 1.0 if exact match, 0.0 otherwise."""
         return 1.0 if actual.strip() == expected.strip() else 0.0
 
     def _substring_match(self, actual: str, expected: str) -> float:
-        """Score based on substring presence."""
+        """Score 1.0 when the expected text appears, 0.0 otherwise."""
         actual_lower = actual.lower()
         expected_lower = expected.lower()
-
-        if expected_lower in actual_lower:
-            # Calculate how much of expected is covered
-            coverage = len(expected_lower) / max(len(actual_lower), 1)
-            return min(coverage, 1.0)
-        return 0.0
+        return 1.0 if expected_lower in actual_lower else 0.0
 
     def register_scorer(
         self,
         name: str,
         scorer: Callable[[str, str], float],
     ) -> None:
-        """Register a custom scorer."""
         if name in self._RESERVED_SCORER_NAMES:
             raise ValueError(f"Reserved scorer name: {name}")
         self._scorers[name] = scorer
@@ -49,17 +42,6 @@ class EvalScorer:
         expected: Optional[str] = None,
         scorer_name: str = "substring_match",
     ) -> EvalResult:
-        """
-        Score an eval result.
-
-        Args:
-            result: The eval result to score.
-            expected: Optional override for expected value.
-            scorer_name: Name of the scorer to use.
-
-        Returns:
-            Updated EvalResult with score.
-        """
         actual = result.actual
         exp = expected or result.expected
 
@@ -75,5 +57,4 @@ class EvalScorer:
         results: list[EvalResult],
         scorer_name: str = "substring_match",
     ) -> list[EvalResult]:
-        """Score a list of results."""
         return [self.score(r, scorer_name=scorer_name) for r in results]

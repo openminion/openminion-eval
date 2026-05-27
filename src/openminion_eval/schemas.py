@@ -6,8 +6,6 @@ from typing import Any
 
 @dataclass
 class EvalTranscript:
-    """A transcript for evaluation."""
-
     name: str
     turns: list[dict]  # [{"user": "...", "expected": "..."}]
     tags: list[str] = field(default_factory=list)
@@ -15,8 +13,6 @@ class EvalTranscript:
 
 @dataclass(frozen=True)
 class EvalResult:
-    """Result of evaluating a single turn."""
-
     turn_index: int
     user_input: str
     expected: str
@@ -28,8 +24,6 @@ class EvalResult:
 
 @dataclass
 class EvalSummary:
-    """Summary of evaluation results."""
-
     transcript_name: str
     total_turns: int
     average_score: float
@@ -38,12 +32,11 @@ class EvalSummary:
     results: list[EvalResult]
     passed: bool
     threshold: float = 0.80
+    scorer_error_count: int = 0
 
 
 @dataclass
 class EvalSuiteResult:
-    """Result of running an eval suite."""
-
     suite_name: str
     total_transcripts: int
     passed_transcripts: int

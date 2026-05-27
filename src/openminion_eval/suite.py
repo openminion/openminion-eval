@@ -1,18 +1,19 @@
 """Eval suite for OpenMinion."""
 
-from typing import Optional
+from typing import Callable, Optional
+from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
 from openminion_eval.schemas import (
+    EvalResult,
     EvalTranscript,
     EvalSummary,
     EvalSuiteResult,
 )
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
-from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
 
 
 class EvalSuite:
-    """Suite that runs N transcripts and aggregates scores."""
+    """Run transcripts and aggregate scores."""
 
     contract_version = EVAL_INTERFACE_VERSION
 
@@ -30,29 +31,24 @@ class EvalSuite:
         self,
         transcripts: list[EvalTranscript],
         scorer_name: str = "substring_match",
+        on_case: Callable[[EvalResult], None] | None = None,
     ) -> EvalSuiteResult:
-        """
-        Run evaluation on multiple transcripts.
-
-        Args:
-            transcripts: List of transcripts to evaluate.
-            scorer_name: Name of scorer to use.
-
-        Returns:
-            EvalSuiteResult with aggregated results.
-        """
         summaries = []
 
         for transcript in transcripts:
-            # Replay transcript
             results = self._runner.replay_sync(transcript)
-
-            # Score results
             results = self._scorer.score_results(results, scorer_name)
+            for result in results:
+                if on_case is not None:
+                    on_case(result)
 
-            # Calculate summary
             scores = [r.score for r in results]
             avg_score = sum(scores) / len(scores) if scores else 0.0
+            scorer_error_count = sum(
+                1
+                for result in results
+                if result.metadata.get("executor_error") is not None
+            )
 
             summary = EvalSummary(
                 transcript_name=transcript.name,
@@ -63,6 +59,7 @@ class EvalSuite:
                 results=results,
                 passed=avg_score >= self._threshold,
                 threshold=self._threshold,
+                scorer_error_count=scorer_error_count,
             )
             summaries.append(summary)
 

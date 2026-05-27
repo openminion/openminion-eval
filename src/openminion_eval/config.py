@@ -1,15 +1,11 @@
-"""Reserved compatibility config surface for ``openminion_eval``.
-
-The standalone public package currently has no runtime-loaded configuration
-contract. This module stays in place as a narrow compatibility seam for any
-external code that may already import ``openminion_eval.config`` directly while
-the package remains pre-1.0. Removal target: revisit once the package reaches
-1.0 and downstream imports are audited away.
-"""
+"""Compatibility config surface for ``openminion_eval``."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
+import os
+
+_TRUE_ENV_VALUES = frozenset({"1", "true", "yes", "on"})
 
 
 @dataclass(frozen=True)
@@ -18,10 +14,10 @@ class EvalConfig:
 
 
 def load_config(*_args: object, **_kwargs: object) -> EvalConfig:
-    """Return the current no-op package config.
-
-    Arguments are accepted for compatibility only and are ignored because the
-    standalone public eval package does not currently load runtime config.
-    """
-
     return EvalConfig()
+
+
+def env_flag_enabled(name: str) -> bool:
+    """Return whether a package-owned boolean environment flag is enabled."""
+
+    return os.environ.get(name, "").strip().lower() in _TRUE_ENV_VALUES

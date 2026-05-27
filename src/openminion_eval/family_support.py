@@ -6,9 +6,14 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 import json
 from pathlib import Path
-from typing import Any, Callable, Iterable, Mapping
+from typing import Any, Callable, Iterable, Literal, Mapping
+
+from openminion_eval.config import env_flag_enabled
+from openminion_eval.constants import DETERMINISTIC_REPORTS_ENV
 
 FAMILY_REPORT_VERSION = "1"
+DETERMINISTIC_REPORT_TIMESTAMP = "1970-01-01T00:00:00Z"
+OnMissingObservation = Literal["raise", "mark_fail"]
 
 
 @dataclass(frozen=True)
@@ -38,8 +43,52 @@ class FamilyEvalReport:
         return asdict(self)
 
 
+class MissingObservationError(KeyError):
+    """Raised when a family report lacks an observation for a case."""
+
+    def __init__(self, family_label: str, case_id: str) -> None:
+        self.family_label = family_label
+        self.case_id = case_id
+        super().__init__(f"{family_label}: no observation for case {case_id!r}")
+
+
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def report_generated_at() -> str:
+    if env_flag_enabled(DETERMINISTIC_REPORTS_ENV):
+        return DETERMINISTIC_REPORT_TIMESTAMP
+    return utc_now_iso()
+
+
+def build_family_results(
+    cases: Iterable[Any],
+    observations: Mapping[str, Any],
+    evaluator: Callable[[Any, Any], FamilyEvalCaseResult],
+    *,
+    family_label: str,
+    on_missing: OnMissingObservation = "raise",
+) -> tuple[FamilyEvalCaseResult, ...]:
+    if on_missing not in ("raise", "mark_fail"):
+        raise ValueError(f"unsupported missing-observation policy: {on_missing!r}")
+
+    results: list[FamilyEvalCaseResult] = []
+    for case in cases:
+        case_id = str(case.case_id)
+        if case_id not in observations:
+            if on_missing == "raise":
+                raise MissingObservationError(family_label, case_id)
+            results.append(
+                FamilyEvalCaseResult(
+                    case_id=case_id,
+                    passed=False,
+                    metrics={"error": "observation_missing"},
+                )
+            )
+            continue
+        results.append(evaluator(case, observations[case_id]))
+    return tuple(results)
 
 
 def load_versioned_json_fixture(
@@ -103,7 +152,9 @@ def count_truthy_metrics(
 ) -> dict[str, int]:
     result_list = list(results)
     return {
-        summary_key: sum(1 for result in result_list if bool(result.metrics[metric_name]))
+        summary_key: sum(
+            1 for result in result_list if bool(result.metrics.get(metric_name))
+        )
         for summary_key, metric_name in metric_names.items()
     }
 
