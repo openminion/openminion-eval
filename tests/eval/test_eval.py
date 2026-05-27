@@ -110,8 +110,7 @@ def test_eval_suite_threshold():
 
     result = suite.run([transcript], scorer_name="exact_match")
 
-    # Should fail since "Mock response to: Hello" != "xyz"
-    assert result.failed_transcripts >= 0
+    assert result.failed_transcripts == 1
 
 
 def test_custom_scorer():

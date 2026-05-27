@@ -1,7 +1,8 @@
 """Canonical constants for the eval skills family."""
 
+from openminion_eval.family_support import FAMILY_REPORT_VERSION
+
 CANONICAL_EVAL_FAMILY = "skills"
-FAMILY_REPORT_VERSION = "1"
 SKILL_QUALITY_PENDING_REVIEW_STATUS = "pending_review"
 TRANSCRIPT_AGENT_PREFIX_TEMPLATE = "[{session_id}|{agent_id}] {agent_id}:"
 TRANSCRIPT_NEXT_USER_MARKER_TEMPLATE = "\n[{session_id}|{agent_id}] you>"
