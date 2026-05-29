@@ -28,8 +28,6 @@ def _safe_mean(values: list[int]) -> float:
 
 
 def aggregate_reports(reports: Sequence[GoalTrajectoryReport]) -> AggregateReport:
-    """Aggregate a list of per-benchmark reports into one typed summary."""
-
     n = len(reports)
     by_kind: dict[str, int] = defaultdict(int)
     gd_actions: list[int] = []
@@ -48,7 +46,6 @@ def aggregate_reports(reports: Sequence[GoalTrajectoryReport]) -> AggregateRepor
 
     pressure_corr: dict[str, float] = {}
     if n >= 2:
-        # Spearman-like simple correlation: pressure vs gd_actions/gd_inaction.
         pressure_corr["gd_actions"] = _simple_corr(pressures, gd_actions)
         pressure_corr["gd_inaction"] = _simple_corr(pressures, gd_inaction)
 

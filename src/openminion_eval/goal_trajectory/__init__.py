@@ -1,8 +1,4 @@
-"""GTBH goal-trajectory benchmark harness.
-
-Measures MRDD `GoalDriftSignal` emission against fixture trajectories
-per Arike 2025 AIES `GD_actions` / `GD_inaction` formulation.
-"""
+"""GTBH goal-trajectory benchmark harness."""
 
 from openminion_eval.goal_trajectory.schemas import (
     GoalDriftSignalKind,
