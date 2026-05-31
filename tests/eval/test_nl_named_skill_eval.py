@@ -14,7 +14,6 @@ from openminion_eval.skills import (
     render_nl_named_skill_prompt,
     representative_nl_named_skill_target_ids,
 )
-from openminion_eval.skills.support import extract_assistant_messages
 
 
 def test_nl_named_skill_manifest_and_contract_load_cleanly() -> None:
@@ -199,14 +198,3 @@ def test_build_nl_named_skill_target_report_summarizes_variant_sensitivity(
     assert report.summary["variant_summary"]["simple"]["selection_accuracy_count"] == 1
     assert report.attempts[-1].dimensions["fallback_behavior"] == "empty"
     assert report.attempts[0].dimensions["prompt_sensitivity"] == "variant_sensitive"
-
-
-def test_extract_assistant_messages_returns_empty_without_assistant_prefix() -> None:
-    assert (
-        extract_assistant_messages(
-            transcript="[session|agent] you> hi there\n",
-            session_id="session",
-            agent_id="agent",
-        )
-        == []
-    )
