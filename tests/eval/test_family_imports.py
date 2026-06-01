@@ -3,6 +3,7 @@ from openminion_eval import (
     ClosureCase,
     FamilyCertificationSignal,
     FreshnessCase,
+    GoalDriftSignalKind,
     GoalTrajectoryBenchmark,
     NLNamedSkillScenario,
     PolicyCase,
@@ -23,5 +24,11 @@ def test_root_eval_exports_new_family_types() -> None:
     assert SkillQualityScenario.__name__ == "SkillQualityScenario"
     assert NLNamedSkillScenario.__name__ == "NLNamedSkillScenario"
     assert FamilyCertificationSignal.__name__ == "FamilyCertificationSignal"
+    assert GoalDriftSignalKind.__args__ == (
+        "actions_diverge_from_criteria",
+        "inaction_against_criteria",
+        "objective_substitution",
+        "mission_type_drift",
+    )
     assert GoalTrajectoryBenchmark.__name__ == "GoalTrajectoryBenchmark"
     assert AggregateReport.__name__ == "AggregateReport"

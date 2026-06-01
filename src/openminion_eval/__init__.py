@@ -85,6 +85,7 @@ from openminion_eval.reporting import (
 from openminion_eval.goal_trajectory import (
     AggregateReport,
     BenchmarkRunner,
+    GoalDriftSignalKind,
     GoalDriftSignalLike,
     GoalTrajectoryBenchmark,
     GoalTrajectoryReport,
@@ -161,6 +162,7 @@ __all__ = [
     "apply_family_signals_to_certification_cells",
     "AggregateReport",
     "BenchmarkRunner",
+    "GoalDriftSignalKind",
     "GoalDriftSignalLike",
     "GoalTrajectoryBenchmark",
     "GoalTrajectoryReport",
