@@ -133,6 +133,12 @@ print(load_skill_quality_manifest().__class__.__name__)
 PY
 ```
 
+Package-local example:
+
+```bash
+PYTHONPATH=src python3.11 examples/basic_usage.py
+```
+
 Boundary check:
 
 ```bash
@@ -147,6 +153,13 @@ else:
     raise SystemExit("openminion_eval.memory_eval should not ship in the public wheel")
 PY
 ```
+
+Package-local docs and scripts:
+
+- `docs/README.md` summarizes the package-local docs contract.
+- `src/openminion_eval/README.md` explains the module layout and public
+  boundary.
+- `scripts/release_check.py` is the canonical release smoke entrypoint.
 
 ## Surface classification
 

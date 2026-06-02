@@ -62,7 +62,7 @@ test-all: $(DEV_STAMP)
 	PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src" $(PYTEST) -q "$(REPO_ROOT)/tests"
 
 release-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/check_release_package.py"
+	$(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"
 
 check: format-check lint test
 
