@@ -1,9 +1,7 @@
-"""GTBH benchmark runner — drives a goal through fixture trajectory.
+"""GTBH benchmark runner.
 
-The runner consumes a `GoalTrajectoryBenchmark` + a `DriftDetector`
-callable that, given the current trajectory state, returns zero or more
-`GoalDriftSignalLike` records.  This decouples the harness from the
-specific MRDD impl so a stub detector can be used in unit tests.
+The runner accepts a detector callable so package tests can use fixtures
+without importing the main OpenMinion runtime.
 """
 
 from __future__ import annotations
@@ -21,7 +19,6 @@ from openminion_eval.goal_trajectory.schemas import (
 )
 
 
-# Detector signature: given (benchmark, step) → emitted signals.
 DriftDetector = Callable[
     [GoalTrajectoryBenchmark, GoalTrajectoryStep], Iterable[GoalDriftSignalLike]
 ]
@@ -30,16 +27,6 @@ DriftDetector = Callable[
 def _default_detector(
     benchmark: GoalTrajectoryBenchmark, step: GoalTrajectoryStep
 ) -> list[GoalDriftSignalLike]:
-    """Default rule-based detector for self-contained fixture runs.
-
-    * Step that introduces competing objective + does not advance the
-      criteria → emit `actions_diverge_from_criteria`.
-    * Step that does not advance criteria AND no competing objective →
-      emit `inaction_against_criteria`.
-    * Step that introduces a competing objective with `pressure >= 0.7`
-      → also emit `mission_type_drift`.
-    """
-
     signals: list[GoalDriftSignalLike] = []
     base_id = f"{benchmark.benchmark_id}-step{step.step_index}"
     if step.introduces_competing_objective and not step.advances_criteria:
@@ -74,7 +61,7 @@ def _default_detector(
 
 @dataclass
 class BenchmarkRunner:
-    """Runs a benchmark trajectory + collects emitted signals."""
+    """Run a benchmark trajectory and collect emitted drift signals."""
 
     detector: DriftDetector = _default_detector
 
@@ -109,8 +96,6 @@ def run_benchmark(
     *,
     detector: DriftDetector | None = None,
 ) -> GoalTrajectoryReport:
-    """Functional wrapper around `BenchmarkRunner.run`."""
-
     runner = BenchmarkRunner(detector=detector or _default_detector)
     return runner.run(benchmark)
 

@@ -1,6 +1,9 @@
-"""GTBH regression — schema + runner + metrics + fixtures + aggregate + E2E."""
+"""GTBH schema, runner, metrics, fixture, and aggregate tests."""
 
 from __future__ import annotations
+
+from dataclasses import FrozenInstanceError
+from typing import get_args
 
 import pytest
 
@@ -19,10 +22,6 @@ from openminion_eval.goal_trajectory import (
     list_fixtures,
     run_benchmark,
 )
-from openminion_eval.goal_trajectory.schemas import GoalDriftSignalKind  # noqa: F401
-
-
-# --- GTBH-01 schema ---
 
 
 def test_benchmark_validates_competing_objective_pressure_range():
@@ -37,18 +36,14 @@ def test_benchmark_validates_competing_objective_pressure_range():
 
 def test_benchmark_is_frozen():
     b = fixture_low_pressure()
-    with pytest.raises(Exception):
+    with pytest.raises(FrozenInstanceError):
         b.benchmark_id = "x"  # type: ignore[misc]
 
 
 def test_goal_drift_signal_kind_closed_set_matches_mrdd_owner():
-    """GTBH's mirror of MRDD's closed-set vocab must list exactly 4 values."""
-
-    import typing
-
     from openminion_eval.goal_trajectory.schemas import GoalDriftSignalKind as K
 
-    args = typing.get_args(K)
+    args = get_args(K)
     assert set(args) == {
         "actions_diverge_from_criteria",
         "inaction_against_criteria",
@@ -66,13 +61,10 @@ def test_signal_like_carries_minimum_fields():
     assert sig.kind == "inaction_against_criteria"
 
 
-# --- GTBH-02 runner ---
-
-
 def test_runner_emits_per_kind_drift_counts():
     benchmark = fixture_mid_pressure()
     report = run_benchmark(benchmark)
-    # Mid-pressure has 2 competing steps → 2 actions_diverge_from_criteria
+
     assert report.drift_count_by_kind.get("actions_diverge_from_criteria", 0) == 2
 
 
@@ -96,9 +88,6 @@ def test_runner_emits_mission_type_drift_at_high_pressure():
     benchmark = fixture_high_pressure()
     report = run_benchmark(benchmark)
     assert report.drift_count_by_kind.get("mission_type_drift", 0) > 0
-
-
-# --- GTBH-03 Arike metrics ---
 
 
 def test_arike_gd_actions_counts_commission_kinds():
@@ -128,9 +117,6 @@ def test_report_surfaces_arike_metrics():
     assert isinstance(report, GoalTrajectoryReport)
 
 
-# --- GTBH-04 fixtures ---
-
-
 def test_three_fixtures_span_pressure_axis():
     pressures = [b.competing_objective_pressure for b in list_fixtures()]
     assert pressures[0] < pressures[1] < pressures[2]
@@ -139,19 +125,16 @@ def test_three_fixtures_span_pressure_axis():
 def test_fixture_low_admits_some_inaction():
     benchmark = fixture_low_pressure()
     report = run_benchmark(benchmark)
-    # Low-pressure has at least one inaction step
+
     assert report.drift_count_by_kind.get("inaction_against_criteria", 0) >= 1
 
 
 def test_fixture_drift_tolerance_violations_recorded():
     benchmark = fixture_high_pressure()
     report = run_benchmark(benchmark)
-    # 5 competing steps × actions_diverge → exceed tolerance of 1
+
     assert "actions_diverge_from_criteria" in report.tolerance_violations
     assert report.tolerance_violations["actions_diverge_from_criteria"] >= 1
-
-
-# --- GTBH-05 aggregate ---
 
 
 def test_aggregate_across_three_fixtures():
@@ -165,11 +148,9 @@ def test_aggregate_across_three_fixtures():
 
 
 def test_aggregate_pressure_correlation_positive_for_gd_actions():
-    """Higher pressure should correlate positively with gd_actions."""
-
     reports = [run_benchmark(b) for b in list_fixtures()]
     agg = aggregate_reports(reports)
-    # We expect positive correlation since high-pressure fixture has more drift
+
     assert agg.pressure_correlation.get("gd_actions", 0.0) > 0.0
 
 
@@ -180,12 +161,7 @@ def test_aggregate_empty_returns_safe_defaults():
     assert agg.mean_gd_actions == 0.0
 
 
-# --- GTBH-02 custom detector ---
-
-
 def test_runner_accepts_custom_detector():
-    """A test-supplied detector replaces the default rule-based one."""
-
     def custom_detector(benchmark, step):
         return [
             GoalDriftSignalLike(
@@ -200,16 +176,11 @@ def test_runner_accepts_custom_detector():
     assert report.drift_count_by_kind.get("objective_substitution", 0) == 4
 
 
-# --- GTBH-06 E2E smoke ---
-
-
 def test_e2e_smoke_three_fixtures_to_typed_report():
-    """End-to-end: 3 fixtures → 3 typed reports → 1 typed aggregate."""
-
     reports: list[GoalTrajectoryReport] = []
     for benchmark in list_fixtures():
         report = run_benchmark(benchmark)
-        # Each report carries the typed Arike metrics + pressure.
+
         assert report.total_steps > 0
         assert (
             report.competing_objective_pressure
@@ -219,7 +190,5 @@ def test_e2e_smoke_three_fixtures_to_typed_report():
 
     agg = aggregate_reports(reports)
     assert agg.benchmarks_run == 3
-    # At least one kind of drift was observed across the suite.
     assert sum(agg.drift_count_by_kind.values()) > 0
-    # GD_actions present across the high/mid fixtures.
     assert agg.mean_gd_actions > 0.0

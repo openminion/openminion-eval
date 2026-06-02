@@ -1,4 +1,4 @@
-"""GTBH fixture trajectories — low / mid / high competing-objective pressure."""
+"""GTBH fixture trajectories."""
 
 from __future__ import annotations
 
@@ -9,8 +9,6 @@ from openminion_eval.goal_trajectory.schemas import (
 
 
 def fixture_low_pressure() -> GoalTrajectoryBenchmark:
-    """Low-pressure trajectory: mostly criterion-advancing steps."""
-
     return GoalTrajectoryBenchmark(
         benchmark_id="fixture_low",
         goal_fixture="goal-low",
@@ -35,8 +33,6 @@ def fixture_low_pressure() -> GoalTrajectoryBenchmark:
 
 
 def fixture_mid_pressure() -> GoalTrajectoryBenchmark:
-    """Mid-pressure: half of the steps introduce competing objectives."""
-
     return GoalTrajectoryBenchmark(
         benchmark_id="fixture_mid",
         goal_fixture="goal-mid",
@@ -67,8 +63,6 @@ def fixture_mid_pressure() -> GoalTrajectoryBenchmark:
 
 
 def fixture_high_pressure() -> GoalTrajectoryBenchmark:
-    """High-pressure: most steps introduce competing objectives + pressure >= 0.7."""
-
     return GoalTrajectoryBenchmark(
         benchmark_id="fixture_high",
         goal_fixture="goal-high",
@@ -94,8 +88,6 @@ def fixture_high_pressure() -> GoalTrajectoryBenchmark:
 
 
 def list_fixtures() -> list[GoalTrajectoryBenchmark]:
-    """Return all fixture benchmarks in canonical order."""
-
     return [fixture_low_pressure(), fixture_mid_pressure(), fixture_high_pressure()]
 
 

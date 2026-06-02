@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 import json
 from pathlib import Path
 from typing import Any, Callable
@@ -353,23 +353,7 @@ def build_nl_named_skill_target_report(
     for attempt in attempts:
         dimensions = dict(attempt.dimensions)
         dimensions["prompt_sensitivity"] = sensitivity_map[attempt.scenario_id]
-        updated_attempts.append(
-            NLNamedSkillAttemptReport(
-                scenario_id=attempt.scenario_id,
-                skill_id=attempt.skill_id,
-                prompt_variant_id=attempt.prompt_variant_id,
-                prompt_variant_label=attempt.prompt_variant_label,
-                prompt=attempt.prompt,
-                selected_skill_id=attempt.selected_skill_id,
-                selected_skill_ids=attempt.selected_skill_ids,
-                assistant_output=attempt.assistant_output,
-                selection_accuracy=attempt.selection_accuracy,
-                selection_confidence=attempt.selection_confidence,
-                fallback_behavior=attempt.fallback_behavior,
-                artifacts=attempt.artifacts,
-                dimensions=dimensions,
-            )
-        )
+        updated_attempts.append(replace(attempt, dimensions=dimensions))
 
     variant_summary: dict[str, dict[str, int]] = {}
     for variant in prompt_variants:

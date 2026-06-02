@@ -5,28 +5,28 @@
       "target_id": "minimax-m2-5",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
       "note": "official MiniMax CLI matrix reran green at 22 passed"
     },
     {
       "target_id": "minimax-m2-7",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
       "note": "official MiniMax CLI matrix reran green at 22 passed"
     },
     {
       "target_id": "minimax-m2-5",
       "dimension": "confirmation_policy",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
       "note": "confirmation-aware harness classification proved policy-denial paths"
     },
     {
       "target_id": "minimax-m2-7",
       "dimension": "confirmation_policy",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/official-cli-confirmation-aware-tool-matrix-hardening-tracker.md",
       "note": "confirmation-aware harness classification proved policy-denial paths"
     },
     {
@@ -47,35 +47,35 @@
       "target_id": "openrouter-claude-haiku-3",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/provider-tool-schema-capability-normalization-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/provider-tool-schema-capability-normalization-tracker.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-claude-haiku-4-5",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/provider-tool-schema-capability-normalization-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/provider-tool-schema-capability-normalization-tracker.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-gpt-4o",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/provider-tool-schema-capability-normalization-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/provider-tool-schema-capability-normalization-tracker.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-gpt-5-4-mini",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/provider-tool-schema-capability-normalization-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/provider-tool-schema-capability-normalization-tracker.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-minimax-m2-7",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/qa/provider-tool-schema-capability-normalization-tracker.md",
+      "evidence_path": "/Users/j/repos/base/agent-frameworks/docs/trackers/archive/2026/provider-tool-schema-capability-normalization-tracker.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     }
   ]
