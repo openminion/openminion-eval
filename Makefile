@@ -7,7 +7,7 @@ PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
 
-.PHONY: help venv dev-install fix format format-check lint test test-all check clean
+.PHONY: help venv dev-install fix format format-check lint test test-all release-check check clean
 
 help:
 	@printf '%s\n' \
@@ -19,6 +19,7 @@ help:
 		'  make lint          Run Ruff lint' \
 		'  make test          Run standalone public package pytest suite' \
 		'  make test-all      Run all repo-local tests, including OpenMinion integration tests' \
+		'  make release-check Build sdist/wheel and smoke-test the installed wheel' \
 		'  make check         Run format-check, lint, and test' \
 		'  make clean         Remove repo-local cache/build artifacts'
 
@@ -59,6 +60,9 @@ test: $(DEV_STAMP)
 
 test-all: $(DEV_STAMP)
 	PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src" $(PYTEST) -q "$(REPO_ROOT)/tests"
+
+release-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/check_release_package.py"
 
 check: format-check lint test
 
