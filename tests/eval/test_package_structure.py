@@ -9,6 +9,8 @@ def test_package_local_docs_examples_and_release_smoke_exist() -> None:
     assert (root / "docs" / "README.md").is_file()
     assert (root / "examples" / "basic_usage.py").is_file()
     assert (root / "scripts" / "release_check.py").is_file()
+    assert (root / "API_COMPATIBILITY.md").is_file()
+    assert (root / "RELEASING.md").is_file()
 
 
 def test_readme_mentions_package_local_docs_and_example() -> None:
@@ -16,4 +18,6 @@ def test_readme_mentions_package_local_docs_and_example() -> None:
 
     assert "examples/basic_usage.py" in readme
     assert "docs/README.md" in readme
+    assert "API_COMPATIBILITY.md" in readme
+    assert "RELEASING.md" in readme
     assert "scripts/release_check.py" in readme

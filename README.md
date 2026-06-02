@@ -157,6 +157,9 @@ PY
 Package-local docs and scripts:
 
 - `docs/README.md` summarizes the package-local docs contract.
+- `API_COMPATIBILITY.md` records the supported public import roots and
+  top-level export policy.
+- `RELEASING.md` records the package-local release and PyPI publish flow.
 - `src/openminion_eval/README.md` explains the module layout and public
   boundary.
 - `scripts/release_check.py` is the canonical release smoke entrypoint.
