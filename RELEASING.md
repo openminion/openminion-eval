@@ -17,11 +17,14 @@ A publishable release must satisfy all of the following:
 3. `README.md` describes install, public release boundary, examples, and
    package-local docs/script expectations for external consumers.
 4. `API_COMPATIBILITY.md` names the stable import roots and deprecation policy.
-5. Package tests pass from the package root.
-6. Both wheel and sdist build successfully.
-7. A clean install smoke passes from a fresh target directory using the built
+5. `docs/reference/` remains the canonical package-local reference-docs root.
+6. `src/openminion_eval/README.md` continues to document the package owner map
+   and repo-local integration boundary.
+7. Package tests pass from the package root.
+8. Both wheel and sdist build successfully.
+9. A clean install smoke passes from a fresh target directory using the built
    wheel.
-8. The package still ships only the intended standalone non-memory surface.
+10. The package still ships only the intended standalone non-memory surface.
 
 ## Version Bump
 
@@ -33,6 +36,8 @@ If the release changes the external consumer contract, also update:
 
 - `README.md`
 - `API_COMPATIBILITY.md`
+- `docs/README.md`
+- `docs/reference/`
 
 ## Build and Validation
 

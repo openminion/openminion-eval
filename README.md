@@ -157,6 +157,8 @@ PY
 Package-local docs and scripts:
 
 - `docs/README.md` summarizes the package-local docs contract.
+- `docs/reference/certification-readiness-matrix.md` records standalone and
+  integration proof coverage for the public package surface.
 - `API_COMPATIBILITY.md` records the supported public import roots and
   top-level export policy.
 - `RELEASING.md` records the package-local release and PyPI publish flow.

@@ -34,6 +34,21 @@ def _remove_build_residue() -> None:
             shutil.rmtree(path, ignore_errors=True)
 
 
+def _assert_package_docs_shape() -> None:
+    required_paths = [
+        REPO_ROOT / "docs" / "README.md",
+        REPO_ROOT / "docs" / "reference" / "certification-readiness-matrix.md",
+        REPO_ROOT / "src" / "openminion_eval" / "README.md",
+        REPO_ROOT / "API_COMPATIBILITY.md",
+        REPO_ROOT / "RELEASING.md",
+    ]
+    missing = [
+        str(path.relative_to(REPO_ROOT)) for path in required_paths if not path.exists()
+    ]
+    if missing:
+        raise RuntimeError(f"package docs/layout drifted: missing {missing!r}")
+
+
 def _smoke_script() -> str:
     return r"""
 from __future__ import annotations
@@ -110,6 +125,7 @@ else:
 
 
 def main() -> int:
+    _assert_package_docs_shape()
     _remove_build_residue()
     try:
         with tempfile.TemporaryDirectory(prefix="openminion-eval-release-") as tmp:
