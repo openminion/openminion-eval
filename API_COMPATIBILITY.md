@@ -15,6 +15,7 @@ standalone `openminion-eval` package.
 External consumers should treat these import roots as the supported public API:
 
 - `openminion_eval`
+- `openminion_eval.cases`
 - `openminion_eval.tools`
 - `openminion_eval.freshness`
 - `openminion_eval.routing`
@@ -40,6 +41,8 @@ The following top-level exports are part of the current public contract:
 - `openminion_eval.EvalTranscript`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
   `closure`, `policy`, and `skills`
+- starter case registry exports: `EvalCase`, `EvalCaseResult`, `GradeMode`,
+  `GradeOutcome`, `grade_case(...)`, and `registered_cases(...)`
 - goal trajectory exports such as `GoalTrajectoryBenchmark`,
   `GoalTrajectoryReport`, `GoalDriftSignalKind`, `run_benchmark(...)`, and
   `aggregate_reports(...)`
@@ -81,7 +84,8 @@ Public-contract confidence should be enforced by tests that cover:
 6. release/install smoke for built artifacts,
 7. packaged skill/resource availability,
 8. goal trajectory export and report behavior,
-9. package-local docs, examples, and release-smoke entrypoints.
+9. package-local docs, examples, and release-smoke entrypoints,
+10. `openminion_eval.cases` CLI/report behavior.
 
 ## Non-goals
 

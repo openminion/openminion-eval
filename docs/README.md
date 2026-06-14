@@ -7,6 +7,8 @@ Package-local reference docs:
 
 - `docs/reference/certification-readiness-matrix.md` records the current
   standalone and integration proof targets for the public package surface.
+- `docs/reference/eval-cases.md` records the package-owned starter case
+  registry, grade modes, CLI behavior, and extension rules.
 - `docs/assets/openminion-eval-logo.png` is the package-local README/social
   logo asset. It is a public repo asset, not an importable runtime API.
 
@@ -19,6 +21,7 @@ Package-local code/docs boundaries:
    public-vs-repo-local boundary.
 4. `RELEASING.md` records the package-local release and PyPI publish flow.
 5. `scripts/release_check.py` is the canonical package release smoke entrypoint.
+6. `python -m openminion_eval.cases` is the package-owned case report CLI.
 
 Repository-local but not wheel-shipped:
 

@@ -20,11 +20,13 @@ A publishable release must satisfy all of the following:
 5. `docs/reference/` remains the canonical package-local reference-docs root.
 6. `src/openminion_eval/README.md` continues to document the package owner map
    and repo-local integration boundary.
-7. Package tests pass from the package root.
-8. Both wheel and sdist build successfully.
-9. A clean install smoke passes from a fresh target directory using the built
+7. The starter `EvalCase` registry and `openminion_eval.cases` CLI are covered
+   by package tests and release smoke.
+8. Package tests pass from the package root.
+9. Both wheel and sdist build successfully.
+10. A clean install smoke passes from a fresh target directory using the built
    wheel.
-10. The package still ships only the intended standalone non-memory surface.
+11. The package still ships only the intended standalone non-memory surface.
 
 ## Version Bump
 

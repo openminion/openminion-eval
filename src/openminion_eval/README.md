@@ -11,6 +11,7 @@ Top-level generic surfaces:
 - `schemas.py`, `interfaces.py`
 - `config.py`, `constants.py`
 - `family_support.py`, `reporting/`
+- `cases/`
 
 Canonical non-memory families:
 
@@ -41,6 +42,7 @@ Additional repo-local eval surfaces in this repository:
 Public standalone promise today:
 
 - generic eval primitives
+- starter `EvalCase` registry and Markdown case report CLI
 - shared package-owned support needed by those primitives
 - canonical non-memory families
 - `config.py` as a documented no-op compatibility surface (the package does

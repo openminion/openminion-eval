@@ -1,4 +1,4 @@
-"""Shared helpers for canonical eval families."""
+"""Shared helpers for canonical eval-family reports."""
 
 from __future__ import annotations
 
@@ -44,7 +44,7 @@ class FamilyEvalReport:
 
 
 class MissingObservationError(KeyError):
-    """Raised when a family report lacks an observation for a case."""
+    """Raised when a family report lacks a case observation."""
 
     def __init__(self, family_label: str, case_id: str) -> None:
         self.family_label = family_label

@@ -38,6 +38,7 @@ def _assert_package_docs_shape() -> None:
     required_paths = [
         REPO_ROOT / "docs" / "README.md",
         REPO_ROOT / "docs" / "reference" / "certification-readiness-matrix.md",
+        REPO_ROOT / "docs" / "reference" / "eval-cases.md",
         REPO_ROOT / "src" / "openminion_eval" / "README.md",
         REPO_ROOT / "API_COMPATIBILITY.md",
         REPO_ROOT / "RELEASING.md",
@@ -61,7 +62,15 @@ from pathlib import Path
 from typing import get_args
 
 import openminion_eval
-from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunner, GoalDriftSignalKind
+from openminion_eval import (
+    EVAL_INTERFACE_VERSION,
+    EvalCase,
+    EvalRunner,
+    GoalDriftSignalKind,
+    GradeMode,
+    registered_cases,
+)
+from openminion_eval.cases import grade_case
 from openminion_eval.skills import (
     load_nl_named_skill_manifest,
     load_skill_quality_manifest,
@@ -76,6 +85,14 @@ if EVAL_INTERFACE_VERSION != "v1":
     raise SystemExit(f"unexpected eval interface version: {EVAL_INTERFACE_VERSION!r}")
 if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
+if EvalCase.__name__ != "EvalCase":
+    raise SystemExit("EvalCase root export missing")
+if GradeMode.STRUCTURAL.value != "structural":
+    raise SystemExit("GradeMode root export drifted")
+if len(registered_cases()) != 5:
+    raise SystemExit("starter EvalCase registry drifted")
+if grade_case(registered_cases()[0]).case_id != registered_cases()[0].case_id:
+    raise SystemExit("EvalCase grading smoke failed")
 
 dist_files = {str(path) for path in distribution("openminion-eval").files or ()}
 if not any(path.endswith("dist-info/licenses/LICENSE") for path in dist_files):
@@ -169,6 +186,17 @@ def main() -> int:
             env["PYTHONPATH"] = str(install_dir)
             env["OPENMINION_EVAL_RELEASE_TARGET"] = str(install_dir)
             _run([sys.executable, "-c", _smoke_script()], cwd=tmp_root, env=env)
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval.cases",
+                    "--category",
+                    "coding",
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
 
             print(f"release-check ok: {sdist.name}, {wheel.name}")
     finally:

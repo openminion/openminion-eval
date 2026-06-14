@@ -61,6 +61,7 @@ This package owns:
 
 - the generic eval runner/scorer/suite/interfaces/schemas/config/constants
 - shared eval helpers and reporting support
+- starter `EvalCase` registry and Markdown case report CLI
 - canonical non-memory eval families: tools, freshness, routing, closure,
   policy, and skills
 
@@ -81,6 +82,7 @@ The current public standalone contract matches the installed package:
 
 - public standalone surface:
   - generic eval runner/scorer/suite/interfaces/schemas/config/constants
+  - starter `EvalCase` registry under `openminion_eval.cases`
   - shared support needed by those surfaces
   - canonical non-memory families: tools, freshness, routing, closure,
     policy, and skills
@@ -113,6 +115,7 @@ Minimal public smoke:
 python - <<'PY'
 import openminion_eval
 from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunner
+from openminion_eval import EvalCase, registered_cases
 from openminion_eval.tools import ToolSelectionCase
 from openminion_eval.freshness import FreshnessCase
 from openminion_eval.routing import RoutingCase
@@ -122,6 +125,7 @@ from openminion_eval.skills import load_skill_quality_manifest
 
 print(EVAL_INTERFACE_VERSION)
 print(EvalRunner.__name__)
+print(EvalCase.__name__, len(registered_cases()))
 print(
     ToolSelectionCase.__name__,
     FreshnessCase.__name__,
@@ -137,6 +141,12 @@ Package-local example:
 
 ```bash
 PYTHONPATH=src python3.11 examples/basic_usage.py
+```
+
+Starter case report:
+
+```bash
+python -m openminion_eval.cases --category coding
 ```
 
 Boundary check:
@@ -159,6 +169,8 @@ Package-local docs and scripts:
 - `docs/README.md` summarizes the package-local docs contract.
 - `docs/reference/certification-readiness-matrix.md` records standalone and
   integration proof coverage for the public package surface.
+- `docs/reference/eval-cases.md` records the starter `EvalCase` registry,
+  grade modes, CLI, and extension rules.
 - `API_COMPATIBILITY.md` records the supported public import roots and
   top-level export policy.
 - `RELEASING.md` records the package-local release and PyPI publish flow.
@@ -170,6 +182,7 @@ Package-local docs and scripts:
 
 - `public_library_api`
   - top-level generic eval primitives and compatibility helpers
+  - starter `EvalCase` registry and `openminion_eval.cases` CLI
   - canonical non-memory families under `openminion_eval.{tools,freshness,routing,closure,policy,skills}`
   - package-owned support used by those public surfaces
 - `repo_local_integration_tooling`
