@@ -14,6 +14,14 @@ from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
 from openminion_eval.suite import EvalSuite
 from openminion_eval.schemas import EvalResult, EvalSummary, EvalTranscript
+from openminion_eval.cases import (
+    EvalCase,
+    EvalCaseResult,
+    GradeMode,
+    GradeOutcome,
+    grade_case,
+    registered_cases,
+)
 from openminion_eval.tools import (
     ToolResultUsageCase,
     ToolResultUsageObservation,
@@ -106,6 +114,12 @@ __all__ = [
     "EvalResult",
     "EvalSummary",
     "EvalTranscript",
+    "EvalCase",
+    "EvalCaseResult",
+    "GradeMode",
+    "GradeOutcome",
+    "grade_case",
+    "registered_cases",
     "ToolSelectionCase",
     "ToolSelectionObservation",
     "ToolSelectionReport",

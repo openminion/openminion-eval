@@ -1,10 +1,14 @@
 from openminion_eval import (
     AggregateReport,
     ClosureCase,
+    EvalCase,
+    EvalCaseResult,
     FamilyCertificationSignal,
     FreshnessCase,
     GoalDriftSignalKind,
     GoalTrajectoryBenchmark,
+    GradeMode,
+    GradeOutcome,
     NLNamedSkillScenario,
     PolicyCase,
     RoutingCase,
@@ -16,6 +20,10 @@ from openminion_eval import (
 
 def test_root_eval_exports_new_family_types() -> None:
     assert ToolSelectionCase.__name__ == "ToolSelectionCase"
+    assert EvalCase.__name__ == "EvalCase"
+    assert EvalCaseResult.__name__ == "EvalCaseResult"
+    assert GradeMode.STRUCTURAL.value == "structural"
+    assert GradeOutcome.PASS.value == "pass"
     assert ToolResultUsageCase.__name__ == "ToolResultUsageCase"
     assert FreshnessCase.__name__ == "FreshnessCase"
     assert RoutingCase.__name__ == "RoutingCase"

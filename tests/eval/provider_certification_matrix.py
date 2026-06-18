@@ -71,6 +71,13 @@ def openminion_root() -> Path:
     return Path(__file__).resolve().parents[2]
 
 
+def _resolve_package_path(path_text: str) -> Path:
+    path = Path(path_text)
+    if path.is_absolute():
+        return path
+    return openminion_root() / path
+
+
 def framework_root() -> Path:
     return openminion_root().parent
 
@@ -145,7 +152,7 @@ def load_provider_certification_manual_cells(
         evidence_path_text = str(item.get("evidence_path", "") or "").strip()
         if not evidence_path_text:
             raise ValueError(f"manual cell missing evidence_path: {key!r}")
-        if not Path(evidence_path_text).exists():
+        if not _resolve_package_path(evidence_path_text).exists():
             raise ValueError(
                 f"manual evidence path does not exist for {key!r}: {evidence_path_text}"
             )

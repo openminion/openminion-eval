@@ -61,7 +61,7 @@ def test_iter_routing_target_records_accepts_aggregate_and_per_target_payload(
                     {
                         "target": "aggregate-target",
                         "agent_id": "aggregate-agent",
-                        "config_path": "/tmp/aggregate.json",
+                        "config_path": "fixtures/aggregate.json",
                         "results": [],
                     }
                 ]
@@ -75,7 +75,7 @@ def test_iter_routing_target_records_accepts_aggregate_and_per_target_payload(
             {
                 "target": "direct-target",
                 "agent_id": "direct-agent",
-                "config_path": "/tmp/direct.json",
+                "config_path": "fixtures/direct.json",
                 "results": [],
             }
         ),
@@ -135,8 +135,8 @@ def test_build_skill_quality_target_report_reads_transcript_and_builds_slots(
         {
             "target": "demo-target",
             "agent_id": agent_id,
-            "config_path": "/tmp/demo.json",
-            "routing_artifact": "/tmp/routing.json",
+            "config_path": "fixtures/demo.json",
+            "routing_artifact": "fixtures/routing.json",
             "results": [
                 {
                     "scenario": "demo-skill",
@@ -144,7 +144,7 @@ def test_build_skill_quality_target_report_reads_transcript_and_builds_slots(
                     "selected_skill_id": "demo-skill",
                     "selected_skill_ids": ["demo-skill"],
                     "transcript": str(transcript_path),
-                    "events": "/tmp/demo-events.json",
+                    "events": "fixtures/demo-events.json",
                 }
             ],
         },

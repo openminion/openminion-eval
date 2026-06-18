@@ -7,7 +7,7 @@ PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
 
-.PHONY: help venv dev-install fix format format-check lint test test-all release-check check clean
+.PHONY: help venv dev-install fix format format-check lint test test-all release-check check clean eval
 
 help:
 	@printf '%s\n' \
@@ -21,7 +21,10 @@ help:
 		'  make test-all      Run all repo-local tests, including OpenMinion integration tests' \
 		'  make release-check Build sdist/wheel and smoke-test the installed wheel' \
 		'  make check         Run format-check, lint, and test' \
-		'  make clean         Remove repo-local cache/build artifacts'
+		'  make clean         Remove repo-local cache/build artifacts' \
+		'  make eval          Run the 5 starter EvalCases and print a Markdown report' \
+		'                     - Override category: make eval ARGS="--category coding"' \
+		'                     - Write to file: make eval ARGS="--out report.md"'
 
 venv:
 	@test -x "$(PYTHON)" || python3.11 -m venv "$(VENV)"
@@ -63,6 +66,12 @@ test-all: $(DEV_STAMP)
 
 release-check: $(DEV_STAMP)
 	$(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"
+
+# Resolve the repo root so structural graders can locate runtime anchors.
+eval: $(DEV_STAMP)
+	OPENMINION_REPO_ROOT="$(WORKSPACE_ROOT)" \
+		PYTHONPATH="$(REPO_ROOT)/src" \
+		$(PYTHON) -m openminion_eval.cases $(ARGS)
 
 check: format-check lint test
 
