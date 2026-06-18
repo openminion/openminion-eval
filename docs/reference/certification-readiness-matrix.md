@@ -1,6 +1,7 @@
 # OpenMinion Eval Certification Readiness Matrix
 
-Status: `alpha`
+Status: alpha
+Scope: public package proof matrix
 
 ## Purpose
 

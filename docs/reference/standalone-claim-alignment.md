@@ -1,6 +1,6 @@
 # Standalone Claim Alignment
 
-Status: `alpha`
+Status: alpha
 Scope: public package claims and current shipped surfaces
 
 This note maps the public `openminion-eval` story to the package surfaces that

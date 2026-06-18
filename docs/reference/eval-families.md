@@ -1,6 +1,6 @@
 # Eval Families
 
-Status: `alpha`
+Status: alpha
 Scope: public non-memory eval-family contracts
 
 `openminion-eval` ships deterministic helpers for package-owned evaluation

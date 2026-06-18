@@ -1,6 +1,6 @@
 # Eval Cases
 
-Status: `alpha`
+Status: alpha
 Scope: package-local `EvalCase` registry and CLI contract
 
 `openminion_eval.cases` owns the lightweight case roster used by the source
