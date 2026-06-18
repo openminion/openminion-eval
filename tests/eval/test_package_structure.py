@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import tomllib
 from pathlib import Path
 
 
@@ -10,6 +11,7 @@ def test_package_local_docs_examples_and_release_smoke_exist() -> None:
     assert (root / "docs" / "certification-readiness-matrix.md").is_file()
     assert (root / "docs" / "eval-cases.md").is_file()
     assert (root / "docs" / "eval-families.md").is_file()
+    assert (root / "docs" / "source-tree-owner-map.md").is_file()
     assert (root / "docs" / "standalone-claim-alignment.md").is_file()
     assert (root / "examples" / "basic_usage.py").is_file()
     assert (root / "scripts" / "release_check.py").is_file()
@@ -26,6 +28,7 @@ def test_readme_mentions_package_local_docs_and_example() -> None:
     assert "docs/certification-readiness-matrix.md" in readme
     assert "docs/eval-cases.md" in readme
     assert "docs/eval-families.md" in readme
+    assert "docs/source-tree-owner-map.md" in readme
     assert "docs/standalone-claim-alignment.md" in readme
     assert "API_COMPATIBILITY.md" in readme
     assert "RELEASING.md" in readme
@@ -41,3 +44,16 @@ def test_root_layout_stays_clean_and_intentional() -> None:
 
     assert not (root / "fixtures").exists()
     assert not (root / "handoff").exists()
+
+
+def test_package_metadata_declares_public_urls() -> None:
+    pyproject = tomllib.loads(
+        (Path(__file__).resolve().parents[2] / "pyproject.toml").read_text()
+    )
+
+    assert pyproject["project"]["urls"] == {
+        "Homepage": "https://github.com/openminion/openminion-eval",
+        "Repository": "https://github.com/openminion/openminion-eval",
+        "Issues": "https://github.com/openminion/openminion-eval/issues",
+        "Documentation": "https://github.com/openminion/openminion-eval#readme",
+    }
