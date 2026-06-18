@@ -3,9 +3,10 @@
 Status: `alpha`
 Scope: package-local `EvalCase` registry and CLI contract
 
-`openminion_eval.cases` owns the lightweight case roster used by `make eval`
-and `python -m openminion_eval.cases`. The current registry ships five starter
-cases across coding, research, recovery, multi-tool, and memory recall.
+`openminion_eval.cases` owns the lightweight case roster used by the source
+checkout `make eval` target and by `python -m openminion_eval.cases`. The
+current registry ships five starter cases across coding, research, recovery,
+multi-tool, and memory recall.
 
 ## Public Surface
 
@@ -60,9 +61,9 @@ Write a Markdown report:
 python -m openminion_eval.cases --out report.md
 ```
 
-Structural cases that depend on OpenMinion runtime evidence resolve anchors
-from `OPENMINION_REPO_ROOT` when set, then from the nearest checkout-like
-parent, and finally from the current working directory. Missing anchors produce
+Structural cases that depend on host evidence resolve anchors from
+`OPENMINION_REPO_ROOT` when set, then from the nearest checkout-like parent,
+and finally from the current working directory. Missing anchors produce
 `SKIPPED`, not `FAIL`, because the evidence packet is environment-dependent.
 
 ## Adding Cases

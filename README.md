@@ -65,15 +65,15 @@ This package owns:
 - canonical non-memory eval families: tools, freshness, routing, closure,
   policy, and skills
 
-This repository also owns repo-local integration tooling used by internal eval
-workflows:
+This repository also contains source-tree validation tooling used by broader
+eval workflows:
 
 - `tests/eval/integration/` (memory eval + trace flywheel)
 - memory fixtures/baselines and companion reports
 - grounding eval and eval runners
 
-The monorepo `openminion/` tree no longer owns `src/openminion/eval/` or
-`tests/eval/`. `openminion` consumes eval through the external
+The host application tree no longer owns `src/openminion/eval/` or
+`tests/eval/`. OpenMinion consumes eval through the external
 `openminion_eval` package.
 
 ## Public release contract
@@ -96,8 +96,8 @@ The current public standalone contract matches the installed package:
 
 Why: the published wheel now ships only the standalone non-memory surface.
 Memory harness and report tooling remain available from source in this
-repository for internal integration workflows, but they are no longer exposed
-as part of the installed `openminion_eval` package.
+repository for validation workflows, but they are not exposed as part of the
+installed `openminion_eval` package.
 
 The `openminion_eval.config` module is intentionally minimal today. It remains
 as a documented no-op compatibility surface; the public package does not
@@ -167,10 +167,14 @@ PY
 Package-local docs and scripts:
 
 - `docs/README.md` summarizes the package-local docs contract.
+- `docs/reference/eval-families.md` records the public non-memory eval-family
+  contracts.
 - `docs/reference/certification-readiness-matrix.md` records standalone and
-  integration proof coverage for the public package surface.
+  host-integration proof coverage for the public package surface.
 - `docs/reference/eval-cases.md` records the starter `EvalCase` registry,
   grade modes, CLI, and extension rules.
+- `docs/reference/standalone-claim-alignment.md` maps public claims to shipped
+  package surfaces and proof.
 - `API_COMPATIBILITY.md` records the supported public import roots and
   top-level export policy.
 - `RELEASING.md` records the package-local release and PyPI publish flow.
@@ -194,4 +198,4 @@ Package-local docs and scripts:
   - `conftest.py`
   - `tests/eval/runners/`
   - `tests/eval/grounding/`
-  - other dev/test helpers that rely on monorepo paths or runtime artifacts
+  - other dev/test helpers that rely on host runtime artifacts

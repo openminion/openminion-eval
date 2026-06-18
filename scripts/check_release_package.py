@@ -39,6 +39,8 @@ def _assert_package_docs_shape() -> None:
         REPO_ROOT / "docs" / "README.md",
         REPO_ROOT / "docs" / "reference" / "certification-readiness-matrix.md",
         REPO_ROOT / "docs" / "reference" / "eval-cases.md",
+        REPO_ROOT / "docs" / "reference" / "eval-families.md",
+        REPO_ROOT / "docs" / "reference" / "standalone-claim-alignment.md",
         REPO_ROOT / "src" / "openminion_eval" / "README.md",
         REPO_ROOT / "API_COMPATIBILITY.md",
         REPO_ROOT / "RELEASING.md",

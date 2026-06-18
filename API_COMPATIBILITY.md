@@ -85,7 +85,9 @@ Public-contract confidence should be enforced by tests that cover:
 7. packaged skill/resource availability,
 8. goal trajectory export and report behavior,
 9. package-local docs, examples, and release-smoke entrypoints,
-10. `openminion_eval.cases` CLI/report behavior.
+10. `openminion_eval.cases` CLI/report behavior,
+11. reference docs for eval families, eval cases, standalone claims, and
+    certification readiness.
 
 ## Non-goals
 

@@ -5,8 +5,8 @@ Scope: package-local release contract for the standalone `openminion-eval`
 distribution
 
 `openminion-eval` is published under MIT. This document keeps the package-local
-release path explicit so publishing does not depend on host framework or
-monorepo context.
+release path explicit so publishing does not depend on host application
+context.
 
 ## Release Contract
 
@@ -80,7 +80,7 @@ Use PyPI API tokens through `TWINE_USERNAME=__token__` and
 
 ## Notes
 
-1. `openminion-eval` is package-local and standalone; the monorepo runtime
+1. `openminion-eval` is package-local and standalone; the host application
    consumes it as an external dependency.
 2. Repo-local integration helpers may remain in this repository without being
    part of the wheel-shipped public contract.
