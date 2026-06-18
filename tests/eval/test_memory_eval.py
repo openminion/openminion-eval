@@ -76,8 +76,8 @@ def _make_engine_config(**overrides) -> MemoryEvalEngineConfig:
 
     memory_config = from_base_config(
         base_config=OpenMinionConfig(),
-        home_root=Path("/tmp/openminion-home"),
-        data_root=Path("/tmp/openminion-data"),
+        home_root=Path("fixtures/openminion-home"),
+        data_root=Path("fixtures/openminion-data"),
     )
 
     return MemoryEvalEngineConfig(
@@ -410,7 +410,7 @@ def test_memory_quality_report_assembles_from_existing_memory_harness() -> None:
         {
             "target_id": "demo-target",
             "agent_id": "demo-agent",
-            "config_path": "/tmp/demo.json",
+            "config_path": "fixtures/demo.json",
         },
         manifest_version=manifest_version,
         scenarios=scenarios,

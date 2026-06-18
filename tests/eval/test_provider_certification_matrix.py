@@ -6,6 +6,7 @@ from tests.eval.provider_certification_matrix import (
     build_provider_certification_report,
     load_provider_certification_manual_cells,
     load_provider_certification_targets,
+    openminion_root,
 )
 
 
@@ -67,4 +68,5 @@ def test_build_provider_certification_report_covers_all_inventory_targets() -> N
 def test_provider_certification_manual_evidence_paths_exist() -> None:
     _version, manual_cells = load_provider_certification_manual_cells()
     for cell in manual_cells:
-        assert Path(cell.evidence_path).exists()
+        assert not Path(cell.evidence_path).is_absolute()
+        assert (openminion_root() / cell.evidence_path).exists()

@@ -55,7 +55,7 @@ def test_render_nl_named_skill_prompt_variants() -> None:
     scenario = NLNamedSkillScenario(
         scenario_id="claude-api",
         skill_id="claude-api",
-        fixture_path=Path("/tmp/claude-api/SKILL.md"),
+        fixture_path=Path("fixtures/claude-api/SKILL.md"),
         task_brief="building a chatbot",
     )
     variant = NLNamedSkillPromptVariant(
@@ -141,7 +141,7 @@ def test_build_nl_named_skill_target_report_summarizes_variant_sensitivity(
         {
             "target_id": "demo-target",
             "agent_id": agent_id,
-            "config_path": "/tmp/demo.json",
+            "config_path": "fixtures/demo.json",
             "attempts": [
                 {
                     "scenario_id": "claude-api",
@@ -149,7 +149,7 @@ def test_build_nl_named_skill_target_report_summarizes_variant_sensitivity(
                     "prompt": "Use skill claude-api.",
                     "session_id": session_id,
                     "transcript": str(success_transcript),
-                    "events": "/tmp/simple-events.json",
+                    "events": "fixtures/simple-events.json",
                     "skill_selected_event": True,
                     "selected_skill_id": "claude-api",
                     "selected_skill_ids": ["claude-api"],
@@ -160,7 +160,7 @@ def test_build_nl_named_skill_target_report_summarizes_variant_sensitivity(
                     "prompt": "Use skill claude-api for building a chatbot.",
                     "session_id": session_id,
                     "transcript": str(success_transcript),
-                    "events": "/tmp/complex-events.json",
+                    "events": "fixtures/complex-events.json",
                     "skill_selected_event": True,
                     "selected_skill_id": "claude-api",
                     "selected_skill_ids": ["claude-api"],
@@ -171,7 +171,7 @@ def test_build_nl_named_skill_target_report_summarizes_variant_sensitivity(
                     "prompt": "claude-api",
                     "session_id": session_id,
                     "transcript": str(failure_transcript),
-                    "events": "/tmp/minimal-events.json",
+                    "events": "fixtures/minimal-events.json",
                     "skill_selected_event": False,
                     "selected_skill_id": "",
                     "selected_skill_ids": [],

@@ -62,7 +62,7 @@ python3.11 -m pytest -q tests/eval \
   --ignore=tests/eval/test_memory_eval.py \
   --ignore=tests/eval/test_trace_flywheel.py
 python3.11 -m build
-python3.11 -m pip install --no-deps --target /tmp/openminion-eval-wheel dist/openminion_eval-*.whl
+python3.11 -m pip install --no-deps --target wheel-install/openminion-eval dist/openminion_eval-*.whl
 ```
 
 ## Publish Sequence
