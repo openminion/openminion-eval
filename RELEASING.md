@@ -17,9 +17,9 @@ A publishable release must satisfy all of the following:
 3. `README.md` describes install, public release boundary, examples, and
    package-local docs/script expectations for external consumers.
 4. `API_COMPATIBILITY.md` names the stable import roots and deprecation policy.
-5. `docs/reference/` remains the canonical package-local reference-docs root.
-6. `src/openminion_eval/README.md` continues to document the package owner map
-   and repo-local integration boundary.
+5. `docs/` remains the canonical package-local docs root.
+6. `docs/source-tree-owner-map.md` continues to document the package
+   owner map and repo-local integration boundary.
 7. The starter `EvalCase` registry and `openminion_eval.cases` CLI are covered
    by package tests and release smoke.
 8. Package tests pass from the package root.
@@ -39,7 +39,7 @@ If the release changes the external consumer contract, also update:
 - `README.md`
 - `API_COMPATIBILITY.md`
 - `docs/README.md`
-- `docs/reference/`
+- `docs/`
 
 ## Build and Validation
 

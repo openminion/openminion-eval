@@ -167,19 +167,19 @@ PY
 Package-local docs and scripts:
 
 - `docs/README.md` summarizes the package-local docs contract.
-- `docs/reference/eval-families.md` records the public non-memory eval-family
+- `docs/eval-families.md` records the public non-memory eval-family
   contracts.
-- `docs/reference/certification-readiness-matrix.md` records standalone and
+- `docs/certification-readiness-matrix.md` records standalone and
   host-integration proof coverage for the public package surface.
-- `docs/reference/eval-cases.md` records the starter `EvalCase` registry,
+- `docs/eval-cases.md` records the starter `EvalCase` registry,
   grade modes, CLI, and extension rules.
-- `docs/reference/standalone-claim-alignment.md` maps public claims to shipped
+- `docs/standalone-claim-alignment.md` maps public claims to shipped
   package surfaces and proof.
 - `API_COMPATIBILITY.md` records the supported public import roots and
   top-level export policy.
 - `RELEASING.md` records the package-local release and PyPI publish flow.
-- `src/openminion_eval/README.md` explains the module layout and public
-  boundary.
+- `docs/source-tree-owner-map.md` explains the module layout and
+  public boundary.
 - `scripts/release_check.py` is the canonical release smoke entrypoint.
 
 ## Surface classification

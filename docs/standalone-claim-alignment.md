@@ -12,11 +12,11 @@ useful for downstream consumers.
 | Public claim | Shipped package surface | Proof today | Alignment |
 | --- | --- | --- | --- |
 | `openminion-eval` is a standalone evaluation toolkit for agent quality checks. | `EvalRunner`, `EvalScorer`, `EvalSuite`, schemas, interfaces, scorer helpers. | `tests/eval/test_eval.py`, `tests/eval/test_interfaces_contract.py`, `scripts/check_release_package.py` | Keep. The generic eval primitives are package-owned and installable. |
-| The package ships deterministic non-memory eval families. | Tools, freshness, routing, closure, policy, skills, goal-trajectory, and reporting helpers. | `tests/eval/families/`, `tests/eval/test_family_imports.py`, `docs/reference/eval-families.md` | Keep. These are explicit DTO/report builders over supplied observations. |
-| The package includes a starter case runner. | `openminion_eval.cases`, top-level `EvalCase` exports, and `python -m openminion_eval.cases`. | `tests/eval/test_starter_eval_cases.py`, `docs/reference/eval-cases.md`, release smoke. | Keep, but describe it as a starter registry and CLI, not a complete live-agent harness. |
+| The package ships deterministic non-memory eval families. | Tools, freshness, routing, closure, policy, skills, goal-trajectory, and reporting helpers. | `tests/eval/families/`, `tests/eval/test_family_imports.py`, `docs/eval-families.md` | Keep. These are explicit DTO/report builders over supplied observations. |
+| The package includes a starter case runner. | `openminion_eval.cases`, top-level `EvalCase` exports, and `python -m openminion_eval.cases`. | `tests/eval/test_starter_eval_cases.py`, `docs/eval-cases.md`, release smoke. | Keep, but describe it as a starter registry and CLI, not a complete live-agent harness. |
 | The package can be released independently. | Wheel/sdist build, installed-wheel smoke, license/resource checks, public-boundary checks. | `scripts/check_release_package.py`, `RELEASING.md` | Keep. Release checks must stay package-local. |
 | Memory-eval and provider-certification fixtures are part of the public package API. | Source-tree fixtures and tests exist, but memory harness modules are not wheel-shipped public imports. | `tests/eval/test_public_release_boundary.py`, release smoke import rejection. | Narrow. They are repo-local validation support, not public package API. |
-| The package evaluates live model behavior end to end. | Structural scoring helpers and optional live-gated case mode exist. | `docs/reference/eval-cases.md` | Narrow. Hosts own provider execution; the package owns deterministic scoring/reporting surfaces. |
+| The package evaluates live model behavior end to end. | Structural scoring helpers and optional live-gated case mode exist. | `docs/eval-cases.md` | Narrow. Hosts own provider execution; the package owns deterministic scoring/reporting surfaces. |
 
 ## Resulting Public Stance
 

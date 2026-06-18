@@ -7,13 +7,13 @@ This directory holds the public package documentation for standalone
 
 ## Package-local references
 
-- [`reference/eval-families.md`](reference/eval-families.md) records the
+- [`eval-families.md`](eval-families.md) records the
   package-owned non-memory eval-family contracts.
-- [`reference/eval-cases.md`](reference/eval-cases.md) records the starter
+- [`eval-cases.md`](eval-cases.md) records the starter
   `EvalCase` registry, grade modes, CLI behavior, and extension rules.
-- [`reference/standalone-claim-alignment.md`](reference/standalone-claim-alignment.md)
+- [`standalone-claim-alignment.md`](standalone-claim-alignment.md)
   maps public standalone claims to shipped package surfaces and proof.
-- [`reference/certification-readiness-matrix.md`](reference/certification-readiness-matrix.md)
+- [`certification-readiness-matrix.md`](certification-readiness-matrix.md)
   records the current standalone and host-integration proof targets for the
   public package surface.
 - `docs/assets/openminion-eval-logo.png` is the package-local README/social
@@ -22,12 +22,11 @@ This directory holds the public package documentation for standalone
 ## Package-local code/docs boundaries
 
 1. `README.md` is the public package contract and install surface.
-2. [`../API_COMPATIBILITY.md`](../API_COMPATIBILITY.md) records the supported
-   public import roots and top-level export policy.
-3. [`../src/openminion_eval/README.md`](../src/openminion_eval/README.md)
-   explains the source-tree owner map and public-vs-repo-local boundary.
-4. [`../RELEASING.md`](../RELEASING.md) records the package-local release and
-   PyPI publish flow.
+2. `API_COMPATIBILITY.md` records the supported public import roots and
+   top-level export policy.
+3. The Source Tree Owner Map reference explains the source-tree owner map and
+   public-vs-repo-local boundary.
+4. `RELEASING.md` records the package-local release and PyPI publish flow.
 5. `scripts/release_check.py` is the canonical package release smoke entrypoint.
 6. `python -m openminion_eval.cases` is the package-owned case report CLI.
 

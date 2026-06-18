@@ -37,10 +37,11 @@ def _remove_build_residue() -> None:
 def _assert_package_docs_shape() -> None:
     required_paths = [
         REPO_ROOT / "docs" / "README.md",
-        REPO_ROOT / "docs" / "reference" / "certification-readiness-matrix.md",
-        REPO_ROOT / "docs" / "reference" / "eval-cases.md",
-        REPO_ROOT / "docs" / "reference" / "eval-families.md",
-        REPO_ROOT / "docs" / "reference" / "standalone-claim-alignment.md",
+        REPO_ROOT / "docs" / "certification-readiness-matrix.md",
+        REPO_ROOT / "docs" / "eval-cases.md",
+        REPO_ROOT / "docs" / "eval-families.md",
+        REPO_ROOT / "docs" / "standalone-claim-alignment.md",
+        REPO_ROOT / "docs" / "source-tree-owner-map.md",
         REPO_ROOT / "src" / "openminion_eval" / "README.md",
         REPO_ROOT / "API_COMPATIBILITY.md",
         REPO_ROOT / "RELEASING.md",

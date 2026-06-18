@@ -5,77 +5,77 @@
       "target_id": "minimax-m2-5",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "official MiniMax CLI matrix reran green at 22 passed"
     },
     {
       "target_id": "minimax-m2-7",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "official MiniMax CLI matrix reran green at 22 passed"
     },
     {
       "target_id": "minimax-m2-5",
       "dimension": "confirmation_policy",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "confirmation-aware harness classification proved policy-denial paths"
     },
     {
       "target_id": "minimax-m2-7",
       "dimension": "confirmation_policy",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "confirmation-aware harness classification proved policy-denial paths"
     },
     {
       "target_id": "minimax-m2-5",
       "dimension": "skill_routing",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "official dense exact-skill rerun passed 11/11"
     },
     {
       "target_id": "minimax-m2-7",
       "dimension": "skill_routing",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "official dense exact-skill rerun passed 11/11"
     },
     {
       "target_id": "openrouter-claude-haiku-3",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-claude-haiku-4-5",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-gpt-4o",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-gpt-5-4-mini",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     },
     {
       "target_id": "openrouter-minimax-m2-7",
       "dimension": "explicit_tool",
       "status": "green",
-      "evidence_path": "docs/reference/certification-readiness-matrix.md",
+      "evidence_path": "docs/certification-readiness-matrix.md",
       "note": "OpenRouter explicit tool matrix passed on the PTSC rerun"
     }
   ]
