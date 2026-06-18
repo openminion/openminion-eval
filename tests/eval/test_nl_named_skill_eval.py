@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import pytest
 
 from openminion_eval.skills import (
     NLNamedSkillPromptVariant,
@@ -198,3 +199,147 @@ def test_build_nl_named_skill_target_report_summarizes_variant_sensitivity(
     assert report.summary["variant_summary"]["simple"]["selection_accuracy_count"] == 1
     assert report.attempts[-1].dimensions["fallback_behavior"] == "empty"
     assert report.attempts[0].dimensions["prompt_sensitivity"] == "variant_sensitive"
+
+
+def test_build_nl_named_skill_target_report_falls_back_to_preview_without_transcript(
+    tmp_path: Path,
+) -> None:
+    scenario = NLNamedSkillScenario(
+        scenario_id="claude-api",
+        skill_id="claude-api",
+        fixture_path=tmp_path / "SKILL.md",
+        task_brief="building a chatbot",
+    )
+    scenario.fixture_path.write_text("# demo", encoding="utf-8")
+    prompt_variants = (
+        NLNamedSkillPromptVariant(
+            variant_id="simple",
+            label="Simple",
+            prompt_template="Use skill {skill_id}.",
+        ),
+    )
+    rubric_dimensions = (
+        NLNamedSkillRubricDimension(
+            dimension_id="selection_accuracy",
+            label="Selection accuracy",
+            description="exact match",
+        ),
+        NLNamedSkillRubricDimension(
+            dimension_id="selection_confidence",
+            label="Selection confidence",
+            description="correct event",
+        ),
+        NLNamedSkillRubricDimension(
+            dimension_id="fallback_behavior",
+            label="Fallback behavior",
+            description="empty or wrong",
+        ),
+        NLNamedSkillRubricDimension(
+            dimension_id="prompt_sensitivity",
+            label="Prompt sensitivity",
+            description="stable or variant-sensitive",
+        ),
+    )
+
+    report = build_nl_named_skill_target_report(
+        {
+            "target_id": "demo-target",
+            "agent_id": "demo-agent",
+            "config_path": "fixtures/demo.json",
+            "attempts": [
+                {
+                    "scenario_id": "claude-api",
+                    "prompt_variant_id": "simple",
+                    "prompt": "Use skill claude-api.",
+                    "assistant_preview": "preview only",
+                    "selected_skill_id": "claude-api",
+                    "selected_skill_ids": ["claude-api"],
+                    "skill_selected_event": True,
+                }
+            ],
+        },
+        manifest_version="1",
+        scenarios=(scenario,),
+        prompt_variant_version="1",
+        prompt_variants=prompt_variants,
+        rubric_version="1",
+        rubric_dimensions=rubric_dimensions,
+    )
+
+    assert report.attempts[0].assistant_output == "preview only"
+
+
+def test_build_nl_named_skill_target_report_rejects_duplicate_attempt_pair(
+    tmp_path: Path,
+) -> None:
+    scenario = NLNamedSkillScenario(
+        scenario_id="claude-api",
+        skill_id="claude-api",
+        fixture_path=tmp_path / "SKILL.md",
+        task_brief="building a chatbot",
+    )
+    scenario.fixture_path.write_text("# demo", encoding="utf-8")
+    prompt_variants = (
+        NLNamedSkillPromptVariant(
+            variant_id="simple",
+            label="Simple",
+            prompt_template="Use skill {skill_id}.",
+        ),
+    )
+    rubric_dimensions = (
+        NLNamedSkillRubricDimension(
+            dimension_id="selection_accuracy",
+            label="Selection accuracy",
+            description="exact match",
+        ),
+        NLNamedSkillRubricDimension(
+            dimension_id="selection_confidence",
+            label="Selection confidence",
+            description="correct event",
+        ),
+        NLNamedSkillRubricDimension(
+            dimension_id="fallback_behavior",
+            label="Fallback behavior",
+            description="empty or wrong",
+        ),
+        NLNamedSkillRubricDimension(
+            dimension_id="prompt_sensitivity",
+            label="Prompt sensitivity",
+            description="stable or variant-sensitive",
+        ),
+    )
+
+    with pytest.raises(ValueError, match="duplicate NL named-skill attempt"):
+        build_nl_named_skill_target_report(
+            {
+                "target_id": "demo-target",
+                "agent_id": "demo-agent",
+                "config_path": "fixtures/demo.json",
+                "attempts": [
+                    {
+                        "scenario_id": "claude-api",
+                        "prompt_variant_id": "simple",
+                        "prompt": "Use skill claude-api.",
+                        "assistant_preview": "preview only",
+                        "selected_skill_id": "claude-api",
+                        "selected_skill_ids": ["claude-api"],
+                        "skill_selected_event": True,
+                    },
+                    {
+                        "scenario_id": "claude-api",
+                        "prompt_variant_id": "simple",
+                        "prompt": "Use skill claude-api again.",
+                        "assistant_preview": "preview only",
+                        "selected_skill_id": "claude-api",
+                        "selected_skill_ids": ["claude-api"],
+                        "skill_selected_event": True,
+                    },
+                ],
+            },
+            manifest_version="1",
+            scenarios=(scenario,),
+            prompt_variant_version="1",
+            prompt_variants=prompt_variants,
+            rubric_version="1",
+            rubric_dimensions=rubric_dimensions,
+        )

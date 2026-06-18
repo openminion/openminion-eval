@@ -16,7 +16,7 @@ from openminion_eval.skills.constants import (
     SKILL_QUALITY_PENDING_REVIEW_STATUS,
 )
 from openminion_eval.skills.support import (
-    extract_assistant_messages,
+    assistant_output_from_record,
     official_skill_matrix_target_ids,
     packaged_skill_fixture_path,
     representative_skill_quality_target_ids as _representative_skill_quality_target_ids,
@@ -208,21 +208,6 @@ def iter_routing_target_records(
     return records
 
 
-def _assistant_output_from_result(result: dict[str, Any], *, agent_id: str) -> str:
-    transcript_path = Path(str(result.get("transcript", "") or "")).expanduser()
-    if transcript_path.exists():
-        transcript = transcript_path.read_text(encoding="utf-8")
-        session_id = transcript_path.stem
-        messages = extract_assistant_messages(
-            transcript=transcript,
-            session_id=session_id,
-            agent_id=agent_id,
-        )
-        if messages:
-            return "\n\n".join(messages)
-    return str(result.get("assistant_preview", "") or "").strip()
-
-
 def _response_observations(text: str) -> dict[str, Any]:
     normalized = str(text or "")
     line_count = len([line for line in normalized.splitlines() if line.strip()])
@@ -270,8 +255,12 @@ def build_skill_quality_target_report(
             raise ValueError(
                 f"routing artifact includes unknown quality scenario {scenario_id!r}"
             )
+        if scenario_id in seen_scenarios:
+            raise ValueError(
+                f"duplicate quality scenario result for {scenario_id!r}"
+            )
         scenario = scenario_lookup[scenario_id]
-        assistant_output = _assistant_output_from_result(result, agent_id=agent_id)
+        assistant_output = assistant_output_from_record(result, agent_id=agent_id)
         selected_skill_ids = tuple(
             str(item).strip()
             for item in result.get("selected_skill_ids", [])
