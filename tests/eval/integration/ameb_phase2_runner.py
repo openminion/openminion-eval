@@ -176,8 +176,8 @@ BenchmarkPhase2Outcome = Literal[
 class BenchmarkBaselineReport:
     """Aggregated Phase 2 captured-evidence baseline report.
 
-    Maps 1:1 onto the §1-§7 sections of the published artifact at
-    ``docs/reference/autonomous-mission-empirical-benchmark-phase-2-2026-05-14.md``.
+    Maps 1:1 onto the §1-§7 sections of the published Phase 2 baseline
+    artifact.
     """
 
     report_version: str
