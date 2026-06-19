@@ -61,6 +61,16 @@ def test_build_minimax27_provider_config_sets_typed_defaults() -> None:
     assert cfg.provider_family == "openrouter"
 
 
+def test_canonical_api_key_env_maps_known_provider_families() -> None:
+    from tests.eval.integration.lrsp_live_session import _canonical_api_key_env
+
+    assert _canonical_api_key_env("openrouter") == "OPENROUTER_API_KEY"
+    assert _canonical_api_key_env(" OpenAI ") == "OPENAI_API_KEY"
+    assert _canonical_api_key_env("anthropic") == "ANTHROPIC_API_KEY"
+    assert _canonical_api_key_env("cerebras") == "CEREBRAS_API_KEY"
+    assert _canonical_api_key_env("unknown") == ""
+
+
 def test_provider_config_rejects_unknown_provider_name() -> None:
     with pytest.raises(ValueError):
         ProviderConfig(

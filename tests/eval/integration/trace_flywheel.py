@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, replace
+import json
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -198,7 +199,7 @@ def write_trace_eval_flywheel_report(
     output_path = Path(path).expanduser().resolve()
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
-        __import__("json").dumps(report.to_dict(), indent=2, sort_keys=True) + "\n",
+        json.dumps(report.to_dict(), indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )
     return output_path
