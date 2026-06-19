@@ -20,6 +20,12 @@ ALL_PROVIDER_NAMES: tuple[ProviderName, ...] = ("minimax_27",)
 # Default v1 binding for MiniMax 2.7 over the OpenRouter-shaped adapter family.
 DEFAULT_MINIMAX27_MODEL = "MiniMax-M2.5"
 DEFAULT_MINIMAX27_PROVIDER_FAMILY = "openrouter"
+_PROVIDER_API_KEY_ENVS: dict[str, str] = {
+    "openrouter": "OPENROUTER_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "anthropic": "ANTHROPIC_API_KEY",
+    "cerebras": "CEREBRAS_API_KEY",
+}
 
 
 @dataclass(frozen=True)
@@ -187,15 +193,7 @@ def _canonical_api_key_env(provider_family: str) -> str:
     """
 
     normalized = str(provider_family or "").strip().lower()
-    if normalized == "openrouter":
-        return "OPENROUTER_API_KEY"
-    if normalized == "openai":
-        return "OPENAI_API_KEY"
-    if normalized == "anthropic":
-        return "ANTHROPIC_API_KEY"
-    if normalized == "cerebras":
-        return "CEREBRAS_API_KEY"
-    return ""
+    return _PROVIDER_API_KEY_ENVS.get(normalized, "")
 
 
 def _apply_provider_config_overrides(
@@ -382,8 +380,10 @@ class TypedEventTranscript:
         return tuple(evt for evt in self.events if evt.event_type == event_type)
 
     def last(self, event_type: str) -> CapturedTypedEvent | None:
-        matches = self.find_all(event_type)
-        return matches[-1] if matches else None
+        for evt in reversed(self.events):
+            if evt.event_type == event_type:
+                return evt
+        return None
 
 
 def capture_typed_events(

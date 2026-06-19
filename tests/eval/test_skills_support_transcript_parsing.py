@@ -68,3 +68,23 @@ def test_load_golden_transcripts_orders_json_files_deterministically(
 
     assert first == ["alpha", "zebra"]
     assert second == first
+
+
+def test_load_golden_transcripts_reads_utf8_content(tmp_path: Path) -> None:
+    transcript = tmp_path / "utf8.json"
+    transcript.write_text(
+        json.dumps(
+            {
+                "name": "caf\u00e9",
+                "turns": [{"user": "hola", "expected": "adi\u00f3s"}],
+                "tags": ["na\u00efve"],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    loaded = load_golden_transcripts(str(tmp_path))
+
+    assert loaded[0].name == "caf\u00e9"
+    assert loaded[0].turns[0]["expected"] == "adi\u00f3s"
+    assert loaded[0].tags == ["na\u00efve"]

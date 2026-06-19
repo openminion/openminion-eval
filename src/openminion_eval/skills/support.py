@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from typing import Mapping
 
 from openminion_eval.paths import skill_resources_root as _skill_resources_root
 from openminion_eval.skills.constants import (
@@ -45,6 +46,28 @@ def representative_nl_named_skill_target_ids() -> tuple[str, ...]:
     return _REPRESENTATIVE_NL_NAMED_SKILL_TARGET_IDS
 
 
+def assistant_output_from_record(
+    record: Mapping[str, object],
+    *,
+    agent_id: str,
+    session_id: str = "",
+) -> str:
+    transcript_value = str(record.get("transcript", "") or "").strip()
+    if transcript_value:
+        transcript_path = Path(transcript_value).expanduser()
+        if transcript_path.is_file():
+            transcript = transcript_path.read_text(encoding="utf-8")
+            resolved_session_id = session_id or transcript_path.stem
+            messages = extract_assistant_messages(
+                transcript=transcript,
+                session_id=resolved_session_id,
+                agent_id=agent_id,
+            )
+            if messages:
+                return "\n\n".join(messages)
+    return str(record.get("assistant_preview", "") or "").strip()
+
+
 def extract_assistant_messages(
     *, transcript: str, session_id: str, agent_id: str
 ) -> list[str]:
@@ -75,6 +98,7 @@ def extract_assistant_messages(
 
 
 __all__ = [
+    "assistant_output_from_record",
     "extract_assistant_messages",
     "official_skill_matrix_target_ids",
     "packaged_skill_fixture_path",

@@ -40,6 +40,14 @@ def _adapter_factory(
     )
 
 
+def _runtime_roots(repo_root: Path) -> tuple[Path, Path]:
+    scratch_root = repo_root / "workspace-tmp" / "memory-eval-baseline"
+    return (
+        scratch_root / "openminion-home",
+        scratch_root / "openminion-data",
+    )
+
+
 def _build_snapshot(
     *,
     output_path: Path,
@@ -47,10 +55,11 @@ def _build_snapshot(
     fixture_root: Path,
 ) -> None:
     harness = MemoryEvalHarness()
+    home_root, data_root = _runtime_roots(repo_root)
     memory_config = from_base_config(
         base_config=OpenMinionConfig(),
-        home_root=repo_root / ".tmp" / "openminion-home",
-        data_root=repo_root / ".tmp" / "openminion-data",
+        home_root=home_root,
+        data_root=data_root,
     )
     scenarios = []
     for relative_dir in (

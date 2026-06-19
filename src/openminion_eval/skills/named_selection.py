@@ -20,7 +20,7 @@ from openminion_eval.skills.constants import (
     PROMPT_SENSITIVITY_VARIANT_SENSITIVE,
 )
 from openminion_eval.skills.support import (
-    extract_assistant_messages,
+    assistant_output_from_record,
     official_skill_matrix_target_ids,
     packaged_skill_fixture_path,
     representative_nl_named_skill_target_ids as _representative_nl_named_skill_target_ids,
@@ -212,25 +212,6 @@ def representative_nl_named_skill_target_ids() -> tuple[str, ...]:
     return _representative_nl_named_skill_target_ids()
 
 
-def _assistant_output_from_attempt(
-    attempt: dict[str, Any],
-    *,
-    agent_id: str,
-) -> str:
-    transcript_path = Path(str(attempt.get("transcript", "") or "")).expanduser()
-    if transcript_path.exists():
-        transcript = transcript_path.read_text(encoding="utf-8")
-        session_id = str(attempt.get("session_id", "") or transcript_path.stem).strip()
-        messages = extract_assistant_messages(
-            transcript=transcript,
-            session_id=session_id,
-            agent_id=agent_id,
-        )
-        if messages:
-            return "\n\n".join(messages)
-    return str(attempt.get("assistant_preview", "") or "").strip()
-
-
 def _prompt_sensitivity_by_scenario(
     attempts: list[NLNamedSkillAttemptReport],
 ) -> dict[str, str]:
@@ -281,6 +262,7 @@ def build_nl_named_skill_target_report(
     config_path = str(target_record.get("config_path", "") or "").strip()
 
     attempts: list[NLNamedSkillAttemptReport] = []
+    seen_attempt_keys: set[tuple[str, str]] = set()
     for item in target_record.get("attempts", []):
         if not isinstance(item, dict):
             continue
@@ -292,6 +274,13 @@ def build_nl_named_skill_target_report(
             raise ValueError(
                 f"unknown NL named-skill prompt variant: {prompt_variant_id!r}"
             )
+        attempt_key = (scenario_id, prompt_variant_id)
+        if attempt_key in seen_attempt_keys:
+            raise ValueError(
+                "duplicate NL named-skill attempt for "
+                f"scenario={scenario_id!r} prompt_variant={prompt_variant_id!r}"
+            )
+        seen_attempt_keys.add(attempt_key)
         scenario = scenario_lookup[scenario_id]
         variant = variant_lookup[prompt_variant_id]
         selected_skill_id = str(item.get("selected_skill_id", "") or "").strip()
@@ -327,8 +316,10 @@ def build_nl_named_skill_target_report(
                 prompt=str(item.get("prompt", "") or "").strip(),
                 selected_skill_id=selected_skill_id,
                 selected_skill_ids=selected_skill_ids,
-                assistant_output=_assistant_output_from_attempt(
-                    item, agent_id=agent_id
+                assistant_output=assistant_output_from_record(
+                    item,
+                    agent_id=agent_id,
+                    session_id=str(item.get("session_id", "") or "").strip(),
                 ),
                 selection_accuracy=selection_accuracy,
                 selection_confidence=selection_confidence,
@@ -341,11 +332,17 @@ def build_nl_named_skill_target_report(
             )
         )
 
-    expected_attempt_count = len(scenarios) * len(prompt_variants)
-    if len(attempts) != expected_attempt_count:
+    expected_attempt_keys = {
+        (scenario.scenario_id, variant.variant_id)
+        for scenario in scenarios
+        for variant in prompt_variants
+    }
+    if seen_attempt_keys != expected_attempt_keys:
+        missing = sorted(expected_attempt_keys - seen_attempt_keys)
+        extra = sorted(seen_attempt_keys - expected_attempt_keys)
         raise ValueError(
-            f"expected {expected_attempt_count} NL named-skill attempts for {target_id}, "
-            f"got {len(attempts)}"
+            "NL named-skill attempt coverage mismatch for "
+            f"{target_id or agent_id}: missing={missing} extra={extra}"
         )
 
     sensitivity_map = _prompt_sensitivity_by_scenario(attempts)

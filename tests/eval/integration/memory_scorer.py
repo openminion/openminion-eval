@@ -56,14 +56,21 @@ class MemoryEvalScorer:
     }
 
     @staticmethod
+    def _normalize_text(value: object) -> str:
+        return str(value or "").lower().strip()
+
+    @staticmethod
     def recall_at_k(retrieved: list[str], ground_truth: list[str], k: int) -> float:
         """Fraction of ground-truth items found in top-k retrieved strings."""
         if not ground_truth:
             return 1.0
-        top_k = [item.lower() for item in retrieved[: max(1, int(k))]]
+        top_k = [
+            MemoryEvalScorer._normalize_text(item)
+            for item in retrieved[: max(1, int(k))]
+        ]
         hits = 0
         for item in ground_truth:
-            normalized = str(item or "").lower().strip()
+            normalized = MemoryEvalScorer._normalize_text(item)
             if normalized and any(normalized in candidate for candidate in top_k):
                 hits += 1
         return float(hits) / float(len(ground_truth))
@@ -71,10 +78,15 @@ class MemoryEvalScorer:
     @staticmethod
     def precision_at_k(retrieved: list[str], ground_truth: list[str], k: int) -> float:
         """Fraction of top-k retrieved strings that match ground truth."""
-        top_k = [item.lower() for item in retrieved[: max(1, int(k))]]
+        top_k = [
+            MemoryEvalScorer._normalize_text(item)
+            for item in retrieved[: max(1, int(k))]
+        ]
         if not top_k:
             return 0.0
-        normalized_truth = [str(item or "").lower().strip() for item in ground_truth]
+        normalized_truth = [
+            MemoryEvalScorer._normalize_text(item) for item in ground_truth
+        ]
         hits = 0
         for candidate in top_k:
             if any(truth and truth in candidate for truth in normalized_truth):
@@ -86,10 +98,10 @@ class MemoryEvalScorer:
         """Fraction of required substrings found in text."""
         if not required:
             return 1.0
-        haystack = str(text or "").lower()
+        haystack = MemoryEvalScorer._normalize_text(text)
         hits = 0
         for item in required:
-            normalized = str(item or "").lower().strip()
+            normalized = MemoryEvalScorer._normalize_text(item)
             if normalized and normalized in haystack:
                 hits += 1
         return float(hits) / float(len(required))
@@ -97,12 +109,12 @@ class MemoryEvalScorer:
     @staticmethod
     def contradiction_leak_count(capsule_text: str, superseded_items: list[str]) -> int:
         """Count superseded items that still appear in the capsule text."""
-        haystack = str(capsule_text or "").lower()
+        haystack = MemoryEvalScorer._normalize_text(capsule_text)
         segments = MemoryEvalScorer._segments(capsule_text)
         return sum(
             1
             for item in superseded_items
-            if (normalized := str(item or "").lower().strip())
+            if (normalized := MemoryEvalScorer._normalize_text(item))
             and normalized in haystack
             and not MemoryEvalScorer._has_contradicting_resolution(
                 segments=segments,
@@ -114,13 +126,13 @@ class MemoryEvalScorer:
     def _segments(text: str) -> list[str]:
         return [
             segment.strip()
-            for segment in re.split(r"[\n\r]+", str(text or "").lower())
+            for segment in re.split(r"[\n\r]+", MemoryEvalScorer._normalize_text(text))
             if segment.strip()
         ]
 
     @staticmethod
     def _tokenize(text: str) -> list[str]:
-        return re.findall(r"[a-z0-9']+", str(text or "").lower())
+        return re.findall(r"[a-z0-9']+", MemoryEvalScorer._normalize_text(text))
 
     @staticmethod
     def _polarity(tokens: list[str]) -> int:
@@ -181,16 +193,16 @@ class MemoryEvalScorer:
         relevance_labels: dict[str, str],
     ) -> tuple[float, float]:
         """Return capsule precision and noise rate from substring labels."""
-        haystack = str(capsule_text or "").lower()
+        haystack = MemoryEvalScorer._normalize_text(capsule_text)
         surfaced_relevant = 0
         surfaced_irrelevant = 0
         total_surfaced = 0
         for label, state in relevance_labels.items():
-            normalized = str(label or "").lower().strip()
+            normalized = MemoryEvalScorer._normalize_text(label)
             if not normalized or normalized not in haystack:
                 continue
             total_surfaced += 1
-            if str(state).lower().strip() == "relevant":
+            if MemoryEvalScorer._normalize_text(state) == "relevant":
                 surfaced_relevant += 1
             else:
                 surfaced_irrelevant += 1

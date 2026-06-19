@@ -23,6 +23,7 @@ from tests.eval.memory_quality_eval import (
     representative_memory_quality_target_ids,
     run_memory_quality_source_report,
 )
+from tests.eval.runners.run_memory_eval_baseline import _runtime_roots
 from openminion.base.config import OpenMinionConfig
 from openminion.modules.memory.config import from_base_config
 from openminion.modules.memory.service import MemoryService
@@ -338,6 +339,13 @@ def test_memory_eval_baseline_snapshot_covers_all_dimensions() -> None:
     assert "contradiction-paraphrased-conflict" in payload
     assert "contradiction-type-aware-threshold" in payload
     assert "capsule-reflection-insight-quality" in payload
+
+
+def test_memory_eval_baseline_runner_uses_workspace_tmp_roots() -> None:
+    home_root, data_root = _runtime_roots(Path("/repo-root"))
+
+    assert home_root == Path("/repo-root/workspace-tmp/memory-eval-baseline/openminion-home")
+    assert data_root == Path("/repo-root/workspace-tmp/memory-eval-baseline/openminion-data")
 
 
 def test_memory_quality_manifest_and_rubric_load_cleanly() -> None:

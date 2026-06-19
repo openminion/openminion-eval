@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+import pytest
 
 from openminion_eval.skills import (
     SkillQualityRubricDimension,
@@ -162,3 +163,100 @@ def test_build_skill_quality_target_report_reads_transcript_and_builds_slots(
     assert report.summary["responses_with_guardrail_language"] == 1
     assert report.scenario_results[0].assistant_output.startswith("1. Step one")
     assert report.scenario_results[0].rubric_slots[0]["status"] == "pending_review"
+
+
+def test_build_skill_quality_target_report_falls_back_to_preview_without_transcript(
+    tmp_path: Path,
+) -> None:
+    scenario = SkillQualityScenario(
+        scenario_id="demo-skill",
+        skill_id="demo-skill",
+        fixture_path=tmp_path / "SKILL.md",
+        prompt="Use the demo-skill workflow for this task.",
+        evaluation_dimensions=("on_skill_fidelity",),
+    )
+    scenario.fixture_path.write_text("# demo", encoding="utf-8")
+    rubric_dimensions = (
+        SkillQualityRubricDimension(
+            dimension_id="on_skill_fidelity",
+            label="On-skill fidelity",
+            reviewer_prompt="stay on skill",
+            scale=("weak", "mixed", "strong"),
+        ),
+    )
+
+    report = build_skill_quality_target_report(
+        {
+            "target": "demo-target",
+            "agent_id": "demo-agent",
+            "config_path": "fixtures/demo.json",
+            "routing_artifact": "fixtures/routing.json",
+            "results": [
+                {
+                    "scenario": "demo-skill",
+                    "expected_skill_id": "demo-skill",
+                    "selected_skill_id": "demo-skill",
+                    "selected_skill_ids": ["demo-skill"],
+                    "assistant_preview": "preview only",
+                    "events": "fixtures/demo-events.json",
+                }
+            ],
+        },
+        manifest_version="1",
+        scenarios=(scenario,),
+        rubric_version="1",
+        rubric_dimensions=rubric_dimensions,
+    )
+
+    assert report.scenario_results[0].assistant_output == "preview only"
+
+
+def test_build_skill_quality_target_report_rejects_duplicate_scenario_result(
+    tmp_path: Path,
+) -> None:
+    scenario = SkillQualityScenario(
+        scenario_id="demo-skill",
+        skill_id="demo-skill",
+        fixture_path=tmp_path / "SKILL.md",
+        prompt="Use the demo-skill workflow for this task.",
+        evaluation_dimensions=("on_skill_fidelity",),
+    )
+    scenario.fixture_path.write_text("# demo", encoding="utf-8")
+    rubric_dimensions = (
+        SkillQualityRubricDimension(
+            dimension_id="on_skill_fidelity",
+            label="On-skill fidelity",
+            reviewer_prompt="stay on skill",
+            scale=("weak", "mixed", "strong"),
+        ),
+    )
+
+    with pytest.raises(ValueError, match="duplicate quality scenario result"):
+        build_skill_quality_target_report(
+            {
+                "target": "demo-target",
+                "agent_id": "demo-agent",
+                "config_path": "fixtures/demo.json",
+                "routing_artifact": "fixtures/routing.json",
+                "results": [
+                    {
+                        "scenario": "demo-skill",
+                        "expected_skill_id": "demo-skill",
+                        "selected_skill_id": "demo-skill",
+                        "selected_skill_ids": ["demo-skill"],
+                        "assistant_preview": "preview only",
+                    },
+                    {
+                        "scenario": "demo-skill",
+                        "expected_skill_id": "demo-skill",
+                        "selected_skill_id": "demo-skill",
+                        "selected_skill_ids": ["demo-skill"],
+                        "assistant_preview": "preview only",
+                    },
+                ],
+            },
+            manifest_version="1",
+            scenarios=(scenario,),
+            rubric_version="1",
+            rubric_dimensions=rubric_dimensions,
+        )

@@ -97,14 +97,13 @@ def load_golden_transcripts(path: str) -> list[EvalTranscript]:
         return []
 
     for file in sorted(transcripts_dir.glob("*.json")):
-        with open(file) as f:
-            data = json.load(f)
-            transcripts.append(
-                EvalTranscript(
-                    name=data.get("name", file.stem),
-                    turns=data.get("turns", []),
-                    tags=data.get("tags", []),
-                )
+        data = json.loads(file.read_text(encoding="utf-8"))
+        transcripts.append(
+            EvalTranscript(
+                name=data.get("name", file.stem),
+                turns=data.get("turns", []),
+                tags=data.get("tags", []),
             )
+        )
 
     return transcripts
