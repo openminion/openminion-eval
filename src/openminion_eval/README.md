@@ -18,7 +18,8 @@ goal-trajectory, and reporting helpers.
 ## Source-Tree Owner Map
 
 1. `runner.py`, `scorer.py`, `suite.py`, `schemas.py`, and `interfaces.py`
-   own the generic eval primitives.
+   own the generic eval primitives, including subject execution, suite
+   aggregation, parallel transcript execution, and partial-rerun selection.
 2. `cases/` owns the starter `EvalCase` registry and Markdown case report CLI.
 3. `tools/`, `freshness/`, `routing/`, `closure/`, and `policy/` own
    deterministic family case/report helpers.

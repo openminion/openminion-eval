@@ -15,7 +15,7 @@ from openminion_eval.interfaces import (
 )
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
-from openminion_eval.suite import EvalSuite
+from openminion_eval.suite import EvalSuite, select_transcripts
 from openminion_eval.schemas import (
     EvalBaselineDiff,
     EvalBaselineDiffEntry,
@@ -143,6 +143,7 @@ __all__ = [
     "hash_transcripts",
     "load_suite_result",
     "write_suite_result",
+    "select_transcripts",
     "EvalCase",
     "EvalCaseResult",
     "GradeMode",

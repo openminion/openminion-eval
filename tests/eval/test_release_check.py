@@ -19,5 +19,6 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert '"README.md"' in release_check
     assert "openminion_eval.cases" in release_check
     assert "registered_cases" in release_check
+    assert "select_transcripts" in release_check
     assert "openminion_eval.memory_eval" in release_check
     assert "openminion-eval" in release_check

@@ -86,6 +86,8 @@ The current public standalone contract matches the installed package:
     under test
   - suite run manifests, stable input hashing, JSON suite-result artifacts,
     and baseline diffs
+  - opt-in parallel suite execution and partial rerun selection by previous
+    failures, transcript name, and transcript tags
   - starter `EvalCase` registry under `openminion_eval.cases`
   - shared support needed by those surfaces
   - canonical non-memory families: tools, freshness, routing, closure,
@@ -160,6 +162,20 @@ Starter case report:
 
 ```bash
 python -m openminion_eval.cases --category coding
+```
+
+Partial rerun selection:
+
+```python
+from openminion_eval import EvalSuite, select_transcripts
+
+selected = select_transcripts(
+    transcripts,
+    previous_result=previous_result,
+    failed_only=True,
+    include_tags=["routing"],
+)
+result = EvalSuite(subject=subject).run(selected, max_workers=4)
 ```
 
 Boundary check:

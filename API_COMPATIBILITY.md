@@ -47,6 +47,7 @@ The following top-level exports are part of the current public contract:
 - suite artifact helpers: `build_run_manifest(...)`,
   `hash_transcripts(...)`, `write_suite_result(...)`,
   `load_suite_result(...)`, and `compare_suite_results(...)`
+- suite selection helper: `select_transcripts(...)`
 - compatibility validators such as `ensure_eval_subject_compatibility(...)`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
   `closure`, `policy`, and `skills`
@@ -96,7 +97,8 @@ Public-contract confidence should be enforced by tests that cover:
 9. package-local docs, examples, and release-smoke entrypoints,
 10. `openminion_eval.cases` CLI/report behavior,
 11. reference docs for eval families, eval cases, standalone claims, and
-    certification readiness.
+    certification readiness,
+12. parallel suite execution ordering and partial-rerun selection filters.
 
 ## Non-goals
 

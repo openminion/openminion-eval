@@ -78,7 +78,9 @@ from openminion_eval import (
     compare_suite_results,
     hash_transcripts,
     registered_cases,
+    select_transcripts,
 )
+from openminion_eval.schemas import EvalTranscript
 from openminion_eval.cases import grade_case
 from openminion_eval.skills import (
     load_nl_named_skill_manifest,
@@ -108,6 +110,10 @@ if not callable(compare_suite_results):
     raise SystemExit("compare_suite_results root export missing")
 if not callable(hash_transcripts):
     raise SystemExit("hash_transcripts root export missing")
+if not callable(select_transcripts):
+    raise SystemExit("select_transcripts root export missing")
+if select_transcripts([EvalTranscript(name="smoke", turns=[], tags=["public"])], include_tags=["public"])[0].name != "smoke":
+    raise SystemExit("select_transcripts root export drifted")
 if GradeMode.STRUCTURAL.value != "structural":
     raise SystemExit("GradeMode root export drifted")
 if len(registered_cases()) != 5:
