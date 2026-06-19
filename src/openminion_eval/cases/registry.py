@@ -318,9 +318,7 @@ _STARTER_CASES: tuple[EvalCase, ...] = (
             "Multi-tool baseline — assert the canonical tool registry exposes "
             "file.read, file.write, exec.run."
         ),
-        prompt=(
-            "Read the file `notes.md`, append a TODO line, and run pytest."
-        ),
+        prompt=("Read the file `notes.md`, append a TODO line, and run pytest."),
         grade_mode=GradeMode.STRUCTURAL,
         grade_fn=_grade_multi_tool_complex_task,
         tags=("multi-tool",),

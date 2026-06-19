@@ -62,7 +62,9 @@ def test_markdown_report_has_one_row_per_case() -> None:
     assert "## Cases" in report
     # The table header + one row per case.
     table_rows = [
-        line for line in report.splitlines() if line.startswith("| `") and "|" in line[2:]
+        line
+        for line in report.splitlines()
+        if line.startswith("| `") and "|" in line[2:]
     ]
     assert len(table_rows) == len(results), (
         f"expected {len(results)} table rows, got {len(table_rows)}"
@@ -83,9 +85,12 @@ def test_exit_code_treats_fail_as_only_failure_signal() -> None:
     assert _exit_code_from([_fake_result(GradeOutcome.UNGRADED)]) == 0
     assert _exit_code_from([_fake_result(GradeOutcome.FAIL)]) == 1
     # Mixed: presence of FAIL produces exit-code 1.
-    assert _exit_code_from(
-        [_fake_result(GradeOutcome.PASS), _fake_result(GradeOutcome.FAIL)]
-    ) == 1
+    assert (
+        _exit_code_from(
+            [_fake_result(GradeOutcome.PASS), _fake_result(GradeOutcome.FAIL)]
+        )
+        == 1
+    )
 
 
 def test_live_cases_skipped_without_env_flag(monkeypatch) -> None:

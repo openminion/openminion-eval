@@ -256,9 +256,7 @@ def build_skill_quality_target_report(
                 f"routing artifact includes unknown quality scenario {scenario_id!r}"
             )
         if scenario_id in seen_scenarios:
-            raise ValueError(
-                f"duplicate quality scenario result for {scenario_id!r}"
-            )
+            raise ValueError(f"duplicate quality scenario result for {scenario_id!r}")
         scenario = scenario_lookup[scenario_id]
         assistant_output = assistant_output_from_record(result, agent_id=agent_id)
         selected_skill_ids = tuple(
