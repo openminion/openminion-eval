@@ -161,9 +161,13 @@ def grade_case(case: EvalCase) -> EvalCaseResult:
 
 
 def _grade_coding_minimax_markdown_table(case: EvalCase) -> GradeFnReturn:
-    """Check the seeded coding workspace before live pytest grading exists."""
-    root = _resolve_repo_root()
-    workspace = root / case.anchor_paths[2]
+    """Check a seeded coding workspace when one is attached."""
+    workspace = _workspace_anchor(case)
+    if workspace is None:
+        return (
+            GradeOutcome.UNGRADED,
+            "portable starter case; attach a workspace anchor for structural grading",
+        )
     test_files = list(workspace.rglob("test_*.py")) if workspace.exists() else []
     if not test_files:
         return GradeOutcome.FAIL, "no test_*.py in workspace"
@@ -174,12 +178,16 @@ def _grade_coding_minimax_markdown_table(case: EvalCase) -> GradeFnReturn:
     )
 
 
-def _grade_research_to_code_drift(case: EvalCase) -> GradeOutcome:
-    """Check the seeded research workspace for the expected API surface."""
-    root = _resolve_repo_root()
-    workspace = root / case.anchor_paths[2]
+def _grade_research_to_code_drift(case: EvalCase) -> GradeFnReturn:
+    """Check a seeded research workspace for the expected API surface."""
+    workspace = _workspace_anchor(case)
+    if workspace is None:
+        return (
+            GradeOutcome.UNGRADED,
+            "portable starter case; attach a workspace anchor for structural grading",
+        )
     if not workspace.exists():
-        return GradeOutcome.FAIL
+        return GradeOutcome.FAIL, "workspace anchor does not exist"
     expected_api = "build_summary"
     drift_api = "generate_summary"
     for py_file in workspace.rglob("*.py"):
@@ -188,10 +196,16 @@ def _grade_research_to_code_drift(case: EvalCase) -> GradeOutcome:
         except OSError:
             continue
         if expected_api in text and drift_api not in text:
-            return GradeOutcome.PASS
+            return GradeOutcome.PASS, ""
         if drift_api in text:
-            return GradeOutcome.FAIL
-    return GradeOutcome.FAIL
+            return GradeOutcome.FAIL, "workspace still references drift API"
+    return GradeOutcome.FAIL, "workspace missing expected API"
+
+
+def _workspace_anchor(case: EvalCase) -> Path | None:
+    if len(case.anchor_paths) < 3:
+        return None
+    return _resolve_repo_root() / case.anchor_paths[2]
 
 
 def _grade_recovery_after_tool_failure(case: EvalCase) -> GradeOutcome:
@@ -258,50 +272,40 @@ _STARTER_CASES: tuple[EvalCase, ...] = (
         case_id="coding_minimax_markdown_table",
         category="coding",
         description=(
-            "LMPO Residual A — the model wrote a pytest that counts a Markdown "
-            "table header as a data row. Structural grader inspects the LMPO "
-            "workspace for header-aware test iteration."
+            "Coding quality starter case — checks whether a generated project "
+            "includes tests that treat Markdown table headers separately from "
+            "data rows."
         ),
         prompt=(
             "Build a fizzbuzz CLI with tests; include a Markdown table of "
             "results in the README."
         ),
         grade_mode=GradeMode.STRUCTURAL,
-        anchor_paths=(
-            ".openminion/runtime/cli-chat-e2e/coding-project-1780783512-980b4ad1.txt",
-            ".openminion/runtime/cli-chat-e2e/traces/coding-project-1780783512-980b4ad1/",
-            ".openminion/runtime/cli-chat-e2e/workspaces/coding-project-1780783512/",
-        ),
         grade_fn=_grade_coding_minimax_markdown_table,
-        tags=("lmpo-residual-a", "model-quality"),
+        tags=("markdown-table-tests", "model-quality"),
     ),
     EvalCase(
         case_id="research_to_code_drift",
         category="research",
         description=(
-            "LMPO Residual B oracle-drift — the model produced "
-            "`generate_summary` against a workspace seeded with `build_summary`. "
-            "Structural grader inspects the post-fix research workspace."
+            "Research-to-code starter case — checks whether implementation "
+            "keeps the expected public function name from the research prompt "
+            "instead of drifting to a different API."
         ),
         prompt=(
             "Research the 3 most-recent papers on retrieval-augmented "
             "generation and update build_summary.py to render them."
         ),
         grade_mode=GradeMode.STRUCTURAL,
-        anchor_paths=(
-            ".openminion/runtime/cli-chat-e2e/research-project-1780784360-34da6e46.txt",
-            ".openminion/runtime/cli-chat-e2e/traces/research-project-1780784360-34da6e46/",
-            ".openminion/runtime/cli-chat-e2e/workspaces/research-project-1780784360/",
-        ),
         grade_fn=_grade_research_to_code_drift,
-        tags=("lmpo-residual-b", "oracle-drift"),
+        tags=("api-drift", "research-code"),
     ),
     EvalCase(
         case_id="recovery_after_tool_failure",
         category="recovery",
         description=(
-            "B-09 + AR-14 case — assert the typed `empty_provider_response` "
-            "termination reason exists in the required-lane post-execution path."
+            "Recovery starter case — assert the typed `empty_provider_response` "
+            "termination reason exists in the post-execution path."
         ),
         prompt=(
             "Call a tool that returns no output, then ask the agent to "
@@ -309,7 +313,7 @@ _STARTER_CASES: tuple[EvalCase, ...] = (
         ),
         grade_mode=GradeMode.STRUCTURAL,
         grade_fn=_grade_recovery_after_tool_failure,
-        tags=("b-09", "ar-14"),
+        tags=("tool-failure-recovery",),
     ),
     EvalCase(
         case_id="multi_tool_complex_task",

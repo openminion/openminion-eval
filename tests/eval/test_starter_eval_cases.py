@@ -38,6 +38,30 @@ def test_every_case_has_stable_id_and_description() -> None:
         assert case.prompt.strip(), f"case {case.case_id} missing prompt"
 
 
+def test_starter_cases_do_not_expose_repo_local_history() -> None:
+    blocked_fragments = (
+        ".openminion/runtime",
+        "AR-14",
+        "B-09",
+        "LMPO",
+        "Residual",
+        "lmpo",
+    )
+    for case in registered_cases():
+        public_text = " ".join(
+            [
+                case.case_id,
+                case.category,
+                case.description,
+                case.prompt,
+                " ".join(case.anchor_paths),
+                " ".join(case.tags),
+            ]
+        )
+        for fragment in blocked_fragments:
+            assert fragment not in public_text
+
+
 def test_grade_case_returns_recognized_outcome_for_every_starter() -> None:
     valid = {
         GradeOutcome.PASS,

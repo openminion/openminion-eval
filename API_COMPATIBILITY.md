@@ -24,6 +24,7 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.skills`
 - `openminion_eval.goal_trajectory`
 - `openminion_eval.reporting`
+- `openminion_eval.suite_artifacts`
 
 The top-level `openminion_eval` package is the preferred entrypoint for common
 usage.
@@ -37,8 +38,13 @@ The following top-level exports are part of the current public contract:
 - `openminion_eval.EvalScorer`
 - `openminion_eval.EvalSuite`
 - `openminion_eval.EvalResult`
+- `openminion_eval.EvalRunManifest`
 - `openminion_eval.EvalSummary`
+- `openminion_eval.EvalSuiteResult`
 - `openminion_eval.EvalTranscript`
+- suite artifact helpers: `build_run_manifest(...)`,
+  `hash_transcripts(...)`, `write_suite_result(...)`,
+  `load_suite_result(...)`, and `compare_suite_results(...)`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
   `closure`, `policy`, and `skills`
 - starter case registry exports: `EvalCase`, `EvalCaseResult`, `GradeMode`,

@@ -68,9 +68,13 @@ import openminion_eval
 from openminion_eval import (
     EVAL_INTERFACE_VERSION,
     EvalCase,
+    EvalRunManifest,
     EvalRunner,
     GoalDriftSignalKind,
     GradeMode,
+    build_run_manifest,
+    compare_suite_results,
+    hash_transcripts,
     registered_cases,
 )
 from openminion_eval.cases import grade_case
@@ -90,6 +94,14 @@ if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
 if EvalCase.__name__ != "EvalCase":
     raise SystemExit("EvalCase root export missing")
+if EvalRunManifest.__name__ != "EvalRunManifest":
+    raise SystemExit("EvalRunManifest root export missing")
+if not callable(build_run_manifest):
+    raise SystemExit("build_run_manifest root export missing")
+if not callable(compare_suite_results):
+    raise SystemExit("compare_suite_results root export missing")
+if not callable(hash_transcripts):
+    raise SystemExit("hash_transcripts root export missing")
 if GradeMode.STRUCTURAL.value != "structural":
     raise SystemExit("GradeMode root export drifted")
 if len(registered_cases()) != 5:
