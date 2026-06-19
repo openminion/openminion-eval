@@ -68,8 +68,10 @@ import openminion_eval
 from openminion_eval import (
     EVAL_INTERFACE_VERSION,
     EvalCase,
+    EvalRunContext,
     EvalRunManifest,
     EvalRunner,
+    EvalSubjectInterface,
     GoalDriftSignalKind,
     GradeMode,
     build_run_manifest,
@@ -92,6 +94,10 @@ if EVAL_INTERFACE_VERSION != "v1":
     raise SystemExit(f"unexpected eval interface version: {EVAL_INTERFACE_VERSION!r}")
 if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
+if EvalRunContext.__name__ != "EvalRunContext":
+    raise SystemExit("EvalRunContext root export missing")
+if EvalSubjectInterface.__name__ != "EvalSubjectInterface":
+    raise SystemExit("EvalSubjectInterface root export missing")
 if EvalCase.__name__ != "EvalCase":
     raise SystemExit("EvalCase root export missing")
 if EvalRunManifest.__name__ != "EvalRunManifest":

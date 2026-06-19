@@ -35,7 +35,9 @@ The following top-level exports are part of the current public contract:
 
 - `openminion_eval.EVAL_INTERFACE_VERSION`
 - `openminion_eval.EvalRunner`
+- `openminion_eval.EvalRunContext`
 - `openminion_eval.EvalScorer`
+- `openminion_eval.EvalSubjectInterface`
 - `openminion_eval.EvalSuite`
 - `openminion_eval.EvalResult`
 - `openminion_eval.EvalRunManifest`
@@ -45,6 +47,7 @@ The following top-level exports are part of the current public contract:
 - suite artifact helpers: `build_run_manifest(...)`,
   `hash_transcripts(...)`, `write_suite_result(...)`,
   `load_suite_result(...)`, and `compare_suite_results(...)`
+- compatibility validators such as `ensure_eval_subject_compatibility(...)`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
   `closure`, `policy`, and `skills`
 - starter case registry exports: `EvalCase`, `EvalCaseResult`, `GradeMode`,

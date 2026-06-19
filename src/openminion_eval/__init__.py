@@ -2,12 +2,15 @@
 
 from openminion_eval.interfaces import (
     EVAL_INTERFACE_VERSION,
+    EvalRunContext,
     EvalInterfaceError,
     EvalRunnerInterface,
     EvalScorerInterface,
+    EvalSubjectInterface,
     EvalSuiteInterface,
     ensure_eval_runner_compatibility,
     ensure_eval_scorer_compatibility,
+    ensure_eval_subject_compatibility,
     ensure_eval_suite_compatibility,
 )
 from openminion_eval.runner import EvalRunner
@@ -215,11 +218,14 @@ __all__ = [
     "list_fixtures",
     "run_benchmark",
     "EVAL_INTERFACE_VERSION",
+    "EvalRunContext",
     "EvalInterfaceError",
     "EvalRunnerInterface",
     "EvalScorerInterface",
+    "EvalSubjectInterface",
     "EvalSuiteInterface",
     "ensure_eval_runner_compatibility",
     "ensure_eval_scorer_compatibility",
+    "ensure_eval_subject_compatibility",
     "ensure_eval_suite_compatibility",
 ]

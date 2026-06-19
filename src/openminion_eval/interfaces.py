@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+import inspect
 from typing import TYPE_CHECKING, Any, Protocol
 from typing import ClassVar
 
@@ -34,6 +36,26 @@ class EvalRunnerInterface(Protocol):
     async def replay(self, transcript: Any) -> list[Any]: ...
 
     def replay_sync(self, transcript: Any) -> list[Any]: ...
+
+
+@dataclass(frozen=True)
+class EvalRunContext:
+    transcript_name: str
+    turn_index: int
+    run_id: str | None = None
+    seed: int | None = None
+    deterministic: bool = False
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+class EvalSubjectInterface(Protocol):
+    """Subject-under-test execution contract."""
+
+    contract_version: ClassVar[str] = EVAL_INTERFACE_VERSION
+
+    def run(self, user_input: str, context: EvalRunContext) -> str: ...
+
+    async def run_async(self, user_input: str, context: EvalRunContext) -> str: ...
 
 
 class EvalScorerInterface(Protocol):
@@ -112,6 +134,27 @@ def _validate_contract_and_methods(
     return not errors, errors
 
 
+def _method_accepts_run_context(method: Any) -> bool:
+    try:
+        signature = inspect.signature(method)
+    except (TypeError, ValueError):
+        return True
+    positional = [
+        parameter
+        for parameter in signature.parameters.values()
+        if parameter.kind
+        in (
+            inspect.Parameter.POSITIONAL_ONLY,
+            inspect.Parameter.POSITIONAL_OR_KEYWORD,
+        )
+    ]
+    variadic = any(
+        parameter.kind is inspect.Parameter.VAR_POSITIONAL
+        for parameter in signature.parameters.values()
+    )
+    return variadic or len(positional) >= 2
+
+
 def ensure_eval_runner_compatibility(
     runner: Any, strict: bool = True
 ) -> tuple[bool, list[str]]:
@@ -149,3 +192,32 @@ def ensure_eval_suite_compatibility(
         label="Eval suite",
         strict=strict,
     )
+
+
+def ensure_eval_subject_compatibility(
+    subject: Any, strict: bool = True
+) -> tuple[bool, list[str]]:
+    """Validate subject-under-test implements sync or async execution."""
+    errors: list[str] = []
+    if not hasattr(subject, "contract_version"):
+        errors.append("Missing contract_version attribute")
+    elif subject.contract_version != EVAL_INTERFACE_VERSION:
+        errors.append(
+            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, got {subject.contract_version}"
+        )
+    run = getattr(subject, "run", None)
+    run_async = getattr(subject, "run_async", None)
+    has_run = callable(run)
+    has_run_async = callable(run_async)
+    if not has_run and not has_run_async:
+        errors.append("Missing required method: run or run_async")
+    if has_run and not _method_accepts_run_context(run):
+        errors.append("Method run must accept user_input and EvalRunContext")
+    if has_run_async and not _method_accepts_run_context(run_async):
+        errors.append("Method run_async must accept user_input and EvalRunContext")
+    if errors and strict:
+        raise EvalInterfaceError(
+            "EVAL_SUBJECT_INTERFACE_VIOLATION",
+            f"Eval subject incompatible: {errors}",
+        )
+    return not errors, errors

@@ -82,6 +82,8 @@ The current public standalone contract matches the installed package:
 
 - public standalone surface:
   - generic eval runner/scorer/suite/interfaces/schemas/config/constants
+  - typed `EvalSubjectInterface` and `EvalRunContext` contracts for subjects
+    under test
   - suite run manifests, stable input hashing, JSON suite-result artifacts,
     and baseline diffs
   - starter `EvalCase` registry under `openminion_eval.cases`
@@ -116,7 +118,7 @@ Minimal public smoke:
 ```bash
 python - <<'PY'
 import openminion_eval
-from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunner
+from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunContext, EvalRunner
 from openminion_eval import EvalCase, build_run_manifest, registered_cases
 from openminion_eval.schemas import EvalTranscript
 from openminion_eval.tools import ToolSelectionCase
@@ -128,6 +130,7 @@ from openminion_eval.skills import load_skill_quality_manifest
 
 print(EVAL_INTERFACE_VERSION)
 print(EvalRunner.__name__)
+print(EvalRunContext.__name__)
 print(EvalCase.__name__, len(registered_cases()))
 print(
     build_run_manifest(

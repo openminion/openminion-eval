@@ -1,6 +1,6 @@
 """Eval suite for OpenMinion."""
 
-from typing import Callable, Optional
+from typing import Any, Callable, Optional
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
 from openminion_eval.schemas import (
     EvalResult,
@@ -22,8 +22,19 @@ class EvalSuite:
         runner: Optional[EvalRunner] = None,
         scorer: Optional[EvalScorer] = None,
         threshold: float = 0.80,
+        subject: Any | None = None,
+        run_id: str | None = None,
+        seed: int | None = None,
+        deterministic: bool = False,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
-        self._runner = runner or EvalRunner()
+        self._runner = runner or EvalRunner(
+            subject=subject,
+            run_id=run_id,
+            seed=seed,
+            deterministic=deterministic,
+            metadata=metadata,
+        )
         self._scorer = scorer or EvalScorer()
         self._threshold = threshold
 
@@ -65,6 +76,53 @@ class EvalSuite:
 
         passed = sum(1 for s in summaries if s.passed)
 
+        return EvalSuiteResult(
+            suite_name="default",
+            total_transcripts=len(transcripts),
+            passed_transcripts=passed,
+            failed_transcripts=len(transcripts) - passed,
+            summaries=summaries,
+            all_passed=passed == len(transcripts),
+        )
+
+    async def run_async(
+        self,
+        transcripts: list[EvalTranscript],
+        scorer_name: str = "substring_match",
+        on_case: Callable[[EvalResult], None] | None = None,
+    ) -> EvalSuiteResult:
+        summaries = []
+
+        for transcript in transcripts:
+            results = await self._runner.replay(transcript)
+            results = self._scorer.score_results(results, scorer_name)
+            for result in results:
+                if on_case is not None:
+                    on_case(result)
+
+            scores = [r.score for r in results]
+            avg_score = sum(scores) / len(scores) if scores else 0.0
+            scorer_error_count = sum(
+                1
+                for result in results
+                if result.metadata.get("executor_error") is not None
+            )
+
+            summaries.append(
+                EvalSummary(
+                    transcript_name=transcript.name,
+                    total_turns=len(results),
+                    average_score=avg_score,
+                    min_score=min(scores) if scores else 0.0,
+                    max_score=max(scores) if scores else 0.0,
+                    results=results,
+                    passed=avg_score >= self._threshold,
+                    threshold=self._threshold,
+                    scorer_error_count=scorer_error_count,
+                )
+            )
+
+        passed = sum(1 for s in summaries if s.passed)
         return EvalSuiteResult(
             suite_name="default",
             total_transcripts=len(transcripts),
