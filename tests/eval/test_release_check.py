@@ -23,5 +23,6 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "load_eval_dataset_jsonl" in release_check
     assert '"openminion-eval"' in release_check
     assert '"openminion_eval"' in release_check
+    assert "README advertises unpublished PyPI package surface" in release_check
     assert "openminion_eval.memory_eval" in release_check
     assert "openminion-eval" in release_check

@@ -51,6 +51,17 @@ def _assert_package_docs_shape() -> None:
     ]
     if missing:
         raise RuntimeError(f"package docs/layout drifted: missing {missing!r}")
+    readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+    forbidden_fragments = [
+        "https://pypi.org/project/openminion-eval/",
+        "img.shields.io/pypi/",
+        "pip install openminion-eval",
+    ]
+    leaked = [fragment for fragment in forbidden_fragments if fragment in readme]
+    if leaked:
+        raise RuntimeError(
+            f"README advertises unpublished PyPI package surface: {leaked!r}"
+        )
 
 
 def _smoke_script() -> str:
