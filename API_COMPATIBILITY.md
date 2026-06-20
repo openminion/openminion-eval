@@ -25,6 +25,7 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.goal_trajectory`
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
+- `openminion_eval.datasets`
 
 The top-level `openminion_eval` package is the preferred entrypoint for common
 usage.
@@ -47,6 +48,9 @@ The following top-level exports are part of the current public contract:
 - suite artifact helpers: `build_run_manifest(...)`,
   `hash_transcripts(...)`, `write_suite_result(...)`,
   `load_suite_result(...)`, and `compare_suite_results(...)`
+- dataset loader helpers: `load_eval_dataset(...)`,
+  `load_eval_dataset_json(...)`, `load_eval_dataset_jsonl(...)`, and
+  `hash_eval_dataset(...)`
 - suite selection helper: `select_transcripts(...)`
 - compatibility validators such as `ensure_eval_subject_compatibility(...)`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
@@ -99,6 +103,7 @@ Public-contract confidence should be enforced by tests that cover:
 11. reference docs for eval families, eval cases, standalone claims, and
     certification readiness,
 12. parallel suite execution ordering and partial-rerun selection filters.
+13. versioned dataset loader validation for JSON and JSONL inputs.
 
 ## Non-goals
 

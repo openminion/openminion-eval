@@ -86,6 +86,7 @@ The current public standalone contract matches the installed package:
     under test
   - suite run manifests, stable input hashing, JSON suite-result artifacts,
     and baseline diffs
+  - versioned JSON/JSONL dataset loaders with stable dataset hashing
   - opt-in parallel suite execution and partial rerun selection by previous
     failures, transcript name, and transcript tags
   - starter `EvalCase` registry under `openminion_eval.cases`
@@ -121,7 +122,8 @@ Minimal public smoke:
 python - <<'PY'
 import openminion_eval
 from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunContext, EvalRunner
-from openminion_eval import EvalCase, build_run_manifest, registered_cases
+from openminion_eval import EvalCase, build_run_manifest, load_eval_dataset_jsonl
+from openminion_eval import registered_cases
 from openminion_eval.schemas import EvalTranscript
 from openminion_eval.tools import ToolSelectionCase
 from openminion_eval.freshness import FreshnessCase
@@ -149,6 +151,7 @@ print(
     PolicyCase.__name__,
 )
 print(load_skill_quality_manifest().__class__.__name__)
+print(load_eval_dataset_jsonl.__name__)
 PY
 ```
 
@@ -163,6 +166,25 @@ Starter case report:
 ```bash
 python -m openminion_eval.cases --category coding
 ```
+
+Versioned dataset input:
+
+```json
+{
+  "dataset_version": "1",
+  "name": "smoke",
+  "cases": [
+    {
+      "id": "hello",
+      "name": "hello",
+      "turns": [{"user": "hello", "expected": "hi"}],
+      "tags": ["smoke"]
+    }
+  ]
+}
+```
+
+JSONL uses the same case object per line and preserves file order.
 
 Partial rerun selection:
 

@@ -12,6 +12,24 @@ class EvalTranscript:
 
 
 @dataclass(frozen=True)
+class EvalDatasetCase:
+    case_id: str
+    transcript: EvalTranscript
+
+
+@dataclass(frozen=True)
+class EvalDataset:
+    dataset_version: str
+    name: str
+    cases: list[EvalDatasetCase]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def transcripts(self) -> list[EvalTranscript]:
+        return [case.transcript for case in self.cases]
+
+
+@dataclass(frozen=True)
 class EvalResult:
     turn_index: int
     user_input: str

@@ -72,11 +72,13 @@ from openminion_eval import (
     EvalRunManifest,
     EvalRunner,
     EvalSubjectInterface,
+    EvalDatasetValidationError,
     GoalDriftSignalKind,
     GradeMode,
     build_run_manifest,
     compare_suite_results,
     hash_transcripts,
+    load_eval_dataset_jsonl,
     registered_cases,
     select_transcripts,
 )
@@ -112,6 +114,10 @@ if not callable(hash_transcripts):
     raise SystemExit("hash_transcripts root export missing")
 if not callable(select_transcripts):
     raise SystemExit("select_transcripts root export missing")
+if not callable(load_eval_dataset_jsonl):
+    raise SystemExit("load_eval_dataset_jsonl root export missing")
+if EvalDatasetValidationError.__name__ != "EvalDatasetValidationError":
+    raise SystemExit("EvalDatasetValidationError root export missing")
 if select_transcripts([EvalTranscript(name="smoke", turns=[], tags=["public"])], include_tags=["public"])[0].name != "smoke":
     raise SystemExit("select_transcripts root export drifted")
 if GradeMode.STRUCTURAL.value != "structural":

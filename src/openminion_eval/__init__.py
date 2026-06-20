@@ -16,9 +16,19 @@ from openminion_eval.interfaces import (
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
 from openminion_eval.suite import EvalSuite, select_transcripts
+from openminion_eval.datasets import (
+    DATASET_VERSION,
+    EvalDatasetValidationError,
+    hash_eval_dataset,
+    load_eval_dataset,
+    load_eval_dataset_json,
+    load_eval_dataset_jsonl,
+)
 from openminion_eval.schemas import (
     EvalBaselineDiff,
     EvalBaselineDiffEntry,
+    EvalDataset,
+    EvalDatasetCase,
     EvalResult,
     EvalRunManifest,
     EvalSummary,
@@ -135,6 +145,14 @@ __all__ = [
     "EvalSummary",
     "EvalSuiteResult",
     "EvalTranscript",
+    "EvalDataset",
+    "EvalDatasetCase",
+    "DATASET_VERSION",
+    "EvalDatasetValidationError",
+    "hash_eval_dataset",
+    "load_eval_dataset",
+    "load_eval_dataset_json",
+    "load_eval_dataset_jsonl",
     "EvalBaselineDiff",
     "EvalBaselineDiffEntry",
     "SUITE_ARTIFACT_VERSION",
