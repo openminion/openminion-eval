@@ -3,6 +3,21 @@
 Thanks for contributing. This document is self-contained: everything you
 need to set up, test, and submit a change lives in this repository.
 
+## Read first
+
+Before substantial code changes, read:
+
+1. [README.md](./README.md)
+2. [API_COMPATIBILITY.md](./API_COMPATIBILITY.md)
+3. [docs/README.md](./docs/README.md)
+4. [docs/source-tree-owner-map.md](./docs/source-tree-owner-map.md)
+5. [docs/getting-started.md](./docs/getting-started.md)
+6. [docs/engineering-patterns.md](./docs/engineering-patterns.md)
+7. [docs/code-quality-enforcement.md](./docs/code-quality-enforcement.md)
+8. [docs/testing-and-validation.md](./docs/testing-and-validation.md)
+9. [RELEASING.md](./RELEASING.md) when the work affects packaging or release
+   behavior
+
 ## Repository layout
 
 ```
