@@ -82,6 +82,14 @@ The current public standalone contract matches the installed package:
 
 - public standalone surface:
   - generic eval runner/scorer/suite/interfaces/schemas/config/constants
+  - typed `EvalSubjectInterface` and `EvalRunContext` contracts for subjects
+    under test
+  - suite run manifests, stable input hashing, JSON suite-result artifacts,
+    and baseline diffs
+  - versioned JSON/JSONL dataset loaders with stable dataset hashing
+  - package CLI entrypoints for suite runs and baseline diffs
+  - opt-in parallel suite execution and partial rerun selection by previous
+    failures, transcript name, and transcript tags
   - starter `EvalCase` registry under `openminion_eval.cases`
   - shared support needed by those surfaces
   - canonical non-memory families: tools, freshness, routing, closure,
@@ -114,8 +122,10 @@ Minimal public smoke:
 ```bash
 python - <<'PY'
 import openminion_eval
-from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunner
-from openminion_eval import EvalCase, registered_cases
+from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunContext, EvalRunner
+from openminion_eval import EvalCase, build_run_manifest, load_eval_dataset_jsonl
+from openminion_eval import registered_cases
+from openminion_eval.schemas import EvalTranscript
 from openminion_eval.tools import ToolSelectionCase
 from openminion_eval.freshness import FreshnessCase
 from openminion_eval.routing import RoutingCase
@@ -125,7 +135,15 @@ from openminion_eval.skills import load_skill_quality_manifest
 
 print(EVAL_INTERFACE_VERSION)
 print(EvalRunner.__name__)
+print(EvalRunContext.__name__)
 print(EvalCase.__name__, len(registered_cases()))
+print(
+    build_run_manifest(
+        [EvalTranscript(name="smoke", turns=[])],
+        scorer_name="exact_match",
+        threshold=0.8,
+    ).scorer_name
+)
 print(
     ToolSelectionCase.__name__,
     FreshnessCase.__name__,
@@ -134,6 +152,7 @@ print(
     PolicyCase.__name__,
 )
 print(load_skill_quality_manifest().__class__.__name__)
+print(load_eval_dataset_jsonl.__name__)
 PY
 ```
 
@@ -147,6 +166,53 @@ Starter case report:
 
 ```bash
 python -m openminion_eval.cases --category coding
+```
+
+Generic suite run:
+
+```bash
+openminion-eval run eval-dataset.jsonl --out suite-result.json
+python -m openminion_eval diff baseline.json suite-result.json
+```
+
+Exit-code policy:
+
+- `openminion-eval run` exits `0` when every transcript passes and `1` when
+  any transcript fails.
+- `openminion-eval diff` exits `1` for `new_fail`, `regressed`, or
+  `missing_transcript` categories, and `0` otherwise.
+
+Versioned dataset input:
+
+```json
+{
+  "dataset_version": "1",
+  "name": "smoke",
+  "cases": [
+    {
+      "id": "hello",
+      "name": "hello",
+      "turns": [{"user": "hello", "expected": "hi"}],
+      "tags": ["smoke"]
+    }
+  ]
+}
+```
+
+JSONL uses the same case object per line and preserves file order.
+
+Partial rerun selection:
+
+```python
+from openminion_eval import EvalSuite, select_transcripts
+
+selected = select_transcripts(
+    transcripts,
+    previous_result=previous_result,
+    failed_only=True,
+    include_tags=["routing"],
+)
+result = EvalSuite(subject=subject).run(selected, max_workers=4)
 ```
 
 Boundary check:

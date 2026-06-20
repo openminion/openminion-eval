@@ -68,11 +68,21 @@ import openminion_eval
 from openminion_eval import (
     EVAL_INTERFACE_VERSION,
     EvalCase,
+    EvalRunContext,
+    EvalRunManifest,
     EvalRunner,
+    EvalSubjectInterface,
+    EvalDatasetValidationError,
     GoalDriftSignalKind,
     GradeMode,
+    build_run_manifest,
+    compare_suite_results,
+    hash_transcripts,
+    load_eval_dataset_jsonl,
     registered_cases,
+    select_transcripts,
 )
+from openminion_eval.schemas import EvalTranscript
 from openminion_eval.cases import grade_case
 from openminion_eval.skills import (
     load_nl_named_skill_manifest,
@@ -88,8 +98,28 @@ if EVAL_INTERFACE_VERSION != "v1":
     raise SystemExit(f"unexpected eval interface version: {EVAL_INTERFACE_VERSION!r}")
 if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
+if EvalRunContext.__name__ != "EvalRunContext":
+    raise SystemExit("EvalRunContext root export missing")
+if EvalSubjectInterface.__name__ != "EvalSubjectInterface":
+    raise SystemExit("EvalSubjectInterface root export missing")
 if EvalCase.__name__ != "EvalCase":
     raise SystemExit("EvalCase root export missing")
+if EvalRunManifest.__name__ != "EvalRunManifest":
+    raise SystemExit("EvalRunManifest root export missing")
+if not callable(build_run_manifest):
+    raise SystemExit("build_run_manifest root export missing")
+if not callable(compare_suite_results):
+    raise SystemExit("compare_suite_results root export missing")
+if not callable(hash_transcripts):
+    raise SystemExit("hash_transcripts root export missing")
+if not callable(select_transcripts):
+    raise SystemExit("select_transcripts root export missing")
+if not callable(load_eval_dataset_jsonl):
+    raise SystemExit("load_eval_dataset_jsonl root export missing")
+if EvalDatasetValidationError.__name__ != "EvalDatasetValidationError":
+    raise SystemExit("EvalDatasetValidationError root export missing")
+if select_transcripts([EvalTranscript(name="smoke", turns=[], tags=["public"])], include_tags=["public"])[0].name != "smoke":
+    raise SystemExit("select_transcripts root export drifted")
 if GradeMode.STRUCTURAL.value != "structural":
     raise SystemExit("GradeMode root export drifted")
 if len(registered_cases()) != 5:
@@ -189,6 +219,24 @@ def main() -> int:
             env["PYTHONPATH"] = str(install_dir)
             env["OPENMINION_EVAL_RELEASE_TARGET"] = str(install_dir)
             _run([sys.executable, "-c", _smoke_script()], cwd=tmp_root, env=env)
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "--help",
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    str(install_dir / "bin" / "openminion-eval"),
+                    "--help",
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
             _run(
                 [
                     sys.executable,

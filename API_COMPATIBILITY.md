@@ -15,6 +15,7 @@ standalone `openminion-eval` package.
 External consumers should treat these import roots as the supported public API:
 
 - `openminion_eval`
+- `openminion_eval.cli`
 - `openminion_eval.cases`
 - `openminion_eval.tools`
 - `openminion_eval.freshness`
@@ -24,6 +25,8 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.skills`
 - `openminion_eval.goal_trajectory`
 - `openminion_eval.reporting`
+- `openminion_eval.suite_artifacts`
+- `openminion_eval.datasets`
 
 The top-level `openminion_eval` package is the preferred entrypoint for common
 usage.
@@ -34,11 +37,24 @@ The following top-level exports are part of the current public contract:
 
 - `openminion_eval.EVAL_INTERFACE_VERSION`
 - `openminion_eval.EvalRunner`
+- `openminion_eval.EvalRunContext`
 - `openminion_eval.EvalScorer`
+- `openminion_eval.EvalSubjectInterface`
 - `openminion_eval.EvalSuite`
 - `openminion_eval.EvalResult`
+- `openminion_eval.EvalRunManifest`
 - `openminion_eval.EvalSummary`
+- `openminion_eval.EvalSuiteResult`
 - `openminion_eval.EvalTranscript`
+- suite artifact helpers: `build_run_manifest(...)`,
+  `hash_transcripts(...)`, `write_suite_result(...)`,
+  `load_suite_result(...)`, and `compare_suite_results(...)`
+- dataset loader helpers: `load_eval_dataset(...)`,
+  `load_eval_dataset_json(...)`, `load_eval_dataset_jsonl(...)`, and
+  `hash_eval_dataset(...)`
+- CLI entrypoints: `openminion-eval` and `python -m openminion_eval`
+- suite selection helper: `select_transcripts(...)`
+- compatibility validators such as `ensure_eval_subject_compatibility(...)`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
   `closure`, `policy`, and `skills`
 - starter case registry exports: `EvalCase`, `EvalCaseResult`, `GradeMode`,
@@ -87,7 +103,10 @@ Public-contract confidence should be enforced by tests that cover:
 9. package-local docs, examples, and release-smoke entrypoints,
 10. `openminion_eval.cases` CLI/report behavior,
 11. reference docs for eval families, eval cases, standalone claims, and
-    certification readiness.
+    certification readiness,
+12. parallel suite execution ordering and partial-rerun selection filters.
+13. versioned dataset loader validation for JSON and JSONL inputs.
+14. CLI help, suite-run artifact output, and baseline-diff exit policy.
 
 ## Non-goals
 

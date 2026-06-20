@@ -12,6 +12,24 @@ class EvalTranscript:
 
 
 @dataclass(frozen=True)
+class EvalDatasetCase:
+    case_id: str
+    transcript: EvalTranscript
+
+
+@dataclass(frozen=True)
+class EvalDataset:
+    dataset_version: str
+    name: str
+    cases: list[EvalDatasetCase]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @property
+    def transcripts(self) -> list[EvalTranscript]:
+        return [case.transcript for case in self.cases]
+
+
+@dataclass(frozen=True)
 class EvalResult:
     turn_index: int
     user_input: str
@@ -43,3 +61,41 @@ class EvalSuiteResult:
     failed_transcripts: int
     summaries: list[EvalSummary]
     all_passed: bool
+
+
+@dataclass(frozen=True)
+class EvalRunManifest:
+    run_id: str
+    generated_at: str
+    package_version: str
+    git_sha: str | None
+    input_hash: str
+    scorer_name: str
+    threshold: float
+    deterministic: bool = False
+    seed: int | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class EvalBaselineDiffEntry:
+    transcript_name: str
+    category: str
+    previous_passed: bool | None
+    current_passed: bool | None
+    previous_average_score: float | None
+    current_average_score: float | None
+
+
+@dataclass(frozen=True)
+class EvalBaselineDiff:
+    previous_suite_name: str
+    current_suite_name: str
+    entries: list[EvalBaselineDiffEntry]
+
+    @property
+    def categories(self) -> dict[str, int]:
+        counts: dict[str, int] = {}
+        for entry in self.entries:
+            counts[entry.category] = counts.get(entry.category, 0) + 1
+        return counts

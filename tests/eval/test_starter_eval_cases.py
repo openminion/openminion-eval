@@ -38,6 +38,30 @@ def test_every_case_has_stable_id_and_description() -> None:
         assert case.prompt.strip(), f"case {case.case_id} missing prompt"
 
 
+def test_starter_cases_do_not_expose_repo_local_history() -> None:
+    blocked_fragments = (
+        ".openminion/runtime",
+        "AR-14",
+        "B-09",
+        "LMPO",
+        "Residual",
+        "lmpo",
+    )
+    for case in registered_cases():
+        public_text = " ".join(
+            [
+                case.case_id,
+                case.category,
+                case.description,
+                case.prompt,
+                " ".join(case.anchor_paths),
+                " ".join(case.tags),
+            ]
+        )
+        for fragment in blocked_fragments:
+            assert fragment not in public_text
+
+
 def test_grade_case_returns_recognized_outcome_for_every_starter() -> None:
     valid = {
         GradeOutcome.PASS,
@@ -62,7 +86,9 @@ def test_markdown_report_has_one_row_per_case() -> None:
     assert "## Cases" in report
     # The table header + one row per case.
     table_rows = [
-        line for line in report.splitlines() if line.startswith("| `") and "|" in line[2:]
+        line
+        for line in report.splitlines()
+        if line.startswith("| `") and "|" in line[2:]
     ]
     assert len(table_rows) == len(results), (
         f"expected {len(results)} table rows, got {len(table_rows)}"
@@ -83,9 +109,12 @@ def test_exit_code_treats_fail_as_only_failure_signal() -> None:
     assert _exit_code_from([_fake_result(GradeOutcome.UNGRADED)]) == 0
     assert _exit_code_from([_fake_result(GradeOutcome.FAIL)]) == 1
     # Mixed: presence of FAIL produces exit-code 1.
-    assert _exit_code_from(
-        [_fake_result(GradeOutcome.PASS), _fake_result(GradeOutcome.FAIL)]
-    ) == 1
+    assert (
+        _exit_code_from(
+            [_fake_result(GradeOutcome.PASS), _fake_result(GradeOutcome.FAIL)]
+        )
+        == 1
+    )
 
 
 def test_live_cases_skipped_without_env_flag(monkeypatch) -> None:

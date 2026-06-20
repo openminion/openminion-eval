@@ -2,18 +2,47 @@
 
 from openminion_eval.interfaces import (
     EVAL_INTERFACE_VERSION,
+    EvalRunContext,
     EvalInterfaceError,
     EvalRunnerInterface,
     EvalScorerInterface,
+    EvalSubjectInterface,
     EvalSuiteInterface,
     ensure_eval_runner_compatibility,
     ensure_eval_scorer_compatibility,
+    ensure_eval_subject_compatibility,
     ensure_eval_suite_compatibility,
 )
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
-from openminion_eval.suite import EvalSuite
-from openminion_eval.schemas import EvalResult, EvalSummary, EvalTranscript
+from openminion_eval.suite import EvalSuite, select_transcripts
+from openminion_eval.datasets import (
+    DATASET_VERSION,
+    EvalDatasetValidationError,
+    hash_eval_dataset,
+    load_eval_dataset,
+    load_eval_dataset_json,
+    load_eval_dataset_jsonl,
+)
+from openminion_eval.schemas import (
+    EvalBaselineDiff,
+    EvalBaselineDiffEntry,
+    EvalDataset,
+    EvalDatasetCase,
+    EvalResult,
+    EvalRunManifest,
+    EvalSummary,
+    EvalSuiteResult,
+    EvalTranscript,
+)
+from openminion_eval.suite_artifacts import (
+    SUITE_ARTIFACT_VERSION,
+    build_run_manifest,
+    compare_suite_results,
+    hash_transcripts,
+    load_suite_result,
+    write_suite_result,
+)
 from openminion_eval.cases import (
     EvalCase,
     EvalCaseResult,
@@ -112,8 +141,27 @@ __all__ = [
     "EvalScorer",
     "EvalSuite",
     "EvalResult",
+    "EvalRunManifest",
     "EvalSummary",
+    "EvalSuiteResult",
     "EvalTranscript",
+    "EvalDataset",
+    "EvalDatasetCase",
+    "DATASET_VERSION",
+    "EvalDatasetValidationError",
+    "hash_eval_dataset",
+    "load_eval_dataset",
+    "load_eval_dataset_json",
+    "load_eval_dataset_jsonl",
+    "EvalBaselineDiff",
+    "EvalBaselineDiffEntry",
+    "SUITE_ARTIFACT_VERSION",
+    "build_run_manifest",
+    "compare_suite_results",
+    "hash_transcripts",
+    "load_suite_result",
+    "write_suite_result",
+    "select_transcripts",
     "EvalCase",
     "EvalCaseResult",
     "GradeMode",
@@ -189,11 +237,14 @@ __all__ = [
     "list_fixtures",
     "run_benchmark",
     "EVAL_INTERFACE_VERSION",
+    "EvalRunContext",
     "EvalInterfaceError",
     "EvalRunnerInterface",
     "EvalScorerInterface",
+    "EvalSubjectInterface",
     "EvalSuiteInterface",
     "ensure_eval_runner_compatibility",
     "ensure_eval_scorer_compatibility",
+    "ensure_eval_subject_compatibility",
     "ensure_eval_suite_compatibility",
 ]
