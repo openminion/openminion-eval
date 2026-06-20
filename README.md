@@ -10,15 +10,14 @@
 
 <p align="center">
   <a href="https://github.com/openminion/openminion-eval">GitHub</a>
-  · <a href="https://pypi.org/project/openminion-eval/">PyPI</a>
   · <a href="#install">Install</a>
   · <a href="#public-release-contract">Public Contract</a>
   · <a href="https://www.openminion.com">Website</a>
 </p>
 
 <p align="center">
-  <a href="https://pypi.org/project/openminion-eval/"><img alt="PyPI" src="https://img.shields.io/pypi/v/openminion-eval?color=3775A9"></a>
-  <a href="https://pypi.org/project/openminion-eval/"><img alt="Python" src="https://img.shields.io/pypi/pyversions/openminion-eval"></a>
+  <img alt="Package version" src="https://img.shields.io/badge/package-0.1.0-3775A9">
+  <img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3775A9">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-6B7280">
 </p>
@@ -114,7 +113,7 @@ currently require runtime-loaded configuration.
 ## Install
 
 ```bash
-pip install openminion-eval
+python3.11 -m pip install "openminion-eval @ git+https://github.com/openminion/openminion-eval.git"
 ```
 
 Minimal public smoke:
