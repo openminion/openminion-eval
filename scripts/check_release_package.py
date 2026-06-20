@@ -223,6 +223,24 @@ def main() -> int:
                 [
                     sys.executable,
                     "-m",
+                    "openminion_eval",
+                    "--help",
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    str(install_dir / "bin" / "openminion-eval"),
+                    "--help",
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
                     "openminion_eval.cases",
                     "--category",
                     "coding",

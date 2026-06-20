@@ -142,3 +142,15 @@ def test_hash_eval_dataset_is_stable_and_content_sensitive(tmp_path) -> None:
     assert hash_eval_dataset(dataset) != hash_eval_dataset(
         load_eval_dataset_json(changed_path)
     )
+
+
+def test_hash_eval_dataset_ignores_jsonl_source_filename(tmp_path) -> None:
+    content = "\n".join(json.dumps(_case(case_id)) for case_id in ("a", "b"))
+    first_path = tmp_path / "first.jsonl"
+    second_path = tmp_path / "second.jsonl"
+    first_path.write_text(content, encoding="utf-8")
+    second_path.write_text(content, encoding="utf-8")
+
+    assert hash_eval_dataset(load_eval_dataset_jsonl(first_path)) == hash_eval_dataset(
+        load_eval_dataset_jsonl(second_path)
+    )

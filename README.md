@@ -87,6 +87,7 @@ The current public standalone contract matches the installed package:
   - suite run manifests, stable input hashing, JSON suite-result artifacts,
     and baseline diffs
   - versioned JSON/JSONL dataset loaders with stable dataset hashing
+  - package CLI entrypoints for suite runs and baseline diffs
   - opt-in parallel suite execution and partial rerun selection by previous
     failures, transcript name, and transcript tags
   - starter `EvalCase` registry under `openminion_eval.cases`
@@ -166,6 +167,20 @@ Starter case report:
 ```bash
 python -m openminion_eval.cases --category coding
 ```
+
+Generic suite run:
+
+```bash
+openminion-eval run eval-dataset.jsonl --out suite-result.json
+python -m openminion_eval diff baseline.json suite-result.json
+```
+
+Exit-code policy:
+
+- `openminion-eval run` exits `0` when every transcript passes and `1` when
+  any transcript fails.
+- `openminion-eval diff` exits `1` for `new_fail`, `regressed`, or
+  `missing_transcript` categories, and `0` otherwise.
 
 Versioned dataset input:
 

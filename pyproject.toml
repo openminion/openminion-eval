@@ -37,6 +37,9 @@ dev = [
   "pyyaml",
 ]
 
+[project.scripts]
+openminion-eval = "openminion_eval.cli:main"
+
 [tool.setuptools]
 package-dir = { "" = "src" }
 include-package-data = true

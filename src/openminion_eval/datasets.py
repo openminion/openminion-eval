@@ -75,7 +75,6 @@ def load_eval_dataset_jsonl(
 def hash_eval_dataset(dataset: EvalDataset) -> str:
     payload = {
         "dataset_version": dataset.dataset_version,
-        "name": dataset.name,
         "cases": [
             {
                 "id": case.case_id,

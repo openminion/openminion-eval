@@ -15,6 +15,7 @@ standalone `openminion-eval` package.
 External consumers should treat these import roots as the supported public API:
 
 - `openminion_eval`
+- `openminion_eval.cli`
 - `openminion_eval.cases`
 - `openminion_eval.tools`
 - `openminion_eval.freshness`
@@ -51,6 +52,7 @@ The following top-level exports are part of the current public contract:
 - dataset loader helpers: `load_eval_dataset(...)`,
   `load_eval_dataset_json(...)`, `load_eval_dataset_jsonl(...)`, and
   `hash_eval_dataset(...)`
+- CLI entrypoints: `openminion-eval` and `python -m openminion_eval`
 - suite selection helper: `select_transcripts(...)`
 - compatibility validators such as `ensure_eval_subject_compatibility(...)`
 - canonical case/report builders for `tools`, `freshness`, `routing`,
@@ -104,6 +106,7 @@ Public-contract confidence should be enforced by tests that cover:
     certification readiness,
 12. parallel suite execution ordering and partial-rerun selection filters.
 13. versioned dataset loader validation for JSON and JSONL inputs.
+14. CLI help, suite-run artifact output, and baseline-diff exit policy.
 
 ## Non-goals
 
