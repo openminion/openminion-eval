@@ -26,6 +26,16 @@
 OpenMinion. It gives downstream projects a small, installable surface for
 repeatable agent-quality checks without pulling in the full runtime.
 
+## Trust and Brand Safety
+
+- Official GitHub: `https://github.com/openminion/openminion-eval`
+- Official website: `https://www.openminion.com`
+- Official X account: `https://x.com/OpenMinion`
+
+`openminion-eval` has no official token, coin, NFT, airdrop, staking program,
+treasury product, or investment offering. Any claim otherwise is unauthorized
+and should be treated as a scam.
+
 ## Package Shape
 
 Standalone distribution for the canonical OpenMinion eval surface.
@@ -224,29 +234,6 @@ Package-local docs and scripts:
   public boundary.
 - `scripts/release_check.py` is the canonical release smoke entrypoint.
 
-## Trust and Brand Safety
-
-- Official GitHub: `https://github.com/openminion/openminion-eval`
-- Official website: `https://www.openminion.com`
-- Official X account: `https://x.com/OpenMinion`
-
-`openminion-eval` has no official token, coin, NFT, airdrop, staking program,
-treasury product, or investment offering. Any claim otherwise is unauthorized
-and should be treated as a scam.
-
-## License and brand-use boundary
-
-- Source code license: `MIT`
-- Brand/trademark grant: `none`
-
-The software license grants rights to use, modify, and redistribute the code.
-It does **not** grant rights to use the OpenMinion or OpenMinion Eval names,
-logos, branding, website identity, or social identity except for truthful
-attribution. Forks, clones, and derivative distributions must not present
-themselves as the official OpenMinion Eval package or imply affiliation,
-endorsement, or maintenance by OpenMinion contributors unless that is actually
-true.
-
 ## Surface classification
 
 - `public_library_api`
@@ -264,3 +251,16 @@ true.
   - `tests/eval/runners/`
   - `tests/eval/grounding/`
   - other dev/test helpers that rely on host runtime artifacts
+
+## License and brand-use boundary
+
+- Source code license: `MIT`
+- Brand/trademark grant: `none`
+
+The software license grants rights to use, modify, and redistribute the code.
+It does **not** grant rights to use the OpenMinion or OpenMinion Eval names,
+logos, branding, website identity, or social identity except for truthful
+attribution. Forks, clones, and derivative distributions must not present
+themselves as the official OpenMinion Eval package or imply affiliation,
+endorsement, or maintenance by OpenMinion contributors unless that is actually
+true.
