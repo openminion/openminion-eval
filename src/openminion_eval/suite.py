@@ -167,7 +167,11 @@ class EvalSuite:
     ) -> EvalSummary:
         try:
             results = self._runner.replay_sync(transcript)
-            results = self._scorer.score_results(results, scorer_name)
+            results = self._scorer.score_results(
+                results,
+                scorer_name,
+                threshold=self._threshold,
+            )
         except Exception as exc:  # noqa: BLE001
             return self._error_summary(
                 transcript,
@@ -253,7 +257,11 @@ class EvalSuite:
     ) -> EvalSummary:
         try:
             results = await self._runner.replay(transcript)
-            results = self._scorer.score_results(results, scorer_name)
+            results = self._scorer.score_results(
+                results,
+                scorer_name,
+                threshold=self._threshold,
+            )
         except Exception as exc:  # noqa: BLE001
             return self._error_summary(
                 transcript,
@@ -311,6 +319,8 @@ class EvalSuite:
             actual="",
             score=0.0,
             scorer_name=scorer_name,
+            scorer_reason="failed",
+            scorer_threshold=self._threshold,
             metadata={
                 "duration_ms": 0.001,
                 "executor_error": str(error),

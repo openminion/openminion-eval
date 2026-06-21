@@ -1,6 +1,7 @@
 """Interface contract tests for the eval module."""
 
 import asyncio
+import inspect
 
 import pytest
 from openminion_eval.interfaces import (
@@ -30,6 +31,13 @@ class TestEvalScorerContractVersion:
         scorer = EvalScorer()
         assert hasattr(scorer, "contract_version")
         assert scorer.contract_version == EVAL_INTERFACE_VERSION
+
+    def test_eval_scorer_declares_threshold_aware_signatures(self):
+        score_signature = inspect.signature(EvalScorer.score)
+        score_results_signature = inspect.signature(EvalScorer.score_results)
+
+        assert score_signature.parameters["threshold"].default is None
+        assert score_results_signature.parameters["threshold"].default is None
 
 
 class TestEvalSuiteContractVersion:

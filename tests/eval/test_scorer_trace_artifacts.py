@@ -10,7 +10,9 @@ from openminion_eval import (
     EvalScorer,
     EvalScorerSpec,
     EvalSummary,
+    EvalSuite,
     EvalSuiteResult,
+    EvalTranscript,
     build_case_traces,
     write_case_traces_jsonl,
 )
@@ -54,6 +56,24 @@ def test_reserved_model_judge_name_does_not_register_provider_adapter() -> None:
 
     with pytest.raises(ValueError, match="Reserved scorer name"):
         scorer.register_scorer("llm_judge", lambda _actual, _expected: 1.0)
+
+
+def test_suite_scoring_uses_summary_threshold_for_trace_reason() -> None:
+    scorer = EvalScorer()
+    scorer.register_scorer("partial_credit", lambda _actual, _expected: 0.8)
+    suite = EvalSuite(scorer=scorer, threshold=0.8)
+    transcript = EvalTranscript(
+        name="partial",
+        turns=[{"user": "question", "expected": "answer"}],
+    )
+
+    result = suite.run([transcript], scorer_name="partial_credit")
+    case_result = result.summaries[0].results[0]
+
+    assert result.summaries[0].passed is True
+    assert case_result.score == 0.8
+    assert case_result.scorer_reason == "passed"
+    assert case_result.scorer_threshold == 0.8
 
 
 def test_case_trace_artifacts_are_stable_jsonl(tmp_path) -> None:

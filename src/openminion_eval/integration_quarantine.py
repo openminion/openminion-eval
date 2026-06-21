@@ -1,4 +1,4 @@
-"""Source-only integration probe quarantine metadata."""
+"""Integration-probe quarantine metadata for source-tree validation."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def build_integration_quarantine_map(
             disposition="source-only",
             rationale=(
                 "Integration probes depend on host runtime state, live credentials, "
-                "or source-tree fixtures and are not public package imports."
+                "or source-tree fixtures and are not stable package APIs."
             ),
         )
         for path in probes

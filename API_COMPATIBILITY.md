@@ -41,6 +41,7 @@ The following top-level exports are part of the current public contract:
 - `openminion_eval.EvalRunner`
 - `openminion_eval.EvalRunContext`
 - `openminion_eval.EvalScorer`
+- `openminion_eval.EvalScorerSpec`
 - `openminion_eval.EvalSubjectInterface`
 - `openminion_eval.EvalSuite`
 - `openminion_eval.EvalResult`
@@ -70,6 +71,9 @@ The following top-level exports are part of the current public contract:
   `openminion_eval/py.typed`
 - scorer trace helpers: `build_case_traces(...)` and
   `write_case_traces_jsonl(...)`
+- threshold-aware scorer metadata: `EvalScorer.score(...)` and
+  `EvalScorer.score_results(...)` may record `scorer_reason` and
+  `scorer_threshold` for trace consumers.
 - manual grading helpers: `build_manual_review_queue(...)`,
   `load_manual_adjudications(...)`, and `apply_manual_adjudications(...)`
 - static family registry helpers: `list_builtin_families(...)` and
@@ -77,16 +81,17 @@ The following top-level exports are part of the current public contract:
 
 ## Integration quarantine and promotion checklist
 
-`tests/eval/integration/` contains source-only probes. They are not public API
-and must not be imported from `src/openminion_eval` unless a future promotion
-lane proves all of the following:
+`tests/eval/integration/` contains source-only probes. The installed
+quarantine helper may describe them, but the probes themselves are not stable
+public API and must not be promoted into package workflows unless a future lane
+proves all of the following:
 
 1. fixture shape is stable and package-owned,
 2. host-owned runtime adapters are removed or replaced with public package
    contracts,
 3. installed-wheel tests prove the import works outside the source tree,
 4. public-release-boundary tests cover the promoted surface,
-5. docs describe the new public import root.
+5. docs describe the new public workflow or import root.
 
 ## Trace and manual artifacts
 

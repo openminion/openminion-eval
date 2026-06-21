@@ -10,8 +10,9 @@ review, and integration-probe quarantine.
 
 `build_case_traces()` converts an `EvalSuiteResult` into one row per evaluated
 turn. `write_case_traces_jsonl()` writes those rows as input-order-preserving
-JSONL. Trace artifacts must not include host runtime paths, tokens, or
-environment dumps.
+JSONL. Suite runs record scorer reason and threshold with the same threshold
+used by the summary pass/fail decision. Trace artifacts must not include host
+runtime paths, tokens, or environment dumps.
 
 ## Manual review queue
 
@@ -45,6 +46,7 @@ Malformed imports fail deterministically.
 
 ## Integration quarantine
 
-Files under `tests/eval/integration/` are source-only probes. They are not
-public package imports and are not promoted into `src/openminion_eval` without
-the promotion checklist in `API_COMPATIBILITY.md`.
+Files under `tests/eval/integration/` are source-only probes. The installed
+quarantine helper may describe them, but the probes themselves are not stable
+package APIs and are not promoted into package workflows without the checklist
+in `API_COMPATIBILITY.md`.

@@ -76,12 +76,14 @@ class EvalScorerInterface(Protocol):
         result: Any,
         expected: Optional[str] = None,
         scorer_name: str = "substring_match",
+        threshold: float | None = None,
     ) -> Any: ...
 
     def score_results(
         self,
         results: list[Any],
         scorer_name: str = "substring_match",
+        threshold: float | None = None,
     ) -> list[Any]: ...
 
 

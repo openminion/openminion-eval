@@ -84,6 +84,7 @@ from openminion_eval import (
     EvalRunContext,
     EvalRunManifest,
     EvalRunner,
+    EvalScorerSpec,
     EvalSubjectInterface,
     EvalDatasetValidationError,
     GoalDriftSignalKind,
@@ -114,6 +115,8 @@ if EVAL_INTERFACE_VERSION != "v1":
     raise SystemExit(f"unexpected eval interface version: {EVAL_INTERFACE_VERSION!r}")
 if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
+if EvalScorerSpec.__name__ != "EvalScorerSpec":
+    raise SystemExit("EvalScorerSpec root export missing")
 if not isinstance(openminion_eval.__version__, str) or not openminion_eval.__version__:
     raise SystemExit("__version__ root export missing")
 if EvalRunContext.__name__ != "EvalRunContext":

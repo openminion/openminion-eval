@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from dataclasses import replace
-from typing import Callable, Optional
+from typing import Callable, Optional, Sequence
 from openminion_eval.schemas import EvalResult
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
 
@@ -72,13 +72,16 @@ class EvalScorer:
         self,
         results: list[EvalResult],
         scorer_name: str = "substring_match",
+        threshold: float | None = None,
     ) -> list[EvalResult]:
-        return [self.score(r, scorer_name=scorer_name) for r in results]
+        return [
+            self.score(r, scorer_name=scorer_name, threshold=threshold) for r in results
+        ]
 
     def score_with_scorers(
         self,
         result: EvalResult,
-        scorers: list[EvalScorerSpec],
+        scorers: Sequence[EvalScorerSpec],
         *,
         expected: Optional[str] = None,
     ) -> list[EvalResult]:
