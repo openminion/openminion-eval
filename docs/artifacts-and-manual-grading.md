@@ -10,8 +10,9 @@ review, and integration-probe quarantine.
 
 `build_case_traces()` converts an `EvalSuiteResult` into one row per evaluated
 turn. `write_case_traces_jsonl()` writes those rows as input-order-preserving
-JSONL. Trace artifacts must not include host runtime paths, tokens, or
-environment dumps.
+JSONL. Suite runs record scorer reason and threshold with the same threshold
+used by the summary pass/fail decision. Trace artifacts must not include host
+runtime paths, tokens, or environment dumps.
 
 ## Manual review queue
 
