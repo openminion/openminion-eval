@@ -281,9 +281,7 @@ class EvalSuite:
         scores = [r.score for r in results]
         avg_score = sum(scores) / len(scores) if scores else 0.0
         scorer_error_count = sum(
-            1
-            for result in results
-            if result.metadata.get("executor_error") is not None
+            1 for result in results if result.metadata.get("executor_error") is not None
         )
         return EvalSummary(
             transcript_name=transcript_name,

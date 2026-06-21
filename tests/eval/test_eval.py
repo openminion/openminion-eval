@@ -9,7 +9,12 @@ from openminion_eval.interfaces import EVAL_INTERFACE_VERSION, EvalRunContext
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
 from openminion_eval.suite import EvalSuite, select_transcripts
-from openminion_eval.schemas import EvalTranscript, EvalResult, EvalSuiteResult, EvalSummary
+from openminion_eval.schemas import (
+    EvalTranscript,
+    EvalResult,
+    EvalSuiteResult,
+    EvalSummary,
+)
 
 
 def test_eval_runner_replay():
@@ -195,7 +200,9 @@ def test_select_transcripts_failed_only_preserves_order() -> None:
         ]
     )
 
-    selected = select_transcripts(transcripts, previous_result=previous, failed_only=True)
+    selected = select_transcripts(
+        transcripts, previous_result=previous, failed_only=True
+    )
 
     assert [transcript.name for transcript in selected] == ["second", "third"]
 

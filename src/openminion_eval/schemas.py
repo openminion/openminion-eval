@@ -37,7 +37,24 @@ class EvalResult:
     actual: str
     score: float
     scorer_name: str
+    scorer_reason: str = ""
+    scorer_threshold: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class EvalCaseTrace:
+    transcript_name: str
+    turn_index: int
+    user_input: str
+    actual: str
+    expected: str
+    duration_ms: float
+    executor_error: str | None
+    scorer_name: str
+    score: float
+    scorer_reason: str = ""
+    scorer_threshold: float | None = None
 
 
 @dataclass

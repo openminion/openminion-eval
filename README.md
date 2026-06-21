@@ -26,6 +26,16 @@
 OpenMinion. It gives downstream projects a small, installable surface for
 repeatable agent-quality checks without pulling in the full runtime.
 
+## Docs and release
+
+- [`docs/README.md`](docs/README.md) is the package-local docs entrypoint.
+- [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md) records the supported public
+  import roots and top-level export policy.
+- [`RELEASING.md`](RELEASING.md) records the package-local release and publish
+  flow.
+- [`docs/source-tree-owner-map.md`](docs/source-tree-owner-map.md) explains the
+  source-tree module layout and public boundary.
+
 ## Trust and Brand Safety
 
 - Official GitHub: `https://github.com/openminion/openminion-eval`
@@ -225,6 +235,10 @@ Package-local docs and scripts:
   host-integration proof coverage for the public package surface.
 - `docs/eval-cases.md` records the starter `EvalCase` registry,
   grade modes, CLI, and extension rules.
+- `docs/ci-recipes.md` gives pytest-native CI examples and artifact upload
+  guidance.
+- `docs/artifacts-and-manual-grading.md` documents scorer traces, manual
+  grading JSON, and integration quarantine.
 - `docs/standalone-claim-alignment.md` maps public claims to shipped
   package surfaces and proof.
 - `API_COMPATIBILITY.md` records the supported public import roots and

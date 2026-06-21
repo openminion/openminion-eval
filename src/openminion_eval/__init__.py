@@ -1,5 +1,7 @@
 """Public eval-core exports for the standalone openminion-eval package."""
 
+from importlib import metadata as importlib_metadata
+
 from openminion_eval.interfaces import (
     EVAL_INTERFACE_VERSION,
     EvalRunContext,
@@ -14,7 +16,7 @@ from openminion_eval.interfaces import (
     ensure_eval_suite_compatibility,
 )
 from openminion_eval.runner import EvalRunner
-from openminion_eval.scorer import EvalScorer
+from openminion_eval.scorer import EvalScorer, EvalScorerSpec
 from openminion_eval.suite import EvalSuite, select_transcripts
 from openminion_eval.datasets import (
     DATASET_VERSION,
@@ -27,6 +29,7 @@ from openminion_eval.datasets import (
 from openminion_eval.schemas import (
     EvalBaselineDiff,
     EvalBaselineDiffEntry,
+    EvalCaseTrace,
     EvalDataset,
     EvalDatasetCase,
     EvalResult,
@@ -37,10 +40,12 @@ from openminion_eval.schemas import (
 )
 from openminion_eval.suite_artifacts import (
     SUITE_ARTIFACT_VERSION,
+    build_case_traces,
     build_run_manifest,
     compare_suite_results,
     hash_transcripts,
     load_suite_result,
+    write_case_traces_jsonl,
     write_suite_result,
 )
 from openminion_eval.cases import (
@@ -50,6 +55,23 @@ from openminion_eval.cases import (
     GradeOutcome,
     grade_case,
     registered_cases,
+)
+from openminion_eval.manual import (
+    MANUAL_REVIEW_ARTIFACT_VERSION,
+    ManualAdjudication,
+    ManualReviewItem,
+    ManualReviewQueue,
+    apply_manual_adjudications,
+    build_manual_review_queue,
+    load_manual_adjudications,
+    write_manual_review_queue,
+)
+from openminion_eval.family_registry import (
+    BUILTIN_FAMILIES,
+    FAMILY_REGISTRY_VERSION,
+    EvalFamilyMetadata,
+    get_builtin_family,
+    list_builtin_families,
 )
 from openminion_eval.tools import (
     ToolResultUsageCase,
@@ -136,11 +158,19 @@ from openminion_eval.goal_trajectory import (
     run_benchmark,
 )
 
+try:
+    __version__ = importlib_metadata.version("openminion-eval")
+except importlib_metadata.PackageNotFoundError:
+    __version__ = "0+unknown"
+
 __all__ = [
+    "__version__",
     "EvalRunner",
     "EvalScorer",
+    "EvalScorerSpec",
     "EvalSuite",
     "EvalResult",
+    "EvalCaseTrace",
     "EvalRunManifest",
     "EvalSummary",
     "EvalSuiteResult",
@@ -156,10 +186,12 @@ __all__ = [
     "EvalBaselineDiff",
     "EvalBaselineDiffEntry",
     "SUITE_ARTIFACT_VERSION",
+    "build_case_traces",
     "build_run_manifest",
     "compare_suite_results",
     "hash_transcripts",
     "load_suite_result",
+    "write_case_traces_jsonl",
     "write_suite_result",
     "select_transcripts",
     "EvalCase",
@@ -168,6 +200,19 @@ __all__ = [
     "GradeOutcome",
     "grade_case",
     "registered_cases",
+    "MANUAL_REVIEW_ARTIFACT_VERSION",
+    "ManualAdjudication",
+    "ManualReviewItem",
+    "ManualReviewQueue",
+    "apply_manual_adjudications",
+    "build_manual_review_queue",
+    "load_manual_adjudications",
+    "write_manual_review_queue",
+    "BUILTIN_FAMILIES",
+    "FAMILY_REGISTRY_VERSION",
+    "EvalFamilyMetadata",
+    "get_builtin_family",
+    "list_builtin_families",
     "ToolSelectionCase",
     "ToolSelectionObservation",
     "ToolSelectionReport",

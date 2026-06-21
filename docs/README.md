@@ -20,6 +20,11 @@ This directory holds the public package documentation for standalone
   package-owned non-memory eval-family contracts.
 - [`eval-cases.md`](eval-cases.md) records the starter
   `EvalCase` registry, grade modes, CLI behavior, and extension rules.
+- [`ci-recipes.md`](ci-recipes.md) gives pytest-native and CI examples for
+  package users.
+- [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md)
+  documents scorer traces, manual review queues, adjudication imports, and
+  integration quarantine.
 - [`standalone-claim-alignment.md`](standalone-claim-alignment.md)
   maps public standalone claims to shipped package surfaces and proof.
 - [`certification-readiness-matrix.md`](certification-readiness-matrix.md)

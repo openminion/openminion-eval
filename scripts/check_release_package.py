@@ -40,6 +40,8 @@ def _assert_package_docs_shape() -> None:
         REPO_ROOT / "docs" / "certification-readiness-matrix.md",
         REPO_ROOT / "docs" / "eval-cases.md",
         REPO_ROOT / "docs" / "eval-families.md",
+        REPO_ROOT / "docs" / "ci-recipes.md",
+        REPO_ROOT / "docs" / "artifacts-and-manual-grading.md",
         REPO_ROOT / "docs" / "standalone-claim-alignment.md",
         REPO_ROOT / "docs" / "source-tree-owner-map.md",
         REPO_ROOT / "src" / "openminion_eval" / "README.md",
@@ -86,10 +88,13 @@ from openminion_eval import (
     EvalDatasetValidationError,
     GoalDriftSignalKind,
     GradeMode,
+    build_case_traces,
     build_run_manifest,
+    build_manual_review_queue,
     compare_suite_results,
     hash_transcripts,
     load_eval_dataset_jsonl,
+    list_builtin_families,
     registered_cases,
     select_transcripts,
 )
@@ -109,6 +114,8 @@ if EVAL_INTERFACE_VERSION != "v1":
     raise SystemExit(f"unexpected eval interface version: {EVAL_INTERFACE_VERSION!r}")
 if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
+if not isinstance(openminion_eval.__version__, str) or not openminion_eval.__version__:
+    raise SystemExit("__version__ root export missing")
 if EvalRunContext.__name__ != "EvalRunContext":
     raise SystemExit("EvalRunContext root export missing")
 if EvalSubjectInterface.__name__ != "EvalSubjectInterface":
@@ -119,6 +126,8 @@ if EvalRunManifest.__name__ != "EvalRunManifest":
     raise SystemExit("EvalRunManifest root export missing")
 if not callable(build_run_manifest):
     raise SystemExit("build_run_manifest root export missing")
+if not callable(build_case_traces):
+    raise SystemExit("build_case_traces root export missing")
 if not callable(compare_suite_results):
     raise SystemExit("compare_suite_results root export missing")
 if not callable(hash_transcripts):
@@ -137,8 +146,14 @@ if len(registered_cases()) != 5:
     raise SystemExit("starter EvalCase registry drifted")
 if grade_case(registered_cases()[0]).case_id != registered_cases()[0].case_id:
     raise SystemExit("EvalCase grading smoke failed")
+if not list_builtin_families():
+    raise SystemExit("built-in family registry is empty")
+if build_manual_review_queue(tuple(registered_cases())).artifact_version != "1":
+    raise SystemExit("manual review queue export drifted")
 
 dist_files = {str(path) for path in distribution("openminion-eval").files or ()}
+if "openminion_eval/py.typed" not in dist_files:
+    raise SystemExit("py.typed missing from installed wheel")
 if not any(path.endswith("dist-info/licenses/LICENSE") for path in dist_files):
     raise SystemExit("LICENSE missing from installed wheel metadata")
 if not any(path.endswith("dist-info/licenses/NOTICE") for path in dist_files):
