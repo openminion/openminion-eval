@@ -23,7 +23,9 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "registered_cases" in release_check
     assert "select_transcripts" in release_check
     assert "load_eval_dataset_jsonl" in release_check
+    assert "EvalScorer root export missing" in release_check
     assert "EvalScorerSpec root export missing" in release_check
+    assert "threshold-aware scorer metadata drifted" in release_check
     assert "built-in family registry is empty" in release_check
     assert "manual review queue export drifted" in release_check
     assert "py.typed missing from installed wheel" in release_check

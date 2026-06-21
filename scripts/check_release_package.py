@@ -83,7 +83,9 @@ from openminion_eval import (
     EvalCase,
     EvalRunContext,
     EvalRunManifest,
+    EvalResult,
     EvalRunner,
+    EvalScorer,
     EvalScorerSpec,
     EvalSubjectInterface,
     EvalDatasetValidationError,
@@ -115,6 +117,8 @@ if EVAL_INTERFACE_VERSION != "v1":
     raise SystemExit(f"unexpected eval interface version: {EVAL_INTERFACE_VERSION!r}")
 if EvalRunner.__name__ != "EvalRunner":
     raise SystemExit("EvalRunner root export missing")
+if EvalScorer.__name__ != "EvalScorer":
+    raise SystemExit("EvalScorer root export missing")
 if EvalScorerSpec.__name__ != "EvalScorerSpec":
     raise SystemExit("EvalScorerSpec root export missing")
 if not isinstance(openminion_eval.__version__, str) or not openminion_eval.__version__:
@@ -153,6 +157,20 @@ if not list_builtin_families():
     raise SystemExit("built-in family registry is empty")
 if build_manual_review_queue(tuple(registered_cases())).artifact_version != "1":
     raise SystemExit("manual review queue export drifted")
+threshold_result = EvalScorer().score(
+    EvalResult(
+        turn_index=0,
+        user_input="question",
+        expected="answer",
+        actual="answer",
+        score=0.0,
+        scorer_name="pending",
+    ),
+    scorer_name="exact_match",
+    threshold=0.8,
+)
+if threshold_result.scorer_reason != "passed" or threshold_result.scorer_threshold != 0.8:
+    raise SystemExit("threshold-aware scorer metadata drifted")
 
 dist_files = {str(path) for path in distribution("openminion-eval").files or ()}
 if "openminion_eval/py.typed" not in dist_files:
