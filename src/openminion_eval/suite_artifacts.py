@@ -14,6 +14,7 @@ import uuid
 from openminion_eval.schemas import (
     EvalBaselineDiff,
     EvalBaselineDiffEntry,
+    EvalCaseTrace,
     EvalResult,
     EvalRunManifest,
     EvalSuiteResult,
@@ -83,6 +84,39 @@ def write_suite_result(
     return target
 
 
+def build_case_traces(result: EvalSuiteResult) -> list[EvalCaseTrace]:
+    traces: list[EvalCaseTrace] = []
+    for summary in result.summaries:
+        for case_result in summary.results:
+            traces.append(
+                EvalCaseTrace(
+                    transcript_name=summary.transcript_name,
+                    turn_index=case_result.turn_index,
+                    user_input=case_result.user_input,
+                    actual=case_result.actual,
+                    expected=case_result.expected,
+                    duration_ms=float(case_result.metadata.get("duration_ms", 0.0)),
+                    executor_error=case_result.metadata.get("executor_error"),
+                    scorer_name=case_result.scorer_name,
+                    score=case_result.score,
+                    scorer_reason=case_result.scorer_reason,
+                    scorer_threshold=case_result.scorer_threshold,
+                )
+            )
+    return traces
+
+
+def write_case_traces_jsonl(path: str | Path, result: EvalSuiteResult) -> Path:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    lines = [
+        json.dumps(asdict(trace), sort_keys=True, separators=(",", ":"))
+        for trace in build_case_traces(result)
+    ]
+    target.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+    return target
+
+
 def load_suite_result(path: str | Path) -> tuple[EvalSuiteResult, EvalRunManifest]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     artifact_version = payload.get("artifact_version")
@@ -98,8 +132,12 @@ def compare_suite_results(
     previous: EvalSuiteResult,
     current: EvalSuiteResult,
 ) -> EvalBaselineDiff:
-    previous_by_name = {summary.transcript_name: summary for summary in previous.summaries}
-    current_by_name = {summary.transcript_name: summary for summary in current.summaries}
+    previous_by_name = {
+        summary.transcript_name: summary for summary in previous.summaries
+    }
+    current_by_name = {
+        summary.transcript_name: summary for summary in current.summaries
+    }
     names = sorted(previous_by_name.keys() | current_by_name.keys())
     entries = [
         _diff_entry(

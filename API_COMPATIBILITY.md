@@ -27,6 +27,8 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
 - `openminion_eval.datasets`
+- `openminion_eval.family_registry`
+- `openminion_eval.manual`
 
 The top-level `openminion_eval` package is the preferred entrypoint for common
 usage.
@@ -64,6 +66,34 @@ The following top-level exports are part of the current public contract:
   `aggregate_reports(...)`
 - certification helpers such as `FamilyCertificationSignal` and
   `apply_family_signals_to_certification_cells(...)`
+- type/version contract: `openminion_eval.__version__` and packaged
+  `openminion_eval/py.typed`
+- scorer trace helpers: `build_case_traces(...)` and
+  `write_case_traces_jsonl(...)`
+- manual grading helpers: `build_manual_review_queue(...)`,
+  `load_manual_adjudications(...)`, and `apply_manual_adjudications(...)`
+- static family registry helpers: `list_builtin_families(...)` and
+  `get_builtin_family(...)`
+
+## Integration quarantine and promotion checklist
+
+`tests/eval/integration/` contains source-only probes. They are not public API
+and must not be imported from `src/openminion_eval` unless a future promotion
+lane proves all of the following:
+
+1. fixture shape is stable and package-owned,
+2. host-owned runtime adapters are removed or replaced with public package
+   contracts,
+3. installed-wheel tests prove the import works outside the source tree,
+4. public-release-boundary tests cover the promoted surface,
+5. docs describe the new public import root.
+
+## Trace and manual artifacts
+
+Scorer trace artifacts and manual review/adjudication artifacts are local JSON
+or JSONL files. They must use relative paths and must not include provider
+secrets, environment dumps, host runtime paths, or OpenMinion runtime-owned
+objects.
 
 ## Versioning posture
 

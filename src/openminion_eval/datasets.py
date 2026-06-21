@@ -38,7 +38,9 @@ def load_eval_dataset_json(path: str | Path) -> EvalDataset:
     metadata = payload.get("metadata", {})
     if not isinstance(metadata, dict):
         raise EvalDatasetValidationError("dataset metadata must be an object")
-    return _build_dataset(version=version, name=name, records=raw_cases, metadata=metadata)
+    return _build_dataset(
+        version=version, name=name, records=raw_cases, metadata=metadata
+    )
 
 
 def load_eval_dataset_jsonl(
@@ -50,7 +52,9 @@ def load_eval_dataset_jsonl(
 ) -> EvalDataset:
     _ensure_supported_version(dataset_version)
     records = []
-    for index, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
+    for index, line in enumerate(
+        Path(path).read_text(encoding="utf-8").splitlines(), 1
+    ):
         if not line.strip():
             continue
         try:

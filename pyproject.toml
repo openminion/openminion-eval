@@ -48,6 +48,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
+"openminion_eval" = ["py.typed"]
 "openminion_eval.skills" = ["resources/**/*"]
 
 [tool.pytest.ini_options]

@@ -1,9 +1,16 @@
 """Eval scorer for OpenMinion."""
 
+from dataclasses import dataclass
 from dataclasses import replace
 from typing import Callable, Optional
 from openminion_eval.schemas import EvalResult
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
+
+
+@dataclass(frozen=True)
+class EvalScorerSpec:
+    name: str
+    threshold: float | None = None
 
 
 class EvalScorer:
@@ -41,6 +48,7 @@ class EvalScorer:
         result: EvalResult,
         expected: Optional[str] = None,
         scorer_name: str = "substring_match",
+        threshold: float | None = None,
     ) -> EvalResult:
         actual = result.actual
         exp = expected or result.expected
@@ -49,8 +57,16 @@ class EvalScorer:
         if scorer is None:
             raise ValueError(f"Unknown scorer: {scorer_name}")
         score = scorer(actual, exp)
+        reason_threshold = 1.0 if threshold is None else threshold
+        reason = "passed" if score >= reason_threshold else "failed"
 
-        return replace(result, score=score, scorer_name=scorer_name)
+        return replace(
+            result,
+            score=score,
+            scorer_name=scorer_name,
+            scorer_reason=reason,
+            scorer_threshold=threshold,
+        )
 
     def score_results(
         self,
@@ -58,3 +74,20 @@ class EvalScorer:
         scorer_name: str = "substring_match",
     ) -> list[EvalResult]:
         return [self.score(r, scorer_name=scorer_name) for r in results]
+
+    def score_with_scorers(
+        self,
+        result: EvalResult,
+        scorers: list[EvalScorerSpec],
+        *,
+        expected: Optional[str] = None,
+    ) -> list[EvalResult]:
+        return [
+            self.score(
+                result,
+                expected=expected,
+                scorer_name=scorer.name,
+                threshold=scorer.threshold,
+            )
+            for scorer in scorers
+        ]

@@ -7,7 +7,12 @@ import subprocess
 import sys
 
 from openminion_eval.cli import main
-from openminion_eval.schemas import EvalResult, EvalRunManifest, EvalSuiteResult, EvalSummary
+from openminion_eval.schemas import (
+    EvalResult,
+    EvalRunManifest,
+    EvalSuiteResult,
+    EvalSummary,
+)
 from openminion_eval.suite_artifacts import load_suite_result, write_suite_result
 
 

@@ -84,9 +84,7 @@ class TestEvalSubjectCompatibilityValidator:
             def run(self, user_input: str, context: EvalRunContext) -> str:
                 return f"{context.transcript_name}:{context.turn_index}:{user_input}"
 
-        success, errors = ensure_eval_subject_compatibility(
-            SyncSubject(), strict=False
-        )
+        success, errors = ensure_eval_subject_compatibility(SyncSubject(), strict=False)
         assert success is True
         assert errors == []
 
@@ -94,9 +92,7 @@ class TestEvalSubjectCompatibilityValidator:
         class AsyncSubject:
             contract_version = EVAL_INTERFACE_VERSION
 
-            async def run_async(
-                self, user_input: str, context: EvalRunContext
-            ) -> str:
+            async def run_async(self, user_input: str, context: EvalRunContext) -> str:
                 return f"{context.transcript_name}:{user_input}"
 
         success, errors = ensure_eval_subject_compatibility(

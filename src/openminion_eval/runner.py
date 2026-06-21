@@ -42,7 +42,9 @@ class EvalRunner:
         """Replay a transcript and return results for each turn."""
         results = []
         for i, turn in enumerate(transcript.turns):
-            result = await self._run_turn_async(transcript=transcript, turn=turn, index=i)
+            result = await self._run_turn_async(
+                transcript=transcript, turn=turn, index=i
+            )
             results.append(result)
         return results
 
@@ -50,7 +52,9 @@ class EvalRunner:
         results = []
 
         for i, turn in enumerate(transcript.turns):
-            results.append(self._run_turn_sync(transcript=transcript, turn=turn, index=i))
+            results.append(
+                self._run_turn_sync(transcript=transcript, turn=turn, index=i)
+            )
 
         return results
 

@@ -13,6 +13,8 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert 'REPO_ROOT / "docs" / "certification-readiness-matrix.md"' in release_check
     assert 'REPO_ROOT / "docs" / "eval-cases.md"' in release_check
     assert 'REPO_ROOT / "docs" / "eval-families.md"' in release_check
+    assert 'REPO_ROOT / "docs" / "ci-recipes.md"' in release_check
+    assert 'REPO_ROOT / "docs" / "artifacts-and-manual-grading.md"' in release_check
     assert 'REPO_ROOT / "docs" / "standalone-claim-alignment.md"' in release_check
     assert 'REPO_ROOT / "docs" / "source-tree-owner-map.md"' in release_check
     assert '"docs" / "reference"' not in release_check
@@ -21,6 +23,10 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "registered_cases" in release_check
     assert "select_transcripts" in release_check
     assert "load_eval_dataset_jsonl" in release_check
+    assert "built-in family registry is empty" in release_check
+    assert "manual review queue export drifted" in release_check
+    assert "py.typed missing from installed wheel" in release_check
+    assert "__version__ root export missing" in release_check
     assert '"openminion-eval"' in release_check
     assert '"openminion_eval"' in release_check
     assert "README advertises unpublished PyPI package surface" in release_check
