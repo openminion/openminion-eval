@@ -42,9 +42,9 @@ and manual review artifacts.
 12. `py.typed` marks the installed package as PEP 561 typed.
 13. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
     package support used by the public surfaces above.
-14. `integration_quarantine.py` owns source-tree quarantine metadata for
-    integration probes; it does not promote those probes into public package
-    APIs.
+14. `integration_quarantine.py` owns installed support metadata for
+    source-tree integration probes; it does not make those probes stable
+    package APIs.
 
 ## Repo-local but not public API
 

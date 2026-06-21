@@ -17,4 +17,4 @@ def test_integration_quarantine_map_covers_every_probe() -> None:
 
     assert [item.path for item in dispositions] == expected
     assert {item.disposition for item in dispositions} == {"source-only"}
-    assert all("not public package imports" in item.rationale for item in dispositions)
+    assert all("not stable package APIs" in item.rationale for item in dispositions)

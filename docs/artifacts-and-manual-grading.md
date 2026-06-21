@@ -45,6 +45,7 @@ Malformed imports fail deterministically.
 
 ## Integration quarantine
 
-Files under `tests/eval/integration/` are source-only probes. They are not
-public package imports and are not promoted into `src/openminion_eval` without
-the promotion checklist in `API_COMPATIBILITY.md`.
+Files under `tests/eval/integration/` are source-only probes. The installed
+quarantine helper may describe them, but the probes themselves are not stable
+package APIs and are not promoted into package workflows without the checklist
+in `API_COMPATIBILITY.md`.
