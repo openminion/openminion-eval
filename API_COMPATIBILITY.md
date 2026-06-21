@@ -41,6 +41,7 @@ The following top-level exports are part of the current public contract:
 - `openminion_eval.EvalRunner`
 - `openminion_eval.EvalRunContext`
 - `openminion_eval.EvalScorer`
+- `openminion_eval.EvalScorerSpec`
 - `openminion_eval.EvalSubjectInterface`
 - `openminion_eval.EvalSuite`
 - `openminion_eval.EvalResult`
@@ -70,6 +71,9 @@ The following top-level exports are part of the current public contract:
   `openminion_eval/py.typed`
 - scorer trace helpers: `build_case_traces(...)` and
   `write_case_traces_jsonl(...)`
+- threshold-aware scorer metadata: `EvalScorer.score(...)` and
+  `EvalScorer.score_results(...)` may record `scorer_reason` and
+  `scorer_threshold` for trace consumers.
 - manual grading helpers: `build_manual_review_queue(...)`,
   `load_manual_adjudications(...)`, and `apply_manual_adjudications(...)`
 - static family registry helpers: `list_builtin_families(...)` and
