@@ -11,30 +11,23 @@
 <p align="center">
   <a href="https://github.com/openminion/openminion-eval">GitHub</a>
   · <a href="#install">Install</a>
-  · <a href="#public-release-contract">Public Contract</a>
+  · <a href="#what-ships-in-the-public-package">What Ships</a>
   · <a href="https://www.openminion.com">Website</a>
+  · <a href="https://x.com/OpenMinion">X</a>
 </p>
 
 <p align="center">
-  <img alt="Package version" src="https://img.shields.io/badge/package-0.1.0-3775A9">
+  <img alt="Package version" src="https://img.shields.io/badge/package-0.0.1-3775A9">
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3775A9">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-6B7280">
 </p>
 
-`openminion-eval` is the standalone non-memory evaluation package for
-OpenMinion. It gives downstream projects a small, installable surface for
-repeatable agent-quality checks without pulling in the full runtime.
+`openminion-eval` is the `v0.0.1` public preview of the standalone
+non-memory evaluation package for OpenMinion.
 
-## Docs and release
-
-- [`docs/README.md`](docs/README.md) is the package-local docs entrypoint.
-- [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md) records the supported public
-  import roots and top-level export policy.
-- [`RELEASING.md`](RELEASING.md) records the package-local release and publish
-  flow.
-- [`docs/source-tree-owner-map.md`](docs/source-tree-owner-map.md) explains the
-  source-tree module layout and public boundary.
+Use it when you want repeatable agent-quality checks for routing, tools,
+freshness, closure, policy, and skills without pulling in the full runtime.
 
 ## Trust and Brand Safety
 
@@ -46,62 +39,50 @@ repeatable agent-quality checks without pulling in the full runtime.
 treasury product, or investment offering. Any claim otherwise is unauthorized
 and should be treated as a scam.
 
-## Package Shape
+## At a glance
 
-Standalone distribution for the canonical OpenMinion eval surface.
-
-- distribution name: `openminion-eval`
+- Current public line: `v0.0.1` preview
+- Distribution name: `openminion-eval`
 - Python import: `openminion_eval`
+- Best fit when: you want standalone, repeatable, non-memory eval checks
+  without depending on the full OpenMinion runtime
+- Not the claim: memory eval harnesses and broader host-runtime validation
+  flows still live in the repo, but they are not part of the published package
 
-This package owns:
+## What ships in the public package
 
-- the generic eval runner/scorer/suite/interfaces/schemas/config/constants
-- shared eval helpers and reporting support
-- starter `EvalCase` registry and Markdown case report CLI
-- canonical non-memory eval families: tools, freshness, routing, closure,
+The public package currently ships:
+
+- generic eval runner, scorer, suite, interface, schema, config, and constant
+  surfaces
+- typed `EvalSubjectInterface` and `EvalRunContext` contracts for subjects
+  under test
+- suite run manifests, stable input hashing, JSON suite-result artifacts, and
+  baseline diffs
+- versioned JSON and JSONL dataset loaders with stable dataset hashing
+- package CLI entrypoints for suite runs and baseline diffs
+- opt-in parallel suite execution and partial rerun selection by previous
+  failures, transcript name, and transcript tags
+- the starter `EvalCase` registry under `openminion_eval.cases`
+- canonical non-memory eval families for tools, freshness, routing, closure,
   policy, and skills
+- shared support needed by those surfaces
 
-This repository also contains source-tree validation tooling used by broader
-eval workflows:
+## What stays repo-local
 
-- `tests/eval/integration/` (memory eval + trace flywheel)
-- memory fixtures/baselines and companion reports
-- grounding eval and eval runners
+The repository still contains broader validation tooling that is not part of
+the installable standalone wheel:
 
-The host application tree no longer owns `src/openminion/eval/` or
-`tests/eval/`. OpenMinion consumes eval through the external
-`openminion_eval` package.
+- `tests/eval/integration/` for memory eval and trace-flywheel work
+- memory fixtures, baselines, and companion reports
+- grounding eval and repo-local eval runners
+- other validation assets that depend on host-runtime state rather than the
+  standalone package alone
 
-## Public release contract
-
-The current public standalone contract matches the installed package:
-
-- public standalone surface:
-  - generic eval runner/scorer/suite/interfaces/schemas/config/constants
-  - typed `EvalSubjectInterface` and `EvalRunContext` contracts for subjects
-    under test
-  - suite run manifests, stable input hashing, JSON suite-result artifacts,
-    and baseline diffs
-  - versioned JSON/JSONL dataset loaders with stable dataset hashing
-  - package CLI entrypoints for suite runs and baseline diffs
-  - opt-in parallel suite execution and partial rerun selection by previous
-    failures, transcript name, and transcript tags
-  - starter `EvalCase` registry under `openminion_eval.cases`
-  - shared support needed by those surfaces
-  - canonical non-memory families: tools, freshness, routing, closure,
-    policy, and skills
-- repo-local integration/report tooling, not part of the published standalone
-  wheel:
-  - `tests/eval/integration/` (memory eval + trace flywheel)
-  - memory fixtures/baselines
-  - companion reports
-  - grounding eval
-  - eval baselines and runners
-
-Why: the published wheel now ships only the standalone non-memory surface.
-Memory harness and report tooling remain available from source in this
-repository for validation workflows, but they are not exposed as part of the
-installed `openminion_eval` package.
+Why this split exists: the published wheel is meant to stay small, stable, and
+safe to install into downstream projects. Memory harnesses and source-tree
+validation flows remain available from source in this repository, but they are
+not exposed as part of the installable `openminion_eval` package.
 
 The `openminion_eval.config` module is intentionally minimal today. It remains
 as a documented no-op compatibility surface; the public package does not
@@ -226,7 +207,7 @@ else:
 PY
 ```
 
-Package-local docs and scripts:
+## Docs and release
 
 - `docs/README.md` summarizes the package-local docs contract.
 - `docs/eval-families.md` records the public non-memory eval-family
