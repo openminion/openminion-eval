@@ -1129,7 +1129,6 @@ def write_report_json(report: BenchmarkBaselineReport, output_path: str | Path) 
 
 
 __all__ = [
-    "build_benchmark_harness_turn_intent",
     "BenchmarkBaselineReport",
     "BenchmarkContaminationClass",
     "BenchmarkDifficulty",
@@ -1141,6 +1140,7 @@ __all__ = [
     "BenchmarkTaskSpec",
     "BenchmarkVerifierEvidence",
     "build_ameb_corpus",
+    "build_benchmark_harness_turn_intent",
     "build_domain_coverage",
     "execute_task",
     "run_gateway_benchmark_turn",

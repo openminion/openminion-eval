@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 import re
+from typing import ClassVar
 
 
 class MemoryEvalScorer:
     """Memory-specific scoring helpers for fixture-driven evals."""
 
-    _NEGATION_TOKENS = {
+    _NEGATION_TOKENS: ClassVar[set[str]] = {
         "avoid",
         "cant",
         "can't",
@@ -26,13 +27,13 @@ class MemoryEvalScorer:
         "stop",
         "without",
     }
-    _DISCOURSE_TOKENS = {
+    _DISCOURSE_TOKENS: ClassVar[set[str]] = {
         "actually",
         "current",
         "now",
         "updated",
     }
-    _FUNCTION_TOKENS = {
+    _FUNCTION_TOKENS: ClassVar[set[str]] = {
         "a",
         "an",
         "and",

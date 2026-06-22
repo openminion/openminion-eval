@@ -22,7 +22,7 @@ encodes that as a structural assertion:
 from __future__ import annotations
 
 from dataclasses import fields as dc_fields
-from typing import Sequence
+from collections.abc import Sequence
 
 import pytest
 

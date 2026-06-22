@@ -5,7 +5,7 @@ the helper-module surface and the executor's structurally-correct
 behavior in two situations:
 
 1. ``OPENMINION_LIVE_PROBE_KEY`` is absent at run time — the harness
-   path returns ``skipped_no_api_key`` × 5; the executor methods are
+   path returns ``skipped_no_api_key`` x 5; the executor methods are
    never reached. This preserves LRSP's invariant.
 2. ``OPENMINION_LIVE_PROBE_KEY`` is present but the underlying live
    provider call surface is unreachable — the executor methods return
@@ -171,7 +171,7 @@ def test_executor_methods_skip_when_api_key_absent(tmp_path: Path) -> None:
     ``skipped_infrastructure_error`` honestly — not a fake pass.
 
     Note: at the harness level (``run_live_runtime_probes``) the
-    key-absent path short-circuits to ``skipped_no_api_key`` × 5
+    key-absent path short-circuits to ``skipped_no_api_key`` x 5
     before the executor is reached; this test exercises the executor
     directly to assert it ALSO honors the no-key invariant.
     """
@@ -194,7 +194,7 @@ def test_executor_methods_skip_when_api_key_absent(tmp_path: Path) -> None:
 
 
 def test_run_live_runtime_probes_clean_skip_when_key_absent(tmp_path: Path) -> None:
-    """LRSP-level clean-skip path: 5 × ``skipped_no_api_key`` when key
+    """LRSP-level clean-skip path: 5 x ``skipped_no_api_key`` when key
     absent. This invariant must remain after LRPB wiring.
     """
 

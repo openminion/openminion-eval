@@ -239,7 +239,7 @@ def _grade_multi_tool_complex_task(case: EvalCase) -> GradeOutcome:
         / "modules"
         / "tool"
         / "contracts"
-        / "model_tool_ids.py"
+        / "model_ids.py"
     )
     if not catalog.exists():
         return GradeOutcome.FAIL

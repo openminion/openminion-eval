@@ -10,7 +10,8 @@ import tempfile
 import time
 from types import SimpleNamespace
 import uuid
-from typing import Any, Callable
+from typing import Any
+from collections.abc import Callable
 
 import yaml
 
@@ -47,7 +48,7 @@ def _p95(values: list[float]) -> float:
 
 def _default_adapter_factory(
     service: MemoryService,
-    engine_config: "MemoryEvalEngineConfig",
+    engine_config: MemoryEvalEngineConfig,
 ) -> Any:
     gateway_module = import_module("openminion.services.agent.memory.gateway_adapter")
     gateway_cls = getattr(gateway_module, "MemoryServiceGatewayAdapter")
@@ -150,7 +151,7 @@ class MemoryEvalEngineConfig:
     project_id: str | None = None
     memory_config: Any | None = None
     adapter_kwargs: dict[str, Any] = field(default_factory=dict)
-    adapter_factory: Callable[[MemoryService, "MemoryEvalEngineConfig"], Any] | None = (
+    adapter_factory: Callable[[MemoryService, MemoryEvalEngineConfig], Any] | None = (
         None
     )
     session_context_factory: Callable[[Path], Any] | None = None
@@ -1045,7 +1046,7 @@ class MemoryEvalHarness:
         adapter: Any,
         session_id: str,
     ) -> list[str]:
-        long_term_scopes = list(adapter._long_term_scopes())  # noqa: SLF001
+        long_term_scopes = list(adapter._long_term_scopes())
         return [f"session:{session_id}", *long_term_scopes]
 
 

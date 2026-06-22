@@ -34,7 +34,7 @@ class _SinkChannel:
 
 
 class _StaticAgent:
-    async def run_turn(self, message: Message, history=None, **_kwargs):  # noqa: ANN001
+    async def run_turn(self, message: Message, history=None, **_kwargs):
         del history, _kwargs
         return type(
             "_Response",

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 import json
 from pathlib import Path
 from typing import Any
@@ -82,7 +82,7 @@ def default_memory_quality_rubric_path() -> Path:
 
 
 def _utc_now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def _fixture_display_path(path: Path) -> str:
