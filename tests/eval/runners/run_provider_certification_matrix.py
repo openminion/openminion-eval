@@ -50,18 +50,9 @@ def main() -> int:
     markdown_rows = []
     for row in report.rows:
         markdown_rows.append(
-            "| {target_id} | {access} | {explicit_tool} | {nl_tool_parity} | "
-            "{skill_routing} | {nl_named_skill} | {output_quality} | "
-            "{confirmation_policy} |".format(
-                target_id=row.target_id,
-                access=row.access.status,
-                explicit_tool=row.explicit_tool.status,
-                nl_tool_parity=row.nl_tool_parity.status,
-                skill_routing=row.skill_routing.status,
-                nl_named_skill=row.nl_named_skill.status,
-                output_quality=row.output_quality.status,
-                confirmation_policy=row.confirmation_policy.status,
-            )
+            f"| {row.target_id} | {row.access.status} | {row.explicit_tool.status} | {row.nl_tool_parity.status} | "
+            f"{row.skill_routing.status} | {row.nl_named_skill.status} | {row.output_quality.status} | "
+            f"{row.confirmation_policy.status} |"
         )
 
     matrix_md = (

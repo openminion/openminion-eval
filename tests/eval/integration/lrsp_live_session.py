@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
+from contextlib import suppress
 import os
 import subprocess
 import sys
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal, Sequence
+from typing import Any, Literal
 
 ProviderName = Literal["minimax_27"]
 """Closed-set v1 provider literal."""
@@ -217,15 +219,11 @@ def _apply_provider_config_overrides(
         return
     # Apply model + base_url only when the destination field exists.
     if hasattr(family_block, "model") and provider_config.model:
-        try:
+        with suppress(Exception):
             family_block.model = provider_config.model
-        except Exception:
-            pass
     if hasattr(family_block, "base_url") and provider_config.base_url:
-        try:
+        with suppress(Exception):
             family_block.base_url = provider_config.base_url
-        except Exception:
-            pass
 
 
 # ---------------------------------------------------------------------------
@@ -454,9 +452,9 @@ def default_openminion_subprocess_args(
 
 __all__ = [
     "ALL_PROVIDER_NAMES",
-    "CapturedTypedEvent",
     "DEFAULT_MINIMAX27_MODEL",
     "DEFAULT_MINIMAX27_PROVIDER_FAMILY",
+    "CapturedTypedEvent",
     "InProcessGatewayHandle",
     "ProviderConfig",
     "ProviderName",

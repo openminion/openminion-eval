@@ -125,10 +125,7 @@ def _extract_assistant_body(text: str) -> str:
 
     # Body ends at the next `you>` boundary (excluding the marker itself).
     next_you_match = re.search(r"\]\s+you>", text[body_start:])
-    if next_you_match:
-        body_end = body_start + next_you_match.start()
-    else:
-        body_end = len(text)
+    body_end = body_start + next_you_match.start() if next_you_match else len(text)
 
     return text[body_start:body_end].strip()
 
@@ -167,10 +164,7 @@ def extract_telemetry(packet_path: Path) -> PacketTelemetry:
        with the transcript including an embedded JSON debug block that
        carries `brain_status`, `tool_calls_count`, `finish_reason`, etc.
     """
-    if packet_path.is_dir():
-        transcript = packet_path / "transcript.txt"
-    else:
-        transcript = packet_path
+    transcript = packet_path / "transcript.txt" if packet_path.is_dir() else packet_path
 
     raw = transcript.read_text(encoding="utf-8", errors="replace")
     text = _strip_ansi(raw)

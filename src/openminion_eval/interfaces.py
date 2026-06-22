@@ -4,11 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import inspect
-from typing import TYPE_CHECKING, Any, Protocol
-from typing import ClassVar
-
-if TYPE_CHECKING:
-    from typing import Callable, Optional
+from typing import Any, Callable, ClassVar, Optional, Protocol
 
 
 EVAL_INTERFACE_VERSION = "v1"

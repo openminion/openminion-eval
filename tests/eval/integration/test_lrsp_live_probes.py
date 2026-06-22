@@ -38,7 +38,7 @@ def test_live_runtime_probes_run_against_baseline(tmp_path: Path) -> None:
     assert kinds == ALL_LIVE_RUNTIME_PROBE_KINDS
 
     if not live_probe_api_key_present():
-        # Spec §3.4: API-key-absent path is a clean skip × 5.
+        # Spec §3.4: API-key-absent path is a clean skip x 5.
         outcomes = tuple(row.outcome for row in report.results)
         assert outcomes == (
             "skipped_no_api_key",

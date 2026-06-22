@@ -28,13 +28,13 @@ pip install -e ".[dev]"
 From the package root:
 
 ```bash
-python3.11 -m openminion_eval.cases --json
+python3.11 -m openminion_eval.cases
 ```
 
 Expected outcome:
 
 1. the command exits successfully,
-2. it returns JSON,
+2. it returns a Markdown report,
 3. the output lists the packaged starter eval cases.
 
 ## Package validation gates
@@ -56,7 +56,7 @@ Example focused run:
 ```bash
 python3.11 -m pytest -q \
   tests/eval/test_public_release_boundary.py \
-  tests/eval/test_eval_cases.py
+  tests/eval/test_starter_eval_cases.py
 ```
 
 ## Release smoke
@@ -69,4 +69,3 @@ python3.11 scripts/release_check.py
 
 That script builds the artifacts, verifies packaged files, installs the wheel
 into a clean target, and smoke-checks the documented public boundary.
-

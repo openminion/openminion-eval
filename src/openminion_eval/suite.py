@@ -2,6 +2,8 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+import json
+from pathlib import Path
 from typing import Any, Callable, Optional, Sequence
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
 from openminion_eval.schemas import (
@@ -344,10 +346,6 @@ class EvalSuite:
 
 def load_golden_transcripts(path: str) -> list[EvalTranscript]:
     """Load golden transcripts from a directory."""
-    import json
-    from pathlib import Path
-    from openminion_eval.schemas import EvalTranscript
-
     transcripts = []
     transcripts_dir = Path(path)
 

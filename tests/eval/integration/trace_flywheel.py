@@ -5,7 +5,8 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 import json
 from pathlib import Path
-from typing import Any, Sequence
+from typing import Any
+from collections.abc import Sequence
 
 from openminion.base.generated_paths import resolve_generated_root
 from openminion.modules.brain.runtime.self_eval_rubric import SelfEvalSubmission

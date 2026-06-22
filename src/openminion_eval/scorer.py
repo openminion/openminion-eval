@@ -1,7 +1,6 @@
 """Eval scorer for OpenMinion."""
 
-from dataclasses import dataclass
-from dataclasses import replace
+from dataclasses import dataclass, replace
 from typing import Callable, Optional, Sequence
 from openminion_eval.schemas import EvalResult
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
