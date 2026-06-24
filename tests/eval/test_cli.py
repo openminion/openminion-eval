@@ -93,7 +93,7 @@ def _manifest() -> EvalRunManifest:
     return EvalRunManifest(
         run_id="run",
         generated_at="2026-06-19T00:00:00+00:00",
-        package_version="0.1.0",
+        package_version="0.0.1",
         git_sha=None,
         input_hash="hash",
         scorer_name="substring_match",
