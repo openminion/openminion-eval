@@ -81,7 +81,7 @@ def test_build_run_manifest_accepts_deterministic_fields() -> None:
         threshold=0.75,
         run_id="run-1",
         generated_at="2026-06-19T00:00:00+00:00",
-        package_version="0.1.0",
+        package_version="0.0.1",
         git_sha="abc123",
         deterministic=True,
         seed=42,
@@ -91,7 +91,7 @@ def test_build_run_manifest_accepts_deterministic_fields() -> None:
     assert manifest == EvalRunManifest(
         run_id="run-1",
         generated_at="2026-06-19T00:00:00+00:00",
-        package_version="0.1.0",
+        package_version="0.0.1",
         git_sha="abc123",
         input_hash=hash_transcripts([EvalTranscript(name="basic", turns=[])]),
         scorer_name="exact_match",
@@ -110,7 +110,7 @@ def test_suite_result_artifact_round_trips_with_sorted_json(tmp_path) -> None:
         threshold=0.8,
         run_id="run-1",
         generated_at="2026-06-19T00:00:00+00:00",
-        package_version="0.1.0",
+        package_version="0.0.1",
     )
 
     path = write_suite_result(tmp_path / "suite.json", result, manifest)

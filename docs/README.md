@@ -54,7 +54,7 @@ This directory holds the public package documentation for standalone
 
 ## Public package stance
 
-The `0.1.x` alpha contract is intentionally narrow: deterministic scoring and
+The `0.0.x` alpha contract is intentionally narrow: deterministic scoring and
 reporting helpers, packaged skill-eval resources, a starter case CLI, and
 release checks that prove the installed wheel exposes only the documented
 public surface.
