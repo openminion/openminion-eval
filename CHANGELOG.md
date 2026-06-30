@@ -21,4 +21,3 @@ This file tracks package-facing release notes for `openminion-eval`.
 
 - The project remains in alpha. Until the next tagged package release, changes
   may land ahead of a published semantic-versioned changelog entry.
-
