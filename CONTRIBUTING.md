@@ -56,6 +56,9 @@ source .venv/bin/activate
 
 # 3. Install in editable mode with dev extras
 pip install -e ".[dev]"
+
+# 4. Install local hooks, including commit-message enforcement
+make hooks-install
 ```
 
 ## Running tests
@@ -101,6 +104,24 @@ python -m ruff check .
 6. Don't add CI-only conveniences (path tweaks, sys.path injection) to
    `src/`. If a script needs them, put them in the script itself or in
    `conftest.py`.
+
+Commit message guidance:
+
+1. Use commit messages in the form `<type>: <summary>` or
+   `<type>(<scope>): <summary>`.
+2. Approved current types are `feat`, `fix`, `docs`, `refactor`, `test`,
+   `chore`, `style`, and `build`.
+3. In `openminion-eval`, scope is optional but recommended when it improves
+   owner clarity, for example `routing`, `policy`, `reporting`, `skills`,
+   `tools`, `freshness`, `docs`, or `release`.
+4. Keep the summary specific to the landed change and avoid vague messages like
+   `update`.
+5. Prefer the most specific truthful type; do not use `chore` when `docs`,
+   `test`, `refactor`, or `build` is more accurate.
+6. Do not use local shorthand or planning labels as normal commit types.
+
+The same policy runs locally through `make hooks-install` and again in GitHub
+Actions on pull requests plus `dev`/`main` pushes.
 
 ## Submitting a pull request
 
