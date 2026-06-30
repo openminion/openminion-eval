@@ -13,6 +13,7 @@ cd openminion-eval
 python3.11 -m venv .venv
 source .venv/bin/activate
 pip install -e ".[dev]"
+make hooks-install
 ```
 
 ## Read first
@@ -40,6 +41,32 @@ Preferred PR shape:
 1. short, GitHub-native title,
 2. flat bullet summary of what changed,
 3. short validation block with exact commands.
+
+## Commit message shape
+
+Use commit messages in the form:
+
+1. `<type>: <summary>`
+2. `<type>(<scope>): <summary>`
+
+Approved current types are:
+
+1. `feat`
+2. `fix`
+3. `docs`
+4. `refactor`
+5. `test`
+6. `chore`
+7. `style`
+8. `build`
+
+In `openminion-eval`, scope is optional but recommended when it improves owner
+clarity, for example `routing`, `policy`, `reporting`, `skills`, `tools`,
+`freshness`, `docs`, or `release`.
+
+Keep the summary specific to the landed change, avoid vague subjects like
+`update`, prefer the most specific truthful type, and do not use local
+shorthand or planning labels as normal commit types.
 
 ## Boundary reminder
 
