@@ -90,11 +90,13 @@ currently require runtime-loaded configuration.
 
 ## Install
 
+Install from GitHub:
+
 ```bash
 python3.11 -m pip install "openminion-eval @ git+https://github.com/openminion/openminion-eval.git"
 ```
 
-Minimal public smoke:
+Run a minimal public smoke:
 
 ```bash
 python - <<'PY'
@@ -151,6 +153,9 @@ Generic suite run:
 openminion-eval run eval-dataset.jsonl --out suite-result.json
 python -m openminion_eval diff baseline.json suite-result.json
 ```
+
+Use the CLI when you want a small package-only proof path. Use source-tree
+integration tests when you need host-runtime or memory-eval behavior.
 
 Exit-code policy:
 
@@ -231,21 +236,13 @@ PY
 
 ## Surface classification
 
-- `public_library_api`
-  - top-level generic eval primitives and compatibility helpers
-  - starter `EvalCase` registry and `openminion_eval.cases` CLI
-  - canonical non-memory families under `openminion_eval.{tools,freshness,routing,closure,policy,skills}`
-  - package-owned support used by those public surfaces
-- `repo_local_integration_tooling`
-  - `tests/eval/integration/` (memory eval + trace flywheel)
-  - `tests/eval/memory_quality_eval.py`
-  - `tests/eval/provider_certification_matrix.py`
-  - memory/provider fixtures, baselines, and integration tests
-- `repo_local_tooling`
-  - `conftest.py`
-  - `tests/eval/runners/`
-  - `tests/eval/grounding/`
-  - other dev/test helpers that rely on host runtime artifacts
+- `public_library_api`: top-level primitives, compatibility helpers,
+  starter `EvalCase` registry, `openminion_eval.cases` CLI, canonical
+  non-memory eval families, and package-owned support.
+- `repo_local_integration_tooling`: memory eval, trace-flywheel work,
+  provider certification, fixtures, baselines, and integration tests.
+- `repo_local_tooling`: `conftest.py`, repo-local runners, grounding helpers,
+  and dev/test helpers that rely on host runtime artifacts.
 
 ## License and brand-use boundary
 
