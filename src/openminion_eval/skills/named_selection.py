@@ -21,9 +21,11 @@ from openminion_eval.skills.constants import (
 )
 from openminion_eval.skills.support import (
     assistant_output_from_record,
+    load_skill_json,
     official_skill_matrix_target_ids,
-    packaged_skill_fixture_path,
+    required_skill_fixture,
     representative_nl_named_skill_target_ids as _representative_nl_named_skill_target_ids,
+    unique_skill_id,
 )
 
 
@@ -105,25 +107,17 @@ def load_nl_named_skill_manifest(
     manifest_path = (
         Path(path) if path is not None else default_nl_named_skill_manifest_path()
     )
-    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-    version = str(payload.get("version", "") or "").strip()
-    if version != FAMILY_REPORT_VERSION:
-        raise ValueError(f"unsupported NL named-skill manifest version: {version!r}")
+    version, payload = load_skill_json(manifest_path, "NL named-skill manifest")
 
     scenarios: list[NLNamedSkillScenario] = []
     seen_ids: set[str] = set()
     for item in payload.get("scenarios", []):
-        scenario_id = str(item.get("scenario_id", "") or "").strip()
-        if not scenario_id or scenario_id in seen_ids:
-            raise ValueError(f"invalid or duplicate scenario_id: {scenario_id!r}")
-        seen_ids.add(scenario_id)
-        fixture_path = packaged_skill_fixture_path(
-            str(item.get("fixture_path", "") or "")
+        scenario_id = unique_skill_id(item, "scenario_id", seen_ids)
+        fixture_path = required_skill_fixture(
+            item.get("fixture_path"),
+            "NL named-skill scenario",
+            scenario_id,
         )
-        if not fixture_path.exists():
-            raise ValueError(
-                f"missing fixture for NL named-skill scenario {scenario_id}: {fixture_path}"
-            )
         scenarios.append(
             NLNamedSkillScenario(
                 scenario_id=scenario_id,
@@ -141,20 +135,12 @@ def load_nl_named_skill_prompt_variants(
     variant_path = (
         Path(path) if path is not None else default_nl_named_skill_prompt_variant_path()
     )
-    payload = json.loads(variant_path.read_text(encoding="utf-8"))
-    version = str(payload.get("version", "") or "").strip()
-    if version != FAMILY_REPORT_VERSION:
-        raise ValueError(
-            f"unsupported NL named-skill prompt variant version: {version!r}"
-        )
+    version, payload = load_skill_json(variant_path, "NL named-skill prompt variant")
 
     variants: list[NLNamedSkillPromptVariant] = []
     seen_ids: set[str] = set()
     for item in payload.get("variants", []):
-        variant_id = str(item.get("variant_id", "") or "").strip()
-        if not variant_id or variant_id in seen_ids:
-            raise ValueError(f"invalid or duplicate variant_id: {variant_id!r}")
-        seen_ids.add(variant_id)
+        variant_id = unique_skill_id(item, "variant_id", seen_ids)
         variants.append(
             NLNamedSkillPromptVariant(
                 variant_id=variant_id,
@@ -171,18 +157,12 @@ def load_nl_named_skill_rubric(
     rubric_path = (
         Path(path) if path is not None else default_nl_named_skill_rubric_path()
     )
-    payload = json.loads(rubric_path.read_text(encoding="utf-8"))
-    version = str(payload.get("version", "") or "").strip()
-    if version != FAMILY_REPORT_VERSION:
-        raise ValueError(f"unsupported NL named-skill rubric version: {version!r}")
+    version, payload = load_skill_json(rubric_path, "NL named-skill rubric")
 
     dimensions: list[NLNamedSkillRubricDimension] = []
     seen_ids: set[str] = set()
     for item in payload.get("dimensions", []):
-        dimension_id = str(item.get("dimension_id", "") or "").strip()
-        if not dimension_id or dimension_id in seen_ids:
-            raise ValueError(f"invalid or duplicate dimension_id: {dimension_id!r}")
-        seen_ids.add(dimension_id)
+        dimension_id = unique_skill_id(item, "dimension_id", seen_ids)
         dimensions.append(
             NLNamedSkillRubricDimension(
                 dimension_id=dimension_id,

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from typing import Mapping
+from typing import Any, Mapping
 
 from openminion_eval.paths import skill_resources_root as _skill_resources_root
 from openminion_eval.skills.constants import (
+    FAMILY_REPORT_VERSION,
     TRANSCRIPT_AGENT_PREFIX_TEMPLATE,
     TRANSCRIPT_NEXT_USER_MARKER_TEMPLATE,
 )
@@ -32,6 +34,33 @@ def skill_resources_root() -> Path:
 
 def packaged_skill_fixture_path(relative_path: str | Path) -> Path:
     return (skill_resources_root() / Path(relative_path)).resolve()
+
+
+def load_skill_json(path: str | Path, description: str) -> tuple[str, dict[str, Any]]:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    version = str(payload.get("version", "") or "").strip()
+    if version != FAMILY_REPORT_VERSION:
+        raise ValueError(f"unsupported {description} version: {version!r}")
+    return version, payload
+
+
+def unique_skill_id(item: Mapping[str, Any], field: str, seen_ids: set[str]) -> str:
+    value = str(item.get(field, "") or "").strip()
+    if not value or value in seen_ids:
+        raise ValueError(f"invalid or duplicate {field}: {value!r}")
+    seen_ids.add(value)
+    return value
+
+
+def required_skill_fixture(
+    relative_path: object, description: str, scenario_id: str
+) -> Path:
+    fixture_path = packaged_skill_fixture_path(str(relative_path or ""))
+    if not fixture_path.exists():
+        raise ValueError(
+            f"missing fixture for {description} {scenario_id}: {fixture_path}"
+        )
+    return fixture_path
 
 
 def official_skill_matrix_target_ids() -> tuple[str, ...]:
