@@ -312,6 +312,9 @@ _STARTER_CASES: tuple[EvalCase, ...] = (
             "summarize what just happened."
         ),
         grade_mode=GradeMode.STRUCTURAL,
+        anchor_paths=(
+            "openminion/src/openminion/services/agent/execution/required_lane/post_execution.py",
+        ),
         grade_fn=_grade_recovery_after_tool_failure,
         tags=("tool-failure-recovery",),
     ),
@@ -324,6 +327,7 @@ _STARTER_CASES: tuple[EvalCase, ...] = (
         ),
         prompt=("Read the file `notes.md`, append a TODO line, and run pytest."),
         grade_mode=GradeMode.STRUCTURAL,
+        anchor_paths=("openminion/src/openminion/modules/tool/contracts/model_ids.py",),
         grade_fn=_grade_multi_tool_complex_task,
         tags=("multi-tool",),
     ),
@@ -339,6 +343,7 @@ _STARTER_CASES: tuple[EvalCase, ...] = (
             "write a Python function and check the indentation."
         ),
         grade_mode=GradeMode.STRUCTURAL,
+        anchor_paths=("openminion/src/openminion/modules/memory/portability",),
         grade_fn=_grade_memory_recall_across_session,
         tags=("memory-portability",),
     ),

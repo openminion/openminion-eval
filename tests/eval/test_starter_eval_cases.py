@@ -196,13 +196,13 @@ def test_anchor_path_missing_skips_with_detail(tmp_path, monkeypatch) -> None:
 
 def test_smoke_cli_main_returns_zero_on_starter_set(capsys) -> None:
     """The CLI's `main()` must run the starter set end-to-end and exit 0
-    (no case currently in FAIL state for the structural starters)."""
+    when the public starter pack only yields PASS, SKIPPED, or UNGRADED."""
     from openminion_eval.cases.cli import main
 
     exit_code = main([])
     captured = capsys.readouterr()
     assert "# OpenMinion Eval Report" in captured.out
-    # Every starter case is structural; UNGRADED/PASS only, never FAIL.
+    assert "- fail:" not in captured.out
     assert exit_code == 0, captured.out
 
 
