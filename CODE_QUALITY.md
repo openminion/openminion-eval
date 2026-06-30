@@ -93,4 +93,3 @@ The package prefers:
 1. explicit standalone boundaries over convenience imports,
 2. small truthful surfaces over broad magical ones,
 3. maintainable structure over short-term shortcuts.
-

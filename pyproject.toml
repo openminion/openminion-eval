@@ -32,6 +32,7 @@ Documentation = "https://github.com/openminion/openminion-eval#readme"
 [project.optional-dependencies]
 dev = [
   "build>=1,<2",
+  "pre-commit>=4,<5",
   "pytest>=8.0,<9",
   "ruff>=0.11,<1",
   "pyyaml",
