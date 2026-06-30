@@ -39,8 +39,20 @@ Before substantial code changes, read:
 Preferred PR shape:
 
 1. short, GitHub-native title,
-2. flat bullet summary of what changed,
-3. short validation block with exact commands.
+2. flat line-item bullets that summarize what changed,
+3. plain `Validation` label followed by exact command bullets.
+
+Example:
+
+`Expand standalone routing coverage`
+
+- add standalone routing checks
+- align public package docs
+- keep repo-local integration tooling out of the package-facing summary
+
+Validation
+- `make lint`
+- `make test`
 
 ## Commit message shape
 

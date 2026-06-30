@@ -128,11 +128,11 @@ Actions on pull requests plus `dev`/`main` pushes.
 1. Fork and create a branch from `main`.
 2. Make your change; add or update tests; run `pytest -q tests/` and
    `ruff check .` locally.
-3. Open a PR with a clear summary. In the description, include:
-   - what changed and why,
-   - the exact commands you ran for validation,
-   - whether the change affects the public standalone surface
-     (`src/openminion_eval/`) or only repo-local integration tooling.
+3. Open a PR with a clear summary. Use a short GitHub-native title, then flat
+   line-item bullets, then a plain `Validation` label with exact command
+   bullets. In the description, include what changed, why, the exact commands
+   you ran for validation, and whether the change affects the public standalone
+   surface (`src/openminion_eval/`) or only repo-local integration tooling.
 4. Keep PRs small and reviewable.
 5. Don't bundle unrelated refactors. If you find adjacent cleanup
    opportunities, open a separate PR.
