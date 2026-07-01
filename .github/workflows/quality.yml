@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main, dev]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -66,9 +67,16 @@ jobs:
           set -euo pipefail
           commits=()
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            git fetch --no-tags --depth=1 origin "${GITHUB_BASE_REF}"
-            base_commit="$(git merge-base HEAD FETCH_HEAD)"
-            mapfile -t commits < <(git rev-list --reverse "${base_commit}..HEAD")
+            if [[ "${GITHUB_HEAD_REF}" == "dev" && "${GITHUB_BASE_REF}" == "main" ]]; then
+              # Long-lived dev pushes already validate each new commit on push.
+              # Re-validating the entire dev ancestry in the PR gate would fail
+              # on older pre-policy history that is unrelated to the current push.
+              commits=(HEAD)
+            else
+              git fetch --no-tags --depth=1 origin "${GITHUB_BASE_REF}"
+              base_commit="$(git merge-base HEAD FETCH_HEAD)"
+              mapfile -t commits < <(git rev-list --reverse "${base_commit}..HEAD")
+            fi
           elif [[ -n "${BEFORE_SHA}" && "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]]; then
             mapfile -t commits < <(git rev-list --reverse "${BEFORE_SHA}..HEAD")
           fi
@@ -80,3 +88,9 @@ jobs:
             echo "Checking ${commit}: ${subject}"
             ./.venv/bin/python3.11 scripts/validate_commit_message.py --subject "${subject}"
           done
+
+      - name: Run package check
+        run: make check
+
+      - name: Run release smoke
+        run: make release-check

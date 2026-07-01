@@ -1,4 +1,5 @@
 from openminion_eval.reporting import FamilyCertificationSignal
+from tests.eval import provider_certification_matrix as certification_matrix
 from tests.eval.provider_certification_matrix import (
     ProviderCertificationManualCell,
     ProviderCertificationTarget,
@@ -6,7 +7,30 @@ from tests.eval.provider_certification_matrix import (
 )
 
 
-def test_provider_certification_report_accepts_additive_family_signals() -> None:
+def test_provider_certification_report_accepts_additive_family_signals(
+    monkeypatch,
+) -> None:
+    monkeypatch.setattr(
+        certification_matrix,
+        "_skill_provider_index",
+        lambda: ({}, "fixture://skill-provider"),
+    )
+    monkeypatch.setattr(
+        certification_matrix,
+        "_nnse_summary_index",
+        lambda: ({}, "fixture://nnse"),
+    )
+    monkeypatch.setattr(
+        certification_matrix,
+        "_quality_summary_index",
+        lambda target_set: ({}, f"fixture://quality/{target_set}"),
+    )
+    monkeypatch.setattr(
+        certification_matrix,
+        "_latest_dense_routing_artifact",
+        lambda _target_id: None,
+    )
+
     target = ProviderCertificationTarget(
         target_id="demo-target",
         provider_family="demo",

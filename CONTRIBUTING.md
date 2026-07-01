@@ -55,7 +55,7 @@ python3.11 -m venv .venv
 source .venv/bin/activate
 
 # 3. Install in editable mode with dev extras
-pip install -e ".[dev]"
+make dev-install
 
 # 4. Install local hooks, including commit-message enforcement
 make hooks-install
@@ -64,28 +64,39 @@ make hooks-install
 ## Running tests
 
 ```bash
-# Full test suite (public + repo-local integration)
-python -m pytest -q tests/
+# Full package test suite
+make test
 
-# Public-surface tests only (skip integration that needs the monorepo)
-python -m pytest -q tests/ --ignore=tests/eval/integration \
-  --deselect tests/eval/test_memory_eval.py \
-  --deselect tests/eval/test_trace_flywheel.py
+# Full local quality gate
+make check
 
-# Public boundary smoke
-python -m pytest -q tests/eval/test_public_release_boundary.py
+# Release/install smoke
+make release-check
 ```
 
-The repo-local integration tests under `tests/eval/test_memory_eval.py`
-and `tests/eval/test_trace_flywheel.py` require the surrounding
-`openminion` monorepo to be present as a sibling checkout; standalone
-contributors can skip them.
+If you need a narrower loop while iterating, run `python3.11 -m pytest -q
+tests/<target>` inside the activated virtualenv. The repo-local integration
+tests under `tests/eval/test_memory_eval.py` and
+`tests/eval/test_trace_flywheel.py` require the surrounding `openminion`
+monorepo to be present as a sibling checkout; standalone contributors can skip
+them.
 
-## Running lint
+## Running lint and formatting
 
 ```bash
-python -m ruff check .
+# Lint only
+make lint
+
+# Check formatting without rewriting files
+make format-check
+
+# Apply formatting and autofixes
+make fix
 ```
+
+If pre-commit, `make hooks-run`, or GitHub Actions reports formatter changes,
+run `make fix`, review the diff, rerun `make check`, and recommit before
+pushing again.
 
 ## Style and conventions
 
@@ -123,16 +134,23 @@ Commit message guidance:
 The same policy runs locally through `make hooks-install` and again in GitHub
 Actions on pull requests plus `dev`/`main` pushes.
 
+Preferred validation loop:
+
+1. `make hooks-install` once per clone
+2. `make fix` when code-bearing files changed or hooks rewrote files
+3. `make check` before push
+4. `make release-check` when packaging, public package surface, or release
+   tooling changed
+
 ## Submitting a pull request
 
 1. Fork and create a branch from `main`.
-2. Make your change; add or update tests; run `pytest -q tests/` and
-   `ruff check .` locally.
-3. Open a PR with a clear summary. In the description, include:
-   - what changed and why,
-   - the exact commands you ran for validation,
-   - whether the change affects the public standalone surface
-     (`src/openminion_eval/`) or only repo-local integration tooling.
+2. Make your change; add or update tests; run the relevant local validation.
+3. Open a PR with a clear summary. Use a short GitHub-native title, then flat
+   line-item bullets, then a plain `Validation` label with exact command
+   bullets. In the description, include what changed, why, the exact commands
+   you ran for validation, and whether the change affects the public standalone
+   surface (`src/openminion_eval/`) or only repo-local integration tooling.
 4. Keep PRs small and reviewable.
 5. Don't bundle unrelated refactors. If you find adjacent cleanup
    opportunities, open a separate PR.

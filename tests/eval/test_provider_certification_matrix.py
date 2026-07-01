@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
+from tests.eval import provider_certification_matrix as certification_matrix
 from tests.eval.provider_certification_matrix import (
     build_provider_certification_report,
     load_provider_certification_manual_cells,
@@ -37,9 +39,125 @@ def test_provider_certification_inventory_and_manual_cells_load_cleanly() -> Non
     )
 
 
-def test_build_provider_certification_report_covers_all_inventory_targets() -> None:
+def _write_quality_report(
+    tmp_path: Path,
+    name: str,
+    *,
+    scenario_count: int,
+    numbered: int,
+    verification: int,
+    guardrail: int,
+) -> str:
+    report_path = tmp_path / f"{name}.json"
+    report_path.write_text(
+        json.dumps(
+            {
+                "summary": {
+                    "scenario_count": scenario_count,
+                    "responses_with_numbered_steps": numbered,
+                    "responses_with_verification_language": verification,
+                    "responses_with_guardrail_language": guardrail,
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    return str(report_path)
+
+
+def test_build_provider_certification_report_covers_all_inventory_targets(
+    monkeypatch, tmp_path: Path
+) -> None:
     inventory_version, targets = load_provider_certification_targets()
     manual_version, manual_cells = load_provider_certification_manual_cells()
+    quality_reports = {
+        "weak": _write_quality_report(
+            tmp_path,
+            "quality-weak",
+            scenario_count=10,
+            numbered=4,
+            verification=4,
+            guardrail=4,
+        ),
+        "adequate": _write_quality_report(
+            tmp_path,
+            "quality-adequate",
+            scenario_count=10,
+            numbered=6,
+            verification=6,
+            guardrail=6,
+        ),
+        "strong": _write_quality_report(
+            tmp_path,
+            "quality-strong",
+            scenario_count=10,
+            numbered=8,
+            verification=8,
+            guardrail=8,
+        ),
+    }
+    monkeypatch.setattr(
+        certification_matrix,
+        "_skill_provider_index",
+        lambda: (
+            {
+                "minimax-m2-5": {"status": "pass"},
+                "openrouter-claude-haiku-3": {"status": "pass"},
+                "ollamacloud-kimi-k2-5": {"status": "pass"},
+            },
+            "fixture://skill-provider",
+        ),
+    )
+    monkeypatch.setattr(
+        certification_matrix,
+        "_nnse_summary_index",
+        lambda: (
+            {
+                "openrouter-gpt-4o": {
+                    "attempt_count": 3,
+                    "selection_accuracy_count": 3,
+                    "wrong_skill_count": 0,
+                    "empty_fallback_count": 0,
+                    "report_path": "fixture://nnse/openrouter-gpt-4o",
+                },
+                "ollamacloud-minimax-m2-7": {
+                    "attempt_count": 3,
+                    "selection_accuracy_count": 2,
+                    "wrong_skill_count": 1,
+                    "empty_fallback_count": 0,
+                    "report_path": "fixture://nnse/ollamacloud-minimax-m2-7",
+                },
+            },
+            "fixture://nnse",
+        ),
+    )
+
+    def _quality_index(target_set: str) -> tuple[dict[str, dict[str, str]], str]:
+        if target_set == "official":
+            return (
+                {
+                    "minimax-m2-5": {"report_path": quality_reports["weak"]},
+                    "minimax-m2-7": {"report_path": quality_reports["adequate"]},
+                },
+                "fixture://quality/official",
+            )
+        return (
+            {
+                "openrouter-gpt-4o": {"report_path": quality_reports["strong"]},
+            },
+            "fixture://quality/representative",
+        )
+
+    monkeypatch.setattr(
+        certification_matrix,
+        "_quality_summary_index",
+        _quality_index,
+    )
+    monkeypatch.setattr(
+        certification_matrix,
+        "_latest_dense_routing_artifact",
+        lambda _target_id: None,
+    )
 
     report = build_provider_certification_report(
         inventory_version=inventory_version,

@@ -17,9 +17,11 @@ from openminion_eval.skills.constants import (
 )
 from openminion_eval.skills.support import (
     assistant_output_from_record,
+    load_skill_json,
     official_skill_matrix_target_ids,
-    packaged_skill_fixture_path,
+    required_skill_fixture,
     representative_skill_quality_target_ids as _representative_skill_quality_target_ids,
+    unique_skill_id,
 )
 
 
@@ -99,25 +101,17 @@ def load_skill_quality_manifest(
     manifest_path = (
         Path(path) if path is not None else default_skill_quality_manifest_path()
     )
-    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-    version = str(payload.get("version", "") or "").strip()
-    if version != FAMILY_REPORT_VERSION:
-        raise ValueError(f"unsupported skill quality manifest version: {version!r}")
+    version, payload = load_skill_json(manifest_path, "skill quality manifest")
 
     scenarios: list[SkillQualityScenario] = []
     seen_ids: set[str] = set()
     for item in payload.get("scenarios", []):
-        scenario_id = str(item.get("scenario_id", "") or "").strip()
-        if not scenario_id or scenario_id in seen_ids:
-            raise ValueError(f"invalid or duplicate scenario_id: {scenario_id!r}")
-        seen_ids.add(scenario_id)
-        fixture_path = packaged_skill_fixture_path(
-            str(item.get("fixture_path", "") or "")
+        scenario_id = unique_skill_id(item, "scenario_id", seen_ids)
+        fixture_path = required_skill_fixture(
+            item.get("fixture_path"),
+            "skill quality scenario",
+            scenario_id,
         )
-        if not fixture_path.exists():
-            raise ValueError(
-                f"missing fixture for skill quality scenario {scenario_id}: {fixture_path}"
-            )
         scenarios.append(
             SkillQualityScenario(
                 scenario_id=scenario_id,
@@ -138,18 +132,12 @@ def load_skill_quality_rubric(
     path: str | Path | None = None,
 ) -> tuple[str, tuple[SkillQualityRubricDimension, ...]]:
     rubric_path = Path(path) if path is not None else default_rubric_path()
-    payload = json.loads(rubric_path.read_text(encoding="utf-8"))
-    version = str(payload.get("version", "") or "").strip()
-    if version != FAMILY_REPORT_VERSION:
-        raise ValueError(f"unsupported skill quality rubric version: {version!r}")
+    version, payload = load_skill_json(rubric_path, "skill quality rubric")
 
     dimensions: list[SkillQualityRubricDimension] = []
     seen_ids: set[str] = set()
     for item in payload.get("dimensions", []):
-        dimension_id = str(item.get("dimension_id", "") or "").strip()
-        if not dimension_id or dimension_id in seen_ids:
-            raise ValueError(f"invalid or duplicate dimension_id: {dimension_id!r}")
-        seen_ids.add(dimension_id)
+        dimension_id = unique_skill_id(item, "dimension_id", seen_ids)
         dimensions.append(
             SkillQualityRubricDimension(
                 dimension_id=dimension_id,
