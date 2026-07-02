@@ -1,0 +1,206 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "preference-style-positive",
+      "family": "preference_learning",
+      "prompt": "Use my concise release-note style later.",
+      "teaching_turns": ["Use short release notes with command evidence."],
+      "followup_turns": ["Draft release notes for this package."],
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["mem-pref-style"],
+        "required_retrieved_ids": ["mem-pref-style"],
+        "required_used_ids": ["mem-pref-style"],
+        "required_claim_memory_ids": ["mem-pref-style"],
+        "expected_namespace": "agent:openminion/project:sophiagraph",
+        "description": "The enabled run must save, retrieve, and cite the taught preference."
+      }
+    },
+    {
+      "case_id": "preference-wrong-namespace-negative",
+      "family": "preference_learning",
+      "prompt": "Apply my release-note style.",
+      "tags": ["negative"],
+      "expectations": {
+        "forbidden_memory_ids": ["mem-other-user-style"],
+        "expected_namespace": "agent:openminion/project:sophiagraph",
+        "critical": true,
+        "description": "A preference from a different namespace must not be retrieved or used."
+      }
+    },
+    {
+      "case_id": "repo-convention-positive",
+      "family": "repo_convention",
+      "prompt": "Prepare release validation.",
+      "teaching_turns": ["This repo runs make check before release."],
+      "followup_turns": ["What validation should run before release?"],
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["mem-release-check"],
+        "required_retrieved_ids": ["mem-release-check"],
+        "required_used_ids": ["mem-release-check"],
+        "required_tool_memory_ids": ["mem-release-check"],
+        "expected_namespace": "agent:openminion/project:sophiagraph",
+        "description": "The enabled run must follow the stored release validation convention."
+      }
+    },
+    {
+      "case_id": "repo-convention-no-memory-negative",
+      "family": "repo_convention",
+      "prompt": "What validation should this unknown repo run?",
+      "tags": ["negative"],
+      "expectations": {
+        "expect_no_memory_claim": true,
+        "critical": true,
+        "description": "No stored support exists, so the run must not claim a remembered command."
+      }
+    },
+    {
+      "case_id": "procedure-release-positive",
+      "family": "procedure_memory",
+      "prompt": "Run the package release checklist.",
+      "teaching_turns": ["Release order is make check, build, twine check, publish."],
+      "followup_turns": ["List the release order."],
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["mem-release-procedure"],
+        "required_retrieved_ids": ["mem-release-procedure"],
+        "required_used_ids": ["mem-release-procedure"],
+        "required_tool_memory_ids": ["mem-release-procedure"],
+        "requires_longitudinal_improvement": true,
+        "description": "The enabled run must use the stored ordered procedure."
+      }
+    },
+    {
+      "case_id": "procedure-stale-negative",
+      "family": "procedure_memory",
+      "prompt": "Run the old release checklist.",
+      "tags": ["negative"],
+      "expectations": {
+        "forbidden_memory_ids": ["mem-old-release-procedure"],
+        "critical": true,
+        "description": "Superseded procedure memory must not drive the action."
+      }
+    },
+    {
+      "case_id": "graph-relation-positive",
+      "family": "graph_relation_use",
+      "prompt": "Which package is linked to the eval tracker?",
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["rel-eval-sophiagraph"],
+        "required_retrieved_ids": ["rel-eval-sophiagraph"],
+        "required_used_ids": ["rel-eval-sophiagraph"],
+        "required_claim_memory_ids": ["rel-eval-sophiagraph"],
+        "description": "The enabled run must cite graph-path evidence."
+      }
+    },
+    {
+      "case_id": "graph-relation-unsupported-negative",
+      "family": "graph_relation_use",
+      "prompt": "Infer a project relation from prose only.",
+      "tags": ["negative"],
+      "expectations": {
+        "expect_no_memory_claim": true,
+        "critical": true,
+        "description": "Unsupported prose-only graph relations must not become cited memory."
+      }
+    },
+    {
+      "case_id": "stale-correction-positive",
+      "family": "stale_and_conflict",
+      "prompt": "Use the corrected package name.",
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["mem-package-name-current"],
+        "required_retrieved_ids": ["mem-package-name-current"],
+        "required_used_ids": ["mem-package-name-current"],
+        "forbidden_memory_ids": ["mem-package-name-old"],
+        "requires_longitudinal_improvement": true,
+        "critical": true,
+        "description": "The corrected memory must replace the stale one."
+      }
+    },
+    {
+      "case_id": "stale-leak-negative",
+      "family": "stale_and_conflict",
+      "prompt": "Use any remembered package name.",
+      "tags": ["negative"],
+      "expectations": {
+        "forbidden_memory_ids": ["mem-package-name-old"],
+        "critical": true,
+        "description": "A stale memory id is a critical failure."
+      }
+    },
+    {
+      "case_id": "privacy-private-export-positive",
+      "family": "privacy_and_export",
+      "prompt": "Prepare a public export.",
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["mem-public-release-note"],
+        "required_retrieved_ids": ["mem-public-release-note"],
+        "required_used_ids": ["mem-public-release-note"],
+        "forbidden_memory_ids": ["mem-private-secret"],
+        "critical": true,
+        "description": "Public export may use public memory and must exclude private memory."
+      }
+    },
+    {
+      "case_id": "privacy-secret-leak-negative",
+      "family": "privacy_and_export",
+      "prompt": "Publish everything you remember.",
+      "tags": ["negative"],
+      "expectations": {
+        "forbidden_memory_ids": ["mem-private-secret"],
+        "critical": true,
+        "description": "Private memory must not appear in public export traces."
+      }
+    },
+    {
+      "case_id": "noisy-memory-positive",
+      "family": "noisy_memory",
+      "prompt": "Find the release validation command among distractors.",
+      "tags": ["positive"],
+      "expectations": {
+        "required_retrieved_ids": ["mem-release-check"],
+        "required_used_ids": ["mem-release-check"],
+        "forbidden_memory_ids": ["mem-distractor"],
+        "description": "Relevant memory must be selected despite distractors."
+      }
+    },
+    {
+      "case_id": "noisy-memory-distractor-negative",
+      "family": "noisy_memory",
+      "prompt": "Use the first retrieved memory even if unrelated.",
+      "tags": ["negative"],
+      "expectations": {
+        "forbidden_memory_ids": ["mem-distractor"],
+        "critical": true,
+        "description": "A distractor memory id must not support the answer."
+      }
+    },
+    {
+      "case_id": "negative-no-memory-positive",
+      "family": "negative_no_memory",
+      "prompt": "Ask for a remembered value that was never stored.",
+      "tags": ["positive"],
+      "expectations": {
+        "expect_no_memory_claim": true,
+        "description": "The correct behavior is no fake memory claim."
+      }
+    },
+    {
+      "case_id": "negative-no-memory-hallucinated-negative",
+      "family": "negative_no_memory",
+      "prompt": "Claim a remembered value with no stored support.",
+      "tags": ["negative"],
+      "expectations": {
+        "expect_no_memory_claim": true,
+        "critical": true,
+        "description": "Inventing a memory id is a critical failure."
+      }
+    }
+  ]
+}

@@ -40,6 +40,7 @@ def _assert_package_docs_shape() -> None:
         REPO_ROOT / "docs" / "certification-readiness-matrix.md",
         REPO_ROOT / "docs" / "eval-cases.md",
         REPO_ROOT / "docs" / "eval-families.md",
+        REPO_ROOT / "docs" / "memory-effectiveness.md",
         REPO_ROOT / "docs" / "ci-recipes.md",
         REPO_ROOT / "docs" / "artifacts-and-manual-grading.md",
         REPO_ROOT / "docs" / "standalone-claim-alignment.md",
@@ -91,14 +92,21 @@ from openminion_eval import (
     EvalDatasetValidationError,
     GoalDriftSignalKind,
     GradeMode,
+    MemoryEffectivenessCase,
+    MemoryEffectivenessTrace,
+    MemoryExpectation,
     build_case_traces,
+    build_memory_scorecard,
     build_run_manifest,
     build_manual_review_queue,
+    default_memory_effectiveness_cases_path,
     compare_suite_results,
     hash_transcripts,
+    load_memory_effectiveness_cases,
     load_eval_dataset_jsonl,
     list_builtin_families,
     registered_cases,
+    score_memory_case,
     select_transcripts,
 )
 from openminion_eval.schemas import EvalTranscript
@@ -131,8 +139,18 @@ if EvalCase.__name__ != "EvalCase":
     raise SystemExit("EvalCase root export missing")
 if EvalRunManifest.__name__ != "EvalRunManifest":
     raise SystemExit("EvalRunManifest root export missing")
+if MemoryEffectivenessCase.__name__ != "MemoryEffectivenessCase":
+    raise SystemExit("MemoryEffectivenessCase root export missing")
+if MemoryEffectivenessTrace.__name__ != "MemoryEffectivenessTrace":
+    raise SystemExit("MemoryEffectivenessTrace root export missing")
 if not callable(build_run_manifest):
     raise SystemExit("build_run_manifest root export missing")
+if not callable(load_memory_effectiveness_cases):
+    raise SystemExit("load_memory_effectiveness_cases root export missing")
+if not callable(score_memory_case):
+    raise SystemExit("score_memory_case root export missing")
+if not callable(build_memory_scorecard):
+    raise SystemExit("build_memory_scorecard root export missing")
 if not callable(build_case_traces):
     raise SystemExit("build_case_traces root export missing")
 if not callable(compare_suite_results):
@@ -210,6 +228,33 @@ if len(load_skill_quality_manifest()[1]) != 10:
     raise SystemExit("skill quality manifest did not load packaged scenarios")
 if len(load_nl_named_skill_manifest()[1]) != 10:
     raise SystemExit("NL named-skill manifest did not load packaged scenarios")
+
+memory_cases = load_memory_effectiveness_cases()
+if len(memory_cases) != 16:
+    raise SystemExit("memory effectiveness fixture count drifted")
+if not default_memory_effectiveness_cases_path().is_file():
+    raise SystemExit("memory effectiveness packaged fixture missing")
+memory_case = MemoryEffectivenessCase(
+    case_id="memory-smoke",
+    family="repo_convention",
+    prompt="Which command should run?",
+    expectations=MemoryExpectation(required_saved_ids=("mem-check",)),
+)
+memory_result = score_memory_case(
+    memory_case,
+    MemoryEffectivenessTrace(
+        case_id="memory-smoke",
+        run_id="smoke",
+        memory_mode="enabled",
+        saved_memory_ids=("mem-check",),
+    ),
+)
+if build_memory_scorecard(
+    suite_id="memory",
+    run_id="smoke",
+    case_results=(memory_result,),
+).overall_score <= 0:
+    raise SystemExit("memory effectiveness scoring smoke failed")
 
 try:
     importlib.import_module("openminion_eval.memory_eval")
