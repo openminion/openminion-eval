@@ -155,8 +155,12 @@ if not callable(build_run_manifest):
     raise SystemExit("build_run_manifest root export missing")
 if not callable(load_memory_effectiveness_cases):
     raise SystemExit("load_memory_effectiveness_cases root export missing")
+if not callable(default_memory_effectiveness_cases_path):
+    raise SystemExit("default_memory_effectiveness_cases_path root export missing")
 if not callable(load_packaged_memory_benchmark_sample):
     raise SystemExit("load_packaged_memory_benchmark_sample root export missing")
+if not callable(default_memory_benchmark_manifest_path):
+    raise SystemExit("default_memory_benchmark_manifest_path root export missing")
 if not callable(score_memory_case):
     raise SystemExit("score_memory_case root export missing")
 if not callable(build_memory_scorecard):
