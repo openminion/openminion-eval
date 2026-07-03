@@ -3,9 +3,13 @@ from __future__ import annotations
 from dataclasses import asdict
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
+from openminion_eval.memory_effectiveness.fixtures import (
+    default_memory_effectiveness_cases_path,
+)
 from openminion_eval import (
     MemoryEffectivenessCase,
     MemoryEffectivenessTrace,
@@ -21,6 +25,17 @@ from openminion_eval import (
     write_memory_scorecard,
 )
 from openminion_eval.cli import main
+
+
+class _TextResource:
+    def __init__(self, payload: dict[str, Any]) -> None:
+        self._payload = payload
+
+    def read_text(self, encoding: str | None = None) -> str:
+        return json.dumps(self._payload)
+
+    def __str__(self) -> str:
+        return "memory://effectiveness-cases"
 
 
 def _repo_convention_case() -> MemoryEffectivenessCase:
@@ -101,6 +116,17 @@ def test_memory_effectiveness_fixtures_cover_required_families() -> None:
         "negative_no_memory",
     }
     assert all({"positive", "negative"}.issubset(tags) for tags in by_family.values())
+    assert hash_memory_effectiveness_cases(cases) == hash_memory_effectiveness_cases(
+        load_memory_effectiveness_cases()
+    )
+
+
+def test_memory_effectiveness_loader_accepts_non_filesystem_resource() -> None:
+    payload = json.loads(default_memory_effectiveness_cases_path().read_text())
+
+    cases = load_memory_effectiveness_cases(_TextResource(payload))
+
+    assert cases[0].case_id
     assert hash_memory_effectiveness_cases(cases) == hash_memory_effectiveness_cases(
         load_memory_effectiveness_cases()
     )

@@ -5,11 +5,15 @@ from __future__ import annotations
 from dataclasses import asdict
 import hashlib
 import json
-from importlib import resources
-from pathlib import Path
+from importlib.resources.abc import Traversable
 from typing import Any, Mapping
 
 from openminion_eval.family_support import require_mapping
+from openminion_eval.memory_effectiveness.resource_io import (
+    JsonResource,
+    load_json_mapping,
+    packaged_resource,
+)
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessCase,
     MemoryExpectation,
@@ -20,20 +24,15 @@ _RESOURCE_PACKAGE = "openminion_eval.memory_effectiveness.resources"
 _DEFAULT_FIXTURE_NAME = "cases.json"
 
 
-def default_memory_effectiveness_cases_path() -> Path:
-    with resources.as_file(
-        resources.files(_RESOURCE_PACKAGE).joinpath(_DEFAULT_FIXTURE_NAME)
-    ) as path:
-        return path
+def default_memory_effectiveness_cases_path() -> Traversable:
+    return packaged_resource(_RESOURCE_PACKAGE, _DEFAULT_FIXTURE_NAME)
 
 
 def load_memory_effectiveness_cases(
-    path: str | Path | None = None,
+    path: JsonResource | None = None,
 ) -> tuple[MemoryEffectivenessCase, ...]:
-    source = default_memory_effectiveness_cases_path() if path is None else Path(path)
-    payload = require_mapping(
-        json.loads(source.read_text(encoding="utf-8")), context=str(source)
-    )
+    source = default_memory_effectiveness_cases_path() if path is None else path
+    payload = load_json_mapping(source)
     version = str(payload.get("version", "") or "").strip()
     if version != FIXTURE_VERSION:
         raise ValueError(

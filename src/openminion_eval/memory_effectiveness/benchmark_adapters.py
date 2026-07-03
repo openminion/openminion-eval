@@ -5,12 +5,16 @@ from __future__ import annotations
 from dataclasses import dataclass
 import hashlib
 import json
-from importlib import resources
-from pathlib import Path
+from importlib.resources.abc import Traversable
 from typing import Any, Literal, Mapping, get_args
 
 from openminion_eval.family_support import require_mapping
 from openminion_eval.memory_effectiveness.fixtures import case_from_mapping
+from openminion_eval.memory_effectiveness.resource_io import (
+    JsonResource,
+    load_json_mapping,
+    packaged_resource,
+)
 from openminion_eval.memory_effectiveness.schemas import MemoryEffectivenessCase
 
 
@@ -70,22 +74,16 @@ class MemoryBenchmarkImportResult:
 
 def default_memory_benchmark_manifest_path(
     family: MemoryBenchmarkFamily,
-) -> Path:
+) -> Traversable:
     if family not in _SAMPLE_MANIFEST_NAMES:
         raise ValueError(f"invalid benchmark family: {family!r}")
-    with resources.as_file(
-        resources.files(_RESOURCE_PACKAGE).joinpath(_SAMPLE_MANIFEST_NAMES[family])
-    ) as path:
-        return path
+    return packaged_resource(_RESOURCE_PACKAGE, _SAMPLE_MANIFEST_NAMES[family])
 
 
 def load_memory_benchmark_cases(
-    path: str | Path,
+    path: JsonResource,
 ) -> MemoryBenchmarkImportResult:
-    source = Path(path)
-    payload = require_mapping(
-        json.loads(source.read_text(encoding="utf-8")), context=str(source)
-    )
+    payload = load_json_mapping(path)
     version = str(payload.get("adapter_version", "") or "").strip()
     if version != BENCHMARK_ADAPTER_VERSION:
         raise ValueError(f"unsupported benchmark adapter version: {version!r}")

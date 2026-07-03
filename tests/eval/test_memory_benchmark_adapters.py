@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 
 import openminion_eval
+from openminion_eval.memory_effectiveness import benchmark_adapters
 from openminion_eval import (
     BENCHMARK_ADAPTER_VERSION,
     MemoryBenchmarkSource,
@@ -15,6 +17,17 @@ from openminion_eval import (
     load_memory_benchmark_cases,
     load_packaged_memory_benchmark_sample,
 )
+
+
+class _TextResource:
+    def __init__(self, payload: dict[str, Any]) -> None:
+        self._payload = payload
+
+    def read_text(self, encoding: str | None = None) -> str:
+        return json.dumps(self._payload)
+
+    def __str__(self) -> str:
+        return "memory://benchmark-resource"
 
 
 def _manifest_payload(family: str = "locomo") -> dict[str, object]:
@@ -39,6 +52,20 @@ def test_packaged_benchmark_samples_load_as_memory_cases() -> None:
         assert result.cases
         assert all(isinstance(case, MemoryEffectivenessCase) for case in result.cases)
         assert all("benchmark_sample" in case.tags for case in result.cases)
+
+
+def test_packaged_benchmark_loader_accepts_non_filesystem_resource(monkeypatch) -> None:
+    payload = _manifest_payload("locomo")
+    monkeypatch.setattr(
+        benchmark_adapters,
+        "default_memory_benchmark_manifest_path",
+        lambda family: _TextResource(payload),
+    )
+
+    result = load_packaged_memory_benchmark_sample("locomo")
+
+    assert result.source.benchmark_family == "locomo"
+    assert result.cases[0].case_id
 
 
 def test_packaged_benchmark_hash_matches_case_payloads() -> None:
