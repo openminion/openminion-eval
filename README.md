@@ -70,6 +70,9 @@ The public package currently ships:
   policy, and skills
 - deterministic memory-effectiveness DTOs, packaged cases, scorecards, and
   paired-run comparison helpers for structured SophiaGraph/OpenMinion traces
+- packaged sample adapters for LoCoMo, LongMemEval, and BEAM-shaped
+  memory-effectiveness cases with source revision, license, and fixture-hash
+  metadata
 - shared support needed by those surfaces
 
 ## What stays repo-local

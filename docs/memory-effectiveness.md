@@ -83,6 +83,25 @@ Each trace should name the saved, retrieved, and used memory ids explicitly:
 
 The scorer uses the structured ids only. It does not parse final answer text.
 
+## Benchmark Adapter Samples
+
+The package includes small packaged sample manifests for LoCoMo,
+LongMemEval, and BEAM-shaped memory-effectiveness cases:
+
+```python
+from openminion_eval import load_packaged_memory_benchmark_sample
+
+sample = load_packaged_memory_benchmark_sample("locomo")
+print(sample.source.source_revision)
+print(sample.cases[0].case_id)
+```
+
+These samples are adapters, not redistributed benchmark datasets. Full
+benchmark corpora stay with their upstream owners. Each imported manifest must
+declare `source_url`, `source_revision`, `source_license`, `fixture_version`,
+and a `fixture_hash` over the case payloads so downstream evidence can cite the
+exact source snapshot used.
+
 ## Paired Runs
 
 For memory-effectiveness evidence, run the same case twice:

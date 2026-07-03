@@ -1,0 +1,40 @@
+{
+  "adapter_version": "1",
+  "benchmark_family": "longmemeval",
+  "case_category": "multi_session_recall",
+  "fixture_hash": "0d812b68038e164c890ff506612b507b7115b7d6c95627a76803391d9bf61e96",
+  "fixture_version": "sample-1",
+  "source_license": "source-controlled-sample",
+  "source_revision": "sample-local",
+  "source_url": "https://github.com/mem0ai/memory-benchmarks",
+  "cases": [
+    {
+      "case_id": "longmemeval-sample-recall-001",
+      "family": "preference_learning",
+      "prompt": "What notification style does Devin prefer?",
+      "teaching_turns": [
+        "Devin prefers concise morning summaries instead of instant alerts."
+      ],
+      "followup_turns": [
+        "How should I send Devin project updates?"
+      ],
+      "tags": [
+        "positive",
+        "benchmark_sample",
+        "longmemeval"
+      ],
+      "expectations": {
+        "required_saved_ids": [
+          "longmemeval-devin-notification-style"
+        ],
+        "required_retrieved_ids": [
+          "longmemeval-devin-notification-style"
+        ],
+        "required_used_ids": [
+          "longmemeval-devin-notification-style"
+        ],
+        "description": "Sample LongMemEval-shaped long-horizon preference case."
+      }
+    }
+  ]
+}

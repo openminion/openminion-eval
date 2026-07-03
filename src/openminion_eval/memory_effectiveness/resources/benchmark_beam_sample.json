@@ -1,0 +1,40 @@
+{
+  "adapter_version": "1",
+  "benchmark_family": "beam",
+  "case_category": "extraction_quality",
+  "fixture_hash": "ea817719ca417f242f3e50eba86cb7e90abbee179dcac6a3b5c21c9f756697c9",
+  "fixture_version": "sample-1",
+  "source_license": "source-controlled-sample",
+  "source_revision": "sample-local",
+  "source_url": "https://github.com/mem0ai/memory-benchmarks",
+  "cases": [
+    {
+      "case_id": "beam-sample-extraction-001",
+      "family": "graph_relation_use",
+      "prompt": "Which project depends on the vector migration?",
+      "teaching_turns": [
+        "The release dashboard depends on the vector migration finishing first."
+      ],
+      "followup_turns": [
+        "What is blocked by the vector migration?"
+      ],
+      "tags": [
+        "positive",
+        "benchmark_sample",
+        "beam"
+      ],
+      "expectations": {
+        "required_saved_ids": [
+          "beam-release-dashboard-vector-migration"
+        ],
+        "required_retrieved_ids": [
+          "beam-release-dashboard-vector-migration"
+        ],
+        "required_used_ids": [
+          "beam-release-dashboard-vector-migration"
+        ],
+        "description": "Sample BEAM-shaped memory extraction and relation case."
+      }
+    }
+  ]
+}

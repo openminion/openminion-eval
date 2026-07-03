@@ -43,7 +43,7 @@ def load_memory_effectiveness_cases(
     seen: set[str] = set()
     cases: list[MemoryEffectivenessCase] = []
     for item in payload.get("cases", []):
-        case = _case_from_mapping(require_mapping(item, context="memory case"))
+        case = case_from_mapping(require_mapping(item, context="memory case"))
         if case.case_id in seen:
             raise ValueError(
                 f"duplicate memory-effectiveness case_id: {case.case_id!r}"
@@ -60,7 +60,7 @@ def hash_memory_effectiveness_cases(cases: tuple[MemoryEffectivenessCase, ...]) 
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _case_from_mapping(data: Mapping[str, Any]) -> MemoryEffectivenessCase:
+def case_from_mapping(data: Mapping[str, Any]) -> MemoryEffectivenessCase:
     return MemoryEffectivenessCase(
         case_id=str(data.get("case_id", "") or "").strip(),
         family=data.get("family"),  # type: ignore[arg-type]

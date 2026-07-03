@@ -36,6 +36,11 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "README advertises unpublished PyPI package surface" in release_check
     assert "openminion_eval.memory_eval" in release_check
     assert "MemoryEffectivenessCase root export missing" in release_check
+    assert "MemoryBenchmarkSource root export missing" in release_check
+    assert "benchmark adapter version drifted" in release_check
+    assert "load_packaged_memory_benchmark_sample root export missing" in release_check
+    assert "benchmark adapter packaged sample missing" in release_check
+    assert "benchmark adapter packaged sample failed to load" in release_check
     assert "load_memory_effectiveness_cases root export missing" in release_check
     assert "memory effectiveness fixture count drifted" in release_check
     assert "memory effectiveness scoring smoke failed" in release_check

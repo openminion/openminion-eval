@@ -1,5 +1,15 @@
 """Memory-effectiveness eval helpers for SophiaGraph-backed OpenMinion runs."""
 
+from openminion_eval.memory_effectiveness.benchmark_adapters import (
+    BENCHMARK_ADAPTER_VERSION,
+    MemoryBenchmarkFamily,
+    MemoryBenchmarkImportResult,
+    MemoryBenchmarkSource,
+    default_memory_benchmark_manifest_path,
+    hash_benchmark_manifest_cases,
+    load_memory_benchmark_cases,
+    load_packaged_memory_benchmark_sample,
+)
 from openminion_eval.memory_effectiveness.fixtures import (
     FIXTURE_VERSION,
     default_memory_effectiveness_cases_path,
@@ -30,8 +40,12 @@ from openminion_eval.memory_effectiveness.scoring import (
 )
 
 __all__ = [
+    "BENCHMARK_ADAPTER_VERSION",
     "FIXTURE_VERSION",
     "SCORECARD_VERSION",
+    "MemoryBenchmarkFamily",
+    "MemoryBenchmarkImportResult",
+    "MemoryBenchmarkSource",
     "MemoryComponent",
     "MemoryComponentScore",
     "MemoryEffectivenessCase",
@@ -46,10 +60,14 @@ __all__ = [
     "MemoryTraceToolCall",
     "build_memory_scorecard",
     "compare_memory_scorecards",
+    "default_memory_benchmark_manifest_path",
     "default_memory_effectiveness_cases_path",
+    "hash_benchmark_manifest_cases",
     "hash_memory_effectiveness_cases",
+    "load_memory_benchmark_cases",
     "load_memory_effectiveness_cases",
     "load_memory_scorecard",
+    "load_packaged_memory_benchmark_sample",
     "score_memory_case",
     "write_memory_scorecard",
 ]

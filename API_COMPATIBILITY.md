@@ -72,6 +72,11 @@ The following top-level exports are part of the current public contract:
   `build_memory_scorecard(...)`, `compare_memory_scorecards(...)`,
   `load_memory_effectiveness_cases(...)`, and
   `write_memory_scorecard(...)`
+- benchmark adapter exports for memory-effectiveness samples:
+  `BENCHMARK_ADAPTER_VERSION`, `MemoryBenchmarkSource`,
+  `load_memory_benchmark_cases(...)`,
+  `load_packaged_memory_benchmark_sample(...)`, and
+  `hash_benchmark_manifest_cases(...)`
 - certification helpers such as `FamilyCertificationSignal` and
   `apply_family_signals_to_certification_cells(...)`
 - type/version contract: `openminion_eval.__version__` and packaged
