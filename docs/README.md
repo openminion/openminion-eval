@@ -20,6 +20,9 @@ This directory holds the public package documentation for standalone
   package-owned non-memory eval-family contracts.
 - [`eval-cases.md`](eval-cases.md) records the starter
   `EvalCase` registry, grade modes, CLI behavior, and extension rules.
+- [`memory-effectiveness.md`](memory-effectiveness.md)
+  documents structured SophiaGraph/OpenMinion memory trace scoring,
+  scorecards, paired-run deltas, and optional live evidence.
 - [`ci-recipes.md`](ci-recipes.md) gives pytest-native and CI examples for
   package users.
 - [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md)

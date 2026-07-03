@@ -23,6 +23,7 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.closure`
 - `openminion_eval.policy`
 - `openminion_eval.skills`
+- `openminion_eval.memory_effectiveness`
 - `openminion_eval.goal_trajectory`
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
@@ -65,6 +66,17 @@ The following top-level exports are part of the current public contract:
 - goal trajectory exports such as `GoalTrajectoryBenchmark`,
   `GoalTrajectoryReport`, `GoalDriftSignalKind`, `run_benchmark(...)`, and
   `aggregate_reports(...)`
+- memory-effectiveness exports such as `MemoryEffectivenessCase`,
+  `MemoryExpectation`, `MemoryEffectivenessTrace`, `MemoryTraceClaim`,
+  `MemoryTraceToolCall`, `score_memory_case(...)`,
+  `build_memory_scorecard(...)`, `compare_memory_scorecards(...)`,
+  `load_memory_effectiveness_cases(...)`, and
+  `write_memory_scorecard(...)`
+- benchmark adapter exports for memory-effectiveness samples:
+  `BENCHMARK_ADAPTER_VERSION`, `MemoryBenchmarkSource`,
+  `load_memory_benchmark_cases(...)`,
+  `load_packaged_memory_benchmark_sample(...)`, and
+  `hash_benchmark_manifest_cases(...)`
 - certification helpers such as `FamilyCertificationSignal` and
   `apply_family_signals_to_certification_cells(...)`
 - type/version contract: `openminion_eval.__version__` and packaged
@@ -148,7 +160,8 @@ Public-contract confidence should be enforced by tests that cover:
 This policy does not promise:
 
 1. the repo-local integration fixtures under `tests/eval/integration/`,
-2. memory-eval internals or memory provider baselines as wheel-shipped API,
+2. source-tree memory-harness internals or memory provider baselines as
+   wheel-shipped API,
 3. compatibility for undocumented import paths,
 4. runtime-loaded configuration beyond the current documented no-op
    compatibility surface.

@@ -13,8 +13,8 @@ The public alpha surface is documented in:
 
 The preferred public entrypoint is `openminion_eval`, with stable import roots
 for cases, tools, freshness, routing, closure, policy, skills,
-goal-trajectory, reporting helpers, dataset/artifact helpers, family registry,
-and manual review artifacts.
+memory-effectiveness trace scoring, goal-trajectory, reporting helpers,
+dataset/artifact helpers, family registry, and manual review artifacts.
 
 ## Source-Tree Owner Map
 
@@ -33,14 +33,17 @@ and manual review artifacts.
    deterministic family case/report helpers.
 8. `skills/` owns packaged skill-quality and named-skill manifests plus
    report builders.
-9. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
+9. `memory_effectiveness/` owns provider-free SophiaGraph/OpenMinion memory
+   trace DTOs, packaged deterministic cases, scorecards, and paired-run
+   comparison helpers.
+10. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
    aggregate reports.
-10. `reporting/` owns package-level certification signal helpers.
-11. `cli.py` and `__main__.py` own the public package command line.
-12. `py.typed` marks the installed package as PEP 561 typed.
-13. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
+11. `reporting/` owns package-level certification signal helpers.
+12. `cli.py` and `__main__.py` own the public package command line.
+13. `py.typed` marks the installed package as PEP 561 typed.
+14. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
     package support used by the public surfaces above.
-14. `integration_quarantine.py` owns installed support metadata for
+15. `integration_quarantine.py` owns installed support metadata for
     source-tree integration probes; it does not make those probes stable
     package APIs.
 
