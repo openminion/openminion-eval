@@ -67,16 +67,31 @@ python3.11 -m pip install --no-deps --target wheel-install/openminion-eval dist/
 
 ## Publish Sequence
 
-Example sequence once validation is green:
+`openminion-eval` follows the same repo-family release path as the other public
+package repos:
 
-```bash
-rm -rf build dist src/*.egg-info
-python3.11 scripts/release_check.py
-python3.11 -m twine upload dist/*
-```
+1. prepare and validate an RC branch,
+2. push an RC tag such as `v0.0.2rc1` to publish to TestPyPI,
+3. install and smoke-test the RC artifact from TestPyPI,
+4. prepare and validate the final non-RC branch,
+5. dispatch the `Release` workflow from that final branch with
+   `target=testpypi`,
+6. install and smoke-test the final TestPyPI artifact,
+7. push the final non-RC tag such as `v0.0.2` to publish to PyPI,
+8. create the GitHub Release using the bare version title, such as `0.0.2`.
 
-Use PyPI API tokens through `TWINE_USERNAME=__token__` and
-`TWINE_PASSWORD=...` or a local `.pypirc`; do not commit credentials.
+Manual `twine upload` remains fallback-only. Do not treat it as the canonical
+flow when trusted publishing is available.
+
+## GitHub Actions Trusted Publishing
+
+The canonical release workflow for this package is
+`.github/workflows/release.yml`.
+
+Trusted publishing must be configured for:
+
+1. TestPyPI environment: `testpypi`
+2. PyPI environment: `pypi`
 
 ## Notes
 

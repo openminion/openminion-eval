@@ -23,7 +23,7 @@ from tests.eval.memory_quality_eval import (
     representative_memory_quality_target_ids,
     run_memory_quality_source_report,
 )
-from tests.eval.runners.run_memory_eval_baseline import _runtime_roots
+from tests.eval.runners.run_memory_eval_baseline import _runtime_roots, _stable_snapshot
 from openminion.base.config import OpenMinionConfig
 from openminion.modules.memory.config import from_base_config
 from openminion.modules.memory.service import MemoryService
@@ -350,6 +350,30 @@ def test_memory_eval_baseline_runner_uses_workspace_tmp_roots() -> None:
     assert data_root == Path(
         "/repo-root/workspace-tmp/memory-eval-baseline/openminion-data"
     )
+
+
+def test_memory_eval_baseline_check_ignores_volatile_snapshot_fields() -> None:
+    payload = {
+        "timestamp": "2026-01-01T00:00:00+00:00",
+        "dimensions": {
+            "latency_regression": {
+                "scores": {
+                    "latency-scaling-100": {
+                        "latency_regression.capsule_build_p95_ms": 10.0,
+                        "latency_regression.retrieval_p95_ms": 20.0,
+                        "latency_regression.search_p95_ms": 30.0,
+                        "latency_regression.capsule_within_bound": True,
+                    }
+                }
+            }
+        },
+    }
+
+    stable = _stable_snapshot(payload)
+
+    assert "timestamp" not in stable
+    scores = stable["dimensions"]["latency_regression"]["scores"]["latency-scaling-100"]
+    assert scores == {"latency_regression.capsule_within_bound": True}
 
 
 def test_memory_quality_manifest_and_rubric_load_cleanly() -> None:

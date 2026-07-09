@@ -9,7 +9,7 @@ from typing import Any
 from collections.abc import Sequence
 
 from openminion.base.generated_paths import resolve_generated_root
-from openminion.modules.brain.runtime.self_eval_rubric import SelfEvalSubmission
+from openminion.modules.brain.runtime.improvement.rubric import SelfEvalSubmission
 from openminion_eval.family_support import utc_now_iso
 from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer

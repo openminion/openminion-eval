@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from datetime import datetime, timedelta, timezone
 from importlib import import_module
 import json
 from pathlib import Path
+import re
 import tempfile
 import time
 from types import SimpleNamespace
@@ -18,9 +20,9 @@ import yaml
 from openminion.modules.memory.runtime.gc import run_gc
 from openminion.modules.memory.models import MemoryCandidate, MemoryRecord
 from openminion.modules.memory.service import MemoryService
-from openminion.modules.memory.storage.store import SQLiteMemoryStore
+from openminion.modules.memory.storage import SQLiteMemoryStore
 
-from openminion.base.common.time import utc_now_iso as _utc_now_iso
+from openminion.base.time import utc_now_iso as _utc_now_iso
 from tests.eval.integration.memory_scorer import MemoryEvalScorer
 
 
@@ -44,6 +46,94 @@ def _p95(values: list[float]) -> float:
     ordered = sorted(values)
     index = max(0, int(len(ordered) * 0.95) - 1)
     return float(ordered[index])
+
+
+def _parse_fixture_time(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        parsed = datetime.fromisoformat(str(value))
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+def _format_fixture_time(value: datetime | None) -> str | None:
+    if value is None:
+        return None
+    return value.astimezone(timezone.utc).isoformat()
+
+
+def _should_rebase_fixture_dates(scenario: MemoryEvalScenario) -> bool:
+    dimensions = {str(item).strip().lower() for item in scenario.eval_dimensions}
+    features = {str(item).strip().lower() for item in scenario.requires_features}
+    return "stale_memory_suppression" not in dimensions and "gc" not in features
+
+
+def _fixture_date_offset(scenario: MemoryEvalScenario) -> timedelta | None:
+    if not _should_rebase_fixture_dates(scenario):
+        return None
+    timestamps: list[datetime] = []
+    for record in scenario.setup.records:
+        for value in (record.created_at, record.updated_at, record.last_hit_at):
+            parsed = _parse_fixture_time(value)
+            if parsed is not None:
+                timestamps.append(parsed)
+    if not timestamps:
+        return None
+    return datetime.now(timezone.utc) - max(timestamps)
+
+
+def _rebase_fixture_time(value: str | None, offset: timedelta | None) -> str | None:
+    if offset is None:
+        return value
+    parsed = _parse_fixture_time(value)
+    if parsed is None:
+        return value
+    return _format_fixture_time(parsed + offset)
+
+
+def _text_payload(value: dict[str, Any] | str) -> str:
+    if isinstance(value, dict):
+        return " ".join(str(item) for item in value.values())
+    return str(value or "")
+
+
+def _default_candidate_claim_key(candidate: MemoryEvalSeedCandidate) -> str:
+    raw = str(
+        candidate.key
+        or candidate.title
+        or _text_payload(candidate.content)
+        or candidate.candidate_id
+        or ""
+    ).strip()
+    slug = re.sub(r"[^a-z0-9]+", "-", raw.lower()).strip("-")[:80]
+    prefix = "pref" if candidate.type == "user_preference" else candidate.type
+    return f"{prefix}:{slug or 'candidate'}"
+
+
+def _candidate_trust_fields(candidate: MemoryEvalSeedCandidate) -> dict[str, Any]:
+    meta = dict(candidate.meta)
+    claim_key = str(meta.get("claim_key") or "").strip()
+    source_class = str(meta.get("source_class") or "").strip()
+    polarity = str(meta.get("polarity") or "").strip()
+    if not claim_key:
+        claim_key = _default_candidate_claim_key(candidate)
+        meta["claim_key"] = claim_key
+    if not source_class:
+        source_class = "user_input"
+        meta["source_class"] = source_class
+    if not polarity:
+        polarity = "asserts"
+        meta["polarity"] = polarity
+    return {
+        "meta": meta,
+        "claim_key": claim_key,
+        "source_class": source_class,
+        "polarity": polarity,
+    }
 
 
 def _default_adapter_factory(
@@ -634,7 +724,11 @@ class MemoryEvalHarness:
         scenario: MemoryEvalScenario,
     ) -> None:
         ref_map: dict[str, str] = {}
+        date_offset = _fixture_date_offset(scenario)
         for record in scenario.setup.records:
+            created_at = _rebase_fixture_time(record.created_at, date_offset)
+            updated_at = _rebase_fixture_time(record.updated_at, date_offset)
+            last_hit_at = _rebase_fixture_time(record.last_hit_at, date_offset)
             if record.key:
                 stored = service.upsert_record(
                     scope=record.scope,
@@ -660,10 +754,10 @@ class MemoryEvalHarness:
                     source=record.source,  # type: ignore[arg-type]
                     confidence=float(record.confidence),
                     meta=dict(record.meta),
-                    last_hit_at=record.last_hit_at,
+                    last_hit_at=last_hit_at,
                     supersession_reason=record.supersession_reason,
-                    created_at=record.created_at or now,
-                    updated_at=record.updated_at or now,
+                    created_at=created_at or now,
+                    updated_at=updated_at or now,
                 )
                 store.put(stored)
             if record.ref:
@@ -702,6 +796,7 @@ class MemoryEvalHarness:
                 )
         for candidate in scenario.setup.candidates:
             now = _utc_now_iso()
+            trust_fields = _candidate_trust_fields(candidate)
             service.candidate_put(
                 MemoryCandidate(
                     candidate_id=candidate.candidate_id
@@ -715,7 +810,10 @@ class MemoryEvalHarness:
                     source=candidate.source,  # type: ignore[arg-type]
                     confidence=float(candidate.confidence),
                     status=candidate.status,  # type: ignore[arg-type]
-                    meta=dict(candidate.meta),
+                    claim_key=trust_fields["claim_key"],
+                    polarity=trust_fields["polarity"],
+                    source_class=trust_fields["source_class"],
+                    meta=trust_fields["meta"],
                     created_at=candidate.created_at or now,
                     updated_at=candidate.updated_at or now,
                 )
