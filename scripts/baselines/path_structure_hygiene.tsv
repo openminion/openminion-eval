@@ -1,0 +1,2 @@
+# Format: source_relative_path<TAB>finding
+family_support.py	redundant suffix '_support'; prefer an explicit owner name over *_support.py

@@ -1,0 +1,5 @@
+# Format: path<TAB>underscore_count
+examples/test_pytest_recipe.py	2
+scripts/check_release_package.py	2
+scripts/validate_commit_message.py	2
+scripts/validate_quality_patterns.py	2
