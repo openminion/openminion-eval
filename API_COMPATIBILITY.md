@@ -70,10 +70,12 @@ The following top-level exports are part of the current public contract:
   `MemoryExpectation`, `MemoryEffectivenessTrace`, `MemoryTraceClaim`,
   `MemoryTraceToolCall`, `score_memory_case(...)`,
   `build_memory_scorecard(...)`, `compare_memory_scorecards(...)`,
-  `load_memory_effectiveness_cases(...)`, and
+  `load_memory_effectiveness_cases(...)`,
+  `default_memory_effectiveness_cases_path(...)`, and
   `write_memory_scorecard(...)`
 - benchmark adapter exports for memory-effectiveness samples:
   `BENCHMARK_ADAPTER_VERSION`, `MemoryBenchmarkSource`,
+  `default_memory_benchmark_manifest_path(...)`,
   `load_memory_benchmark_cases(...)`,
   `load_packaged_memory_benchmark_sample(...)`, and
   `hash_benchmark_manifest_cases(...)`

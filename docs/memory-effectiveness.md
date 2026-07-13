@@ -42,10 +42,14 @@ The package also exposes Python helpers:
 from openminion_eval import (
     build_memory_scorecard,
     compare_memory_scorecards,
+    default_memory_effectiveness_cases_path,
     load_memory_effectiveness_cases,
     score_memory_case,
 )
 ```
+
+`default_memory_effectiveness_cases_path()` returns the packaged default fixture
+resource for callers that want to inspect the shipped cases directly.
 
 ## Trace Shape
 
@@ -89,11 +93,16 @@ The package includes small packaged sample manifests for LoCoMo,
 LongMemEval, and BEAM-shaped memory-effectiveness cases:
 
 ```python
-from openminion_eval import load_packaged_memory_benchmark_sample
+from openminion_eval import (
+    default_memory_benchmark_manifest_path,
+    load_packaged_memory_benchmark_sample,
+)
 
 sample = load_packaged_memory_benchmark_sample("locomo")
+manifest = default_memory_benchmark_manifest_path("locomo")
 print(sample.source.source_revision)
 print(sample.cases[0].case_id)
+print(manifest.name)
 ```
 
 These samples are adapters, not redistributed benchmark datasets. Full
