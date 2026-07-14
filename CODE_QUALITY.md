@@ -76,14 +76,18 @@ Good practice:
 Before closing work, run the package gates from `openminion-eval/`:
 
 ```bash
-make lint
-make test
+make check
 ```
+
+`make check` runs formatting, Ruff, structural quality ratchets, and the
+standalone public package tests. The ratchets guard current debt for
+file/function size, duplicate private helpers, path and filename drift, broad
+exception handlers, bare `# type: ignore`, and hidden sibling-package imports.
 
 If your change affects packaging or public release shape, also run:
 
 ```bash
-python3.11 scripts/release_check.py
+make release-check
 ```
 
 ## 7. When in doubt, choose clarity over cleverness

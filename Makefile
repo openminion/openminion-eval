@@ -8,7 +8,7 @@ PRE_COMMIT := $(PYTHON) -m pre_commit
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
 
-.PHONY: help venv dev-install hooks-install hooks-run fix format format-check lint test test-all release-check check clean eval
+.PHONY: help venv dev-install hooks-install hooks-run fix format format-check lint test test-all validate-patterns loc-check method-loc-check helper-duplicates-check path-structure-check filename-underscore-check broad-exception-check type-ignore-check public-surface-check release-check check clean eval
 
 help:
 	@printf '%s\n' \
@@ -22,8 +22,9 @@ help:
 		'  make lint          Run Ruff lint' \
 		'  make test          Run standalone public package pytest suite' \
 		'  make test-all      Run all repo-local tests, including OpenMinion integration tests' \
+		'  make validate-patterns Run package structural quality ratchets' \
 		'  make release-check Build sdist/wheel and smoke-test the installed wheel' \
-		'  make check         Run format-check, lint, and test' \
+		'  make check         Run format-check, lint, validate-patterns, and test' \
 		'  make clean         Remove repo-local cache/build artifacts' \
 		'  make eval          Run the 5 starter EvalCases and print a Markdown report' \
 		'                     - Override category: make eval ARGS="--category coding"' \
@@ -76,13 +77,39 @@ test-all: $(DEV_STAMP)
 release-check: $(DEV_STAMP)
 	$(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"
 
+loc-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check max-file-loc
+
+method-loc-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check method-loc
+
+helper-duplicates-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check helper-duplicates
+
+path-structure-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check path-structure
+
+filename-underscore-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check filename-underscore
+
+broad-exception-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check broad-exception
+
+type-ignore-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check type-ignore
+
+public-surface-check: $(DEV_STAMP)
+	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check public-surface
+
+validate-patterns: loc-check method-loc-check helper-duplicates-check path-structure-check filename-underscore-check broad-exception-check type-ignore-check public-surface-check
+
 # Resolve the repo root so structural graders can locate runtime anchors.
 eval: $(DEV_STAMP)
 	OPENMINION_REPO_ROOT="$(WORKSPACE_ROOT)" \
 		PYTHONPATH="$(REPO_ROOT)/src" \
 		$(PYTHON) -m openminion_eval.cases $(ARGS)
 
-check: format-check lint test
+check: format-check lint validate-patterns test
 
 clean:
 	find "$(REPO_ROOT)" \

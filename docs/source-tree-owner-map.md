@@ -54,3 +54,6 @@ and manual review artifacts.
 3. Memory and provider fixtures plus baselines are regression inputs, not
    wheel-shipped import surfaces.
 4. Host planning docs stay outside the package-local public docs directory.
+5. `scripts/validate_quality_patterns.py` and `scripts/baselines/` own the
+   package-local structural quality ratchets used by `make validate-patterns`
+   and `make check`.

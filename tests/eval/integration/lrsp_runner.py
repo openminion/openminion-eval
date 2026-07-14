@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from openminion.base.generated_paths import resolve_generated_root
-from openminion.base.common.time import utc_now_iso
+from openminion.base.time import utc_now_iso
 
 
 LiveRuntimeProbeKind = Literal[

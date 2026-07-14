@@ -10,7 +10,7 @@ from tests.eval.integration.trace_flywheel import (
     run_inference_validation_flywheel,
     write_trace_eval_flywheel_report,
 )
-from openminion.modules.brain.runtime.self_eval_rubric import SelfEvalSubmission
+from openminion.modules.brain.runtime.improvement.rubric import SelfEvalSubmission
 
 
 def _check(name: str, ok: bool, details: str = "") -> SimpleNamespace:

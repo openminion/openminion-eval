@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
 
-from openminion.base.common.time import utc_now_iso
+from openminion.base.time import utc_now_iso
 from openminion.modules.brain.diagnostics.canonical_events import CanonicalEventLogger
 from openminion.modules.brain.runtime.policy_verify import (
     VerifierInvocation,

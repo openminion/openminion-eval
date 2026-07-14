@@ -42,8 +42,7 @@ Expected outcome:
 Run from the package root:
 
 ```bash
-make lint
-make test
+make check
 ```
 
 ## Focused regression tests
@@ -64,8 +63,8 @@ python3.11 -m pytest -q \
 For package-release validation, use:
 
 ```bash
-python3.11 scripts/release_check.py
+make release-check
 ```
 
-That script builds the artifacts, verifies packaged files, installs the wheel
+That target builds the artifacts, verifies packaged files, installs the wheel
 into a clean target, and smoke-checks the documented public boundary.

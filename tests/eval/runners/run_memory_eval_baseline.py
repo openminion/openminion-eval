@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import argparse
+from copy import deepcopy
+import json
 from pathlib import Path
 import sys
 import tempfile
@@ -26,6 +28,14 @@ from openminion.services.agent.memory.gateway_adapter import (  # noqa: E402
     MemoryServiceGatewayAdapter,
 )
 
+_VOLATILE_LATENCY_METRICS = frozenset(
+    {
+        "latency_regression.capsule_build_p95_ms",
+        "latency_regression.retrieval_p95_ms",
+        "latency_regression.search_p95_ms",
+    }
+)
+
 
 def _adapter_factory(
     service: MemoryService,
@@ -46,6 +56,18 @@ def _runtime_roots(repo_root: Path) -> tuple[Path, Path]:
         scratch_root / "openminion-home",
         scratch_root / "openminion-data",
     )
+
+
+def _stable_snapshot(payload: dict) -> dict:
+    stable = deepcopy(payload)
+    stable.pop("timestamp", None)
+    scores = (
+        stable.get("dimensions", {}).get("latency_regression", {}).get("scores", {})
+    )
+    for scenario_scores in scores.values():
+        for metric_name in _VOLATILE_LATENCY_METRICS:
+            scenario_scores.pop(metric_name, None)
+    return stable
 
 
 def _build_snapshot(
@@ -116,9 +138,9 @@ def main() -> int:
                 repo_root=repo_root,
                 fixture_root=fixture_root,
             )
-            if candidate_path.read_text(encoding="utf-8") != output_path.read_text(
-                encoding="utf-8"
-            ):
+            candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+            baseline = json.loads(output_path.read_text(encoding="utf-8"))
+            if _stable_snapshot(candidate) != _stable_snapshot(baseline):
                 print(f"[check] baseline differs: {output_path}")
                 return 1
         print(f"[ok] baseline up to date: {output_path}")
