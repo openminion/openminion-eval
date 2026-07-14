@@ -17,13 +17,13 @@
 </p>
 
 <p align="center">
-  <img alt="Package version" src="https://img.shields.io/badge/package-0.0.1-3775A9">
+  <img alt="Package version" src="https://img.shields.io/badge/package-0.0.1rc1-3775A9">
   <img alt="Python" src="https://img.shields.io/badge/python-3.11%2B-3775A9">
   <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-MIT-blue"></a>
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-6B7280">
 </p>
 
-`openminion-eval` is the `v0.0.1` public preview of the standalone evaluation
+`openminion-eval` is the `v0.0.1rc1` public preview of the standalone evaluation
 package for OpenMinion.
 
 Use it when you want repeatable agent-quality checks for routing, tools,
@@ -42,7 +42,7 @@ and should be treated as a scam.
 
 ## At a glance
 
-- Current public line: `v0.0.1` preview
+- Current public line: `v0.0.1rc1` preview
 - Distribution name: `openminion-eval`
 - Python import: `openminion_eval`
 - Best fit when: you want standalone, repeatable eval checks without depending
