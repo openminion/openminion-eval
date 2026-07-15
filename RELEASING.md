@@ -60,7 +60,7 @@ python3.11 -m pytest -q tests/eval \
   --ignore=tests/eval/integration \
   --ignore=tests/eval/test_eval_adjacent_owner_dispositions.py \
   --ignore=tests/eval/test_memory_eval.py \
-  --ignore=tests/eval/test_trace_flywheel.py
+  --ignore=tests/eval/integration/test_trace_flywheel.py
 python3.11 -m build
 python3.11 -m pip install --no-deps --target wheel-install/openminion-eval dist/openminion_eval-*.whl
 ```

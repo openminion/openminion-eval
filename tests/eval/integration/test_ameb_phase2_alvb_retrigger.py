@@ -48,8 +48,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from openminion.modules.brain.diagnostics.canonical_events import CanonicalEventLogger
-from openminion.modules.brain.runtime.policy_verify import (
+from openminion.modules.brain.diagnostics.events import CanonicalEventLogger
+from openminion.modules.brain.runtime.verification.policy import (
     VerifierInvocation,
     VerifierResult,
     run_verifier,

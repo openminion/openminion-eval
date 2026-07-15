@@ -1,40 +1,12 @@
-"""Repo-local integration tooling for openminion-eval.
+"""Repo-local integration tooling for openminion-eval."""
 
-This package lives under ``tests/eval/`` so the published ``openminion-eval``
-wheel only ships the standalone public library surface in ``src/openminion_eval/``.
-"""
+from __future__ import annotations
 
-from .memory_eval import (
-    MemoryEvalComparison,
-    MemoryEvalComparisonEntry,
-    MemoryEvalEngineConfig,
-    MemoryEvalFixtureLoader,
-    MemoryEvalGeneratedRecords,
-    MemoryEvalGroundTruth,
-    MemoryEvalHarness,
-    MemoryEvalReport,
-    MemoryEvalScenario,
-    MemoryEvalScenarioResult,
-    MemoryEvalSeedCandidate,
-    MemoryEvalSeedRecord,
-    MemoryEvalSession,
-    MemoryEvalSetup,
-    MemoryEvalTurn,
-)
-from .memory_scorer import MemoryEvalScorer
-from .trace_flywheel import (
-    WorkflowCheckObservation,
-    WorkflowEvalRubric,
-    WorkflowTraceEvalBundle,
-    WorkflowTraceEvalReport,
-    build_inference_validation_bundle,
-    build_trace_eval_flywheel_report,
-    default_inference_validation_output_root,
-    run_inference_validation_flywheel,
-    write_trace_eval_flywheel_report,
-)
+from importlib import import_module
+from typing import Any
 
-__all__ = [
+
+_MEMORY_EVAL_EXPORTS = {
     "MemoryEvalComparison",
     "MemoryEvalComparisonEntry",
     "MemoryEvalEngineConfig",
@@ -45,12 +17,14 @@ __all__ = [
     "MemoryEvalReport",
     "MemoryEvalScenario",
     "MemoryEvalScenarioResult",
-    "MemoryEvalScorer",
     "MemoryEvalSeedCandidate",
     "MemoryEvalSeedRecord",
     "MemoryEvalSession",
     "MemoryEvalSetup",
     "MemoryEvalTurn",
+}
+_MEMORY_SCORER_EXPORTS = {"MemoryEvalScorer"}
+_TRACE_FLYWHEEL_EXPORTS = {
     "WorkflowCheckObservation",
     "WorkflowEvalRubric",
     "WorkflowTraceEvalBundle",
@@ -60,4 +34,18 @@ __all__ = [
     "default_inference_validation_output_root",
     "run_inference_validation_flywheel",
     "write_trace_eval_flywheel_report",
-]
+}
+
+__all__ = sorted(
+    _MEMORY_EVAL_EXPORTS | _MEMORY_SCORER_EXPORTS | _TRACE_FLYWHEEL_EXPORTS
+)
+
+
+def __getattr__(name: str) -> Any:
+    if name in _MEMORY_EVAL_EXPORTS:
+        return getattr(import_module(".memory_eval", __name__), name)
+    if name in _MEMORY_SCORER_EXPORTS:
+        return getattr(import_module(".memory_scorer", __name__), name)
+    if name in _TRACE_FLYWHEEL_EXPORTS:
+        return getattr(import_module(".trace_flywheel", __name__), name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

@@ -77,9 +77,9 @@ make release-check
 If you need a narrower loop while iterating, run `python3.11 -m pytest -q
 tests/<target>` inside the activated virtualenv. The repo-local integration
 tests under `tests/eval/test_memory_eval.py` and
-`tests/eval/test_trace_flywheel.py` require the surrounding `openminion`
-monorepo to be present as a sibling checkout; standalone contributors can skip
-them.
+`tests/eval/integration/test_trace_flywheel.py` require the surrounding
+`openminion` monorepo to be present as a sibling checkout; standalone
+contributors can skip them.
 
 ## Running lint and formatting
 
