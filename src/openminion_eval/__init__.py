@@ -26,6 +26,15 @@ from openminion_eval.datasets import (
     load_eval_dataset_json,
     load_eval_dataset_jsonl,
 )
+from openminion_eval.boundary_artifacts import (
+    BOUNDARY_ARTIFACT_VERSION,
+    BoundaryArtifactValidationError,
+    RED_TEAM_SECURITY_OUTCOMES,
+    load_red_team_security_artifact,
+    load_synthetic_golden_artifact,
+    write_red_team_security_artifact,
+    write_synthetic_golden_artifact,
+)
 from openminion_eval.schemas import (
     EvalBaselineDiff,
     EvalBaselineDiffEntry,
@@ -37,6 +46,12 @@ from openminion_eval.schemas import (
     EvalSummary,
     EvalSuiteResult,
     EvalTranscript,
+    RedTeamSecurityArtifact,
+    RedTeamSecurityFixture,
+    RedTeamSecurityResult,
+    SyntheticGolden,
+    SyntheticGoldenArtifact,
+    SyntheticGoldenProvenance,
 )
 from openminion_eval.suite_artifacts import (
     SUITE_ARTIFACT_VERSION,
@@ -213,6 +228,19 @@ __all__ = [
     "load_eval_dataset",
     "load_eval_dataset_json",
     "load_eval_dataset_jsonl",
+    "BOUNDARY_ARTIFACT_VERSION",
+    "BoundaryArtifactValidationError",
+    "RED_TEAM_SECURITY_OUTCOMES",
+    "RedTeamSecurityArtifact",
+    "RedTeamSecurityFixture",
+    "RedTeamSecurityResult",
+    "SyntheticGolden",
+    "SyntheticGoldenArtifact",
+    "SyntheticGoldenProvenance",
+    "load_red_team_security_artifact",
+    "load_synthetic_golden_artifact",
+    "write_red_team_security_artifact",
+    "write_synthetic_golden_artifact",
     "EvalBaselineDiff",
     "EvalBaselineDiffEntry",
     "SUITE_ARTIFACT_VERSION",

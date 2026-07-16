@@ -62,6 +62,8 @@ The public package currently ships:
 - suite run manifests, stable input hashing, JSON suite-result artifacts, and
   baseline diffs
 - versioned JSON and JSONL dataset loaders with stable dataset hashing
+- provider-free boundary artifact contracts for red-team/security fixtures and
+  synthetic goldens with explicit provenance
 - package CLI entrypoints for suite runs and baseline diffs
 - opt-in parallel suite execution and partial rerun selection by previous
   failures, transcript name, and transcript tags
@@ -202,6 +204,25 @@ Versioned dataset input:
 
 JSONL uses the same case object per line and preserves file order.
 
+Boundary artifact contracts:
+
+```python
+from openminion_eval import (
+    load_red_team_security_artifact,
+    load_synthetic_golden_artifact,
+)
+
+red_team = load_red_team_security_artifact("red-team-artifact.json")
+goldens = load_synthetic_golden_artifact("synthetic-goldens.json")
+
+print(red_team.fixtures[0].fixture_id)
+print(goldens.goldens[0].provenance.generated_by)
+```
+
+These contracts validate portable artifact shape only. Prompt generation,
+provider calls, synthetic data generation, and model judging stay in the host
+project that creates the artifacts.
+
 Partial rerun selection:
 
 ```python
@@ -243,7 +264,7 @@ PY
 - `docs/ci-recipes.md` gives pytest-native CI examples and artifact upload
   guidance.
 - `docs/artifacts-and-manual-grading.md` documents scorer traces, manual
-  grading JSON, and integration quarantine.
+  grading JSON, boundary artifact contracts, and integration quarantine.
 - `docs/standalone-claim-alignment.md` maps public claims to shipped
   package surfaces and proof.
 - `API_COMPATIBILITY.md` records the supported public import roots and
@@ -257,7 +278,8 @@ PY
 
 - `public_library_api`: top-level primitives, compatibility helpers,
   starter `EvalCase` registry, `openminion_eval.cases` CLI, canonical
-  non-memory eval families, and package-owned support.
+  non-memory eval families, boundary artifact validators, and package-owned
+  support.
 - `repo_local_integration_tooling`: memory eval, trace-flywheel work,
   provider certification, fixtures, baselines, and integration tests.
 - `repo_local_tooling`: `conftest.py`, repo-local runners, grounding helpers,

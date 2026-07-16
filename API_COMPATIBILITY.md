@@ -28,6 +28,7 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
 - `openminion_eval.datasets`
+- `openminion_eval.boundary_artifacts`
 - `openminion_eval.family_registry`
 - `openminion_eval.manual`
 
@@ -56,6 +57,15 @@ The following top-level exports are part of the current public contract:
 - dataset loader helpers: `load_eval_dataset(...)`,
   `load_eval_dataset_json(...)`, `load_eval_dataset_jsonl(...)`, and
   `hash_eval_dataset(...)`
+- boundary artifact helpers:
+  `load_red_team_security_artifact(...)`,
+  `write_red_team_security_artifact(...)`,
+  `load_synthetic_golden_artifact(...)`, and
+  `write_synthetic_golden_artifact(...)`
+- boundary artifact schemas: `RedTeamSecurityArtifact`,
+  `RedTeamSecurityFixture`, `RedTeamSecurityResult`,
+  `SyntheticGoldenArtifact`, `SyntheticGolden`, and
+  `SyntheticGoldenProvenance`
 - CLI entrypoints: `openminion-eval` and `python -m openminion_eval`
 - suite selection helper: `select_transcripts(...)`
 - compatibility validators such as `ensure_eval_subject_compatibility(...)`
@@ -114,6 +124,11 @@ or JSONL files. They must use relative paths and must not include provider
 secrets, environment dumps, host runtime paths, or OpenMinion runtime-owned
 objects.
 
+Red-team/security and synthetic-golden boundary artifacts are also local JSON
+files. The package validates artifact shape and provenance, but it does not
+generate prompts, call providers, create synthetic datasets, or run model
+judges. Those workflows remain host-owned.
+
 ## Versioning posture
 
 `openminion-eval` is currently `0.x` software.
@@ -156,6 +171,8 @@ Public-contract confidence should be enforced by tests that cover:
 12. parallel suite execution ordering and partial-rerun selection filters.
 13. versioned dataset loader validation for JSON and JSONL inputs.
 14. CLI help, suite-run artifact output, and baseline-diff exit policy.
+15. boundary artifact validation, provenance failures, and no-provider-core
+    checks.
 
 ## Non-goals
 

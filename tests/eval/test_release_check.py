@@ -24,6 +24,10 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "registered_cases" in release_check
     assert "select_transcripts" in release_check
     assert "load_eval_dataset_jsonl" in release_check
+    assert "load_red_team_security_artifact" in release_check
+    assert "load_synthetic_golden_artifact" in release_check
+    assert "BoundaryArtifactValidationError root export missing" in release_check
+    assert "boundary artifact version drifted" in release_check
     assert "EvalScorer root export missing" in release_check
     assert "EvalScorerSpec root export missing" in release_check
     assert "threshold-aware scorer metadata drifted" in release_check

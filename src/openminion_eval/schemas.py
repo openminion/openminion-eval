@@ -30,6 +30,62 @@ class EvalDataset:
 
 
 @dataclass(frozen=True)
+class RedTeamSecurityFixture:
+    fixture_id: str
+    category: str
+    prompt: str
+    expected_behavior: str
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class RedTeamSecurityResult:
+    fixture_id: str
+    outcome: str
+    observed_behavior: str
+    score: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class RedTeamSecurityArtifact:
+    artifact_version: str
+    name: str
+    fixtures: list[RedTeamSecurityFixture]
+    results: list[RedTeamSecurityResult] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class SyntheticGoldenProvenance:
+    source: str
+    generated_by: str
+    generated_at: str
+    generation_method: str
+    source_artifact_hash: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class SyntheticGolden:
+    golden_id: str
+    input: str
+    expected_output: str
+    provenance: SyntheticGoldenProvenance
+    tags: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
+class SyntheticGoldenArtifact:
+    artifact_version: str
+    name: str
+    goldens: list[SyntheticGolden]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(frozen=True)
 class EvalResult:
     turn_index: int
     user_input: str
