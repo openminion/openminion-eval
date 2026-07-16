@@ -97,3 +97,8 @@ The package prefers:
 1. explicit standalone boundaries over convenience imports,
 2. small truthful surfaces over broad magical ones,
 3. maintainable structure over short-term shortcuts.
+
+For a broad cleanup, simplification, or maintainability pass, follow
+[docs/cleanup-workflow.md](docs/cleanup-workflow.md) so the coverage claim is
+backed by a fresh inventory, explicit per-file dispositions, and current
+validation.

@@ -14,8 +14,10 @@ Before substantial code changes, read:
 5. [docs/getting-started.md](./docs/getting-started.md)
 6. [docs/engineering-patterns.md](./docs/engineering-patterns.md)
 7. [docs/code-quality-enforcement.md](./docs/code-quality-enforcement.md)
-8. [docs/testing-and-validation.md](./docs/testing-and-validation.md)
-9. [RELEASING.md](./RELEASING.md) when the work affects packaging or release
+8. [docs/cleanup-workflow.md](./docs/cleanup-workflow.md) for cleanup,
+   simplification, or maintainability work
+9. [docs/testing-and-validation.md](./docs/testing-and-validation.md)
+10. [RELEASING.md](./RELEASING.md) when the work affects packaging or release
    behavior
 
 ## Repository layout
