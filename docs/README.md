@@ -13,6 +13,8 @@ This directory holds the public package documentation for standalone
   summarizes the package-local engineering and boundary rules for contributors.
 - [`code-quality-enforcement.md`](code-quality-enforcement.md)
   summarizes the active public quality gates and validation posture.
+- [`cleanup-workflow.md`](cleanup-workflow.md) defines the live-inventory,
+  per-file-ledger, and closeout process for broad maintainability work.
 - [`testing-and-validation.md`](testing-and-validation.md)
   records the package-local install, smoke, test, lint, and release-check
   flow.
@@ -26,8 +28,8 @@ This directory holds the public package documentation for standalone
 - [`ci-recipes.md`](ci-recipes.md) gives pytest-native and CI examples for
   package users.
 - [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md)
-  documents scorer traces, manual review queues, adjudication imports, and
-  integration quarantine.
+  documents scorer traces, manual review queues, adjudication imports,
+  boundary artifact contracts, and integration quarantine.
 - [`standalone-claim-alignment.md`](standalone-claim-alignment.md)
   maps public standalone claims to shipped package surfaces and proof.
 - [`certification-readiness-matrix.md`](certification-readiness-matrix.md)
@@ -59,5 +61,5 @@ This directory holds the public package documentation for standalone
 
 The `0.0.x` alpha contract is intentionally narrow: deterministic scoring and
 reporting helpers, packaged skill-eval resources, a starter case CLI, and
-release checks that prove the installed wheel exposes only the documented
-public surface.
+provider-free artifact validators, with release checks that prove the
+installed wheel exposes only the documented public surface.

@@ -81,6 +81,7 @@ def test_source_tree_owner_map_covers_public_root_modules() -> None:
 
     for module_name in (
         "datasets.py",
+        "boundary_artifacts.py",
         "suite_artifacts.py",
         "manual.py",
         "family_registry.py",

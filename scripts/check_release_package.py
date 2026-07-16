@@ -91,6 +91,10 @@ from openminion_eval import (
     EvalScorerSpec,
     EvalSubjectInterface,
     EvalDatasetValidationError,
+    BOUNDARY_ARTIFACT_VERSION,
+    BoundaryArtifactValidationError,
+    RedTeamSecurityArtifact,
+    SyntheticGoldenArtifact,
     GoalDriftSignalKind,
     GradeMode,
     MemoryEffectivenessCase,
@@ -108,10 +112,14 @@ from openminion_eval import (
     load_packaged_memory_benchmark_sample,
     load_memory_effectiveness_cases,
     load_eval_dataset_jsonl,
+    load_red_team_security_artifact,
+    load_synthetic_golden_artifact,
     list_builtin_families,
     registered_cases,
     score_memory_case,
     select_transcripts,
+    write_red_team_security_artifact,
+    write_synthetic_golden_artifact,
 )
 from openminion_eval.schemas import EvalTranscript
 from openminion_eval.cases import grade_case
@@ -177,6 +185,22 @@ if not callable(load_eval_dataset_jsonl):
     raise SystemExit("load_eval_dataset_jsonl root export missing")
 if EvalDatasetValidationError.__name__ != "EvalDatasetValidationError":
     raise SystemExit("EvalDatasetValidationError root export missing")
+if BOUNDARY_ARTIFACT_VERSION != "1":
+    raise SystemExit("boundary artifact version drifted")
+if BoundaryArtifactValidationError.__name__ != "BoundaryArtifactValidationError":
+    raise SystemExit("BoundaryArtifactValidationError root export missing")
+if RedTeamSecurityArtifact.__name__ != "RedTeamSecurityArtifact":
+    raise SystemExit("RedTeamSecurityArtifact root export missing")
+if SyntheticGoldenArtifact.__name__ != "SyntheticGoldenArtifact":
+    raise SystemExit("SyntheticGoldenArtifact root export missing")
+if not callable(load_red_team_security_artifact):
+    raise SystemExit("load_red_team_security_artifact root export missing")
+if not callable(load_synthetic_golden_artifact):
+    raise SystemExit("load_synthetic_golden_artifact root export missing")
+if not callable(write_red_team_security_artifact):
+    raise SystemExit("write_red_team_security_artifact root export missing")
+if not callable(write_synthetic_golden_artifact):
+    raise SystemExit("write_synthetic_golden_artifact root export missing")
 if select_transcripts([EvalTranscript(name="smoke", turns=[], tags=["public"])], include_tags=["public"])[0].name != "smoke":
     raise SystemExit("select_transcripts root export drifted")
 if GradeMode.STRUCTURAL.value != "structural":

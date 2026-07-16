@@ -14,8 +14,10 @@ Before substantial code changes, read:
 5. [docs/getting-started.md](./docs/getting-started.md)
 6. [docs/engineering-patterns.md](./docs/engineering-patterns.md)
 7. [docs/code-quality-enforcement.md](./docs/code-quality-enforcement.md)
-8. [docs/testing-and-validation.md](./docs/testing-and-validation.md)
-9. [RELEASING.md](./RELEASING.md) when the work affects packaging or release
+8. [docs/cleanup-workflow.md](./docs/cleanup-workflow.md) for cleanup,
+   simplification, or maintainability work
+9. [docs/testing-and-validation.md](./docs/testing-and-validation.md)
+10. [RELEASING.md](./RELEASING.md) when the work affects packaging or release
    behavior
 
 ## Repository layout
@@ -77,9 +79,9 @@ make release-check
 If you need a narrower loop while iterating, run `python3.11 -m pytest -q
 tests/<target>` inside the activated virtualenv. The repo-local integration
 tests under `tests/eval/test_memory_eval.py` and
-`tests/eval/test_trace_flywheel.py` require the surrounding `openminion`
-monorepo to be present as a sibling checkout; standalone contributors can skip
-them.
+`tests/eval/integration/test_trace_flywheel.py` require the surrounding
+`openminion` monorepo to be present as a sibling checkout; standalone
+contributors can skip them.
 
 ## Running lint and formatting
 
