@@ -4,15 +4,10 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import sys
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[3]  # openminion-eval/
-PACKAGE_SRC = PACKAGE_ROOT / "src"
-FRAMEWORK_ROOT = PACKAGE_ROOT.parent
-OPENMINION_SRC = FRAMEWORK_ROOT / "openminion" / "src"
-for path in (PACKAGE_SRC, PACKAGE_ROOT, OPENMINION_SRC):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+from runner_support import FRAMEWORK_ROOT, configure_repo_paths
+
+configure_repo_paths()
 
 from tests.eval.integration.trace_flywheel import (  # noqa: E402
     default_inference_validation_output_root,

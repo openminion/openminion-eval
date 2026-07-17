@@ -66,8 +66,7 @@ def _synthetic_payload() -> dict:
 
 
 def test_red_team_security_artifact_round_trips(tmp_path: Path) -> None:
-    path = tmp_path / "red-team.json"
-    path.write_text(json.dumps(_red_team_payload()), encoding="utf-8")
+    path = _write_payload(tmp_path, "red-team.json", _red_team_payload())
 
     artifact = load_red_team_security_artifact(path)
 
@@ -87,8 +86,7 @@ def test_red_team_security_artifact_round_trips(tmp_path: Path) -> None:
 def test_red_team_security_artifact_rejects_bad_result_outcome(tmp_path: Path) -> None:
     payload = _red_team_payload()
     payload["results"][0]["outcome"] = "maybe"
-    path = tmp_path / "bad-red-team.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    path = _write_payload(tmp_path, "bad-red-team.json", payload)
 
     with pytest.raises(BoundaryArtifactValidationError, match="outcome"):
         load_red_team_security_artifact(path)
@@ -99,8 +97,7 @@ def test_red_team_security_artifact_rejects_dangling_result_fixture(
 ) -> None:
     payload = _red_team_payload()
     payload["results"][0]["fixture_id"] = "missing-fixture"
-    path = tmp_path / "dangling-red-team.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    path = _write_payload(tmp_path, "dangling-red-team.json", payload)
 
     with pytest.raises(BoundaryArtifactValidationError, match="unknown fixture id"):
         load_red_team_security_artifact(path)
@@ -111,8 +108,7 @@ def test_red_team_security_artifact_rejects_duplicate_fixture_id(
 ) -> None:
     payload = _red_team_payload()
     payload["fixtures"].append(dict(payload["fixtures"][0]))
-    path = tmp_path / "duplicate-red-team.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    path = _write_payload(tmp_path, "duplicate-red-team.json", payload)
 
     with pytest.raises(BoundaryArtifactValidationError, match="duplicate"):
         load_red_team_security_artifact(path)
@@ -121,8 +117,7 @@ def test_red_team_security_artifact_rejects_duplicate_fixture_id(
 def test_synthetic_golden_artifact_round_trips_with_provenance(
     tmp_path: Path,
 ) -> None:
-    path = tmp_path / "goldens.json"
-    path.write_text(json.dumps(_synthetic_payload()), encoding="utf-8")
+    path = _write_payload(tmp_path, "goldens.json", _synthetic_payload())
 
     artifact = load_synthetic_golden_artifact(path)
 
@@ -143,8 +138,7 @@ def test_synthetic_golden_artifact_rejects_missing_provenance(
 ) -> None:
     payload = _synthetic_payload()
     del payload["goldens"][0]["provenance"]
-    path = tmp_path / "bad-goldens.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    path = _write_payload(tmp_path, "bad-goldens.json", payload)
 
     with pytest.raises(BoundaryArtifactValidationError, match="provenance"):
         load_synthetic_golden_artifact(path)
@@ -155,8 +149,7 @@ def test_synthetic_golden_artifact_rejects_duplicate_golden_id(
 ) -> None:
     payload = _synthetic_payload()
     payload["goldens"].append(dict(payload["goldens"][0]))
-    path = tmp_path / "duplicate-goldens.json"
-    path.write_text(json.dumps(payload), encoding="utf-8")
+    path = _write_payload(tmp_path, "duplicate-goldens.json", payload)
 
     with pytest.raises(BoundaryArtifactValidationError, match="duplicate"):
         load_synthetic_golden_artifact(path)
@@ -190,3 +183,9 @@ def _imported_module_roots(node: ast.AST) -> list[str]:
     if isinstance(node, ast.ImportFrom) and node.module:
         return [node.module.split(".", 1)[0]]
     return []
+
+
+def _write_payload(tmp_path: Path, name: str, payload: dict) -> Path:
+    path = tmp_path / name
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path

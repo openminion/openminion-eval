@@ -4,17 +4,15 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-import sys
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[3]  # openminion-eval/
-PACKAGE_SRC = PACKAGE_ROOT / "src"
-FRAMEWORK_ROOT = PACKAGE_ROOT.parent  # agent-frameworks/
-OPENMINION_SRC = FRAMEWORK_ROOT / "openminion" / "src"
-for path in (PACKAGE_SRC, PACKAGE_ROOT, OPENMINION_SRC):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+from runner_support import (
+    FRAMEWORK_ROOT,
+    configure_repo_paths,
+    generated_output_root,
+)
 
-from openminion.base.generated_paths import resolve_generated_root  # noqa: E402
+configure_repo_paths()
+
 from tests.eval.memory_quality_eval import (  # noqa: E402
     build_memory_quality_target_report,
     load_memory_quality_manifest,
@@ -52,9 +50,7 @@ def _target_ids(target_set: str) -> tuple[str, ...]:
 
 
 def _default_output_root(target_set: str) -> Path:
-    return resolve_generated_root(home_root=FRAMEWORK_ROOT) / (
-        f"memory-quality-{target_set}-baseline"
-    )
+    return generated_output_root(f"memory-quality-{target_set}-baseline")
 
 
 def _target_record(target_id: str) -> dict[str, str]:
