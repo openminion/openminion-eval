@@ -3,21 +3,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-import sys
 
-PACKAGE_ROOT = Path(__file__).resolve().parents[3]  # openminion-eval/
-PACKAGE_SRC = PACKAGE_ROOT / "src"
-PACKAGE_TESTS = PACKAGE_ROOT / "tests"
-FRAMEWORK_ROOT = PACKAGE_ROOT.parent  # agent-frameworks/
-OPENMINION_SRC = FRAMEWORK_ROOT / "openminion" / "src"
-for path in (PACKAGE_SRC, PACKAGE_TESTS, OPENMINION_SRC):
-    if str(path) not in sys.path:
-        sys.path.insert(0, str(path))
+from runner_support import configure_repo_paths, generated_output_root
 
-from openminion.base.generated_paths import resolve_generated_root  # noqa: E402
+configure_repo_paths(include_tests=True)
+
 from tests.eval.provider_certification_matrix import (  # noqa: E402
     build_provider_certification_report,
-    framework_root,
     load_provider_certification_manual_cells,
     load_provider_certification_targets,
     write_provider_certification_report,
@@ -25,10 +17,7 @@ from tests.eval.provider_certification_matrix import (  # noqa: E402
 
 
 def _default_output_root() -> Path:
-    return (
-        resolve_generated_root(home_root=framework_root())
-        / "provider-certification-matrix"
-    )
+    return generated_output_root("provider-certification-matrix")
 
 
 def main() -> int:
