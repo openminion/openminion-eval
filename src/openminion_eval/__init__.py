@@ -202,6 +202,22 @@ from openminion_eval.memory_effectiveness import (
     score_memory_case,
     write_memory_scorecard,
 )
+from openminion_eval.memory_context_scorecard import (
+    MEMORY_CONTEXT_SCORECARD_VERSION,
+    AblationOutcome,
+    MemoryContextMetric,
+    MemoryContextMetricName,
+    MemoryContextMetricStatus,
+    MemoryContextScorecardV1,
+    ScorecardCaseFixture,
+    ScorecardMetricFixture,
+    TaskOracle,
+    build_memory_context_scorecard,
+    default_memory_context_scorecard_cases_path,
+    load_memory_context_scorecard,
+    load_memory_context_scorecard_fixtures,
+    write_memory_context_scorecard,
+)
 
 try:
     __version__ = importlib_metadata.version("openminion-eval")
@@ -378,4 +394,18 @@ __all__ = [
     "load_packaged_memory_benchmark_sample",
     "score_memory_case",
     "write_memory_scorecard",
+    "MEMORY_CONTEXT_SCORECARD_VERSION",
+    "AblationOutcome",
+    "MemoryContextMetric",
+    "MemoryContextMetricName",
+    "MemoryContextMetricStatus",
+    "MemoryContextScorecardV1",
+    "ScorecardCaseFixture",
+    "ScorecardMetricFixture",
+    "TaskOracle",
+    "build_memory_context_scorecard",
+    "default_memory_context_scorecard_cases_path",
+    "load_memory_context_scorecard",
+    "load_memory_context_scorecard_fixtures",
+    "write_memory_context_scorecard",
 ]

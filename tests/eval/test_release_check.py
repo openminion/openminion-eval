@@ -14,6 +14,7 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert 'REPO_ROOT / "docs" / "eval-cases.md"' in release_check
     assert 'REPO_ROOT / "docs" / "eval-families.md"' in release_check
     assert 'REPO_ROOT / "docs" / "memory-effectiveness.md"' in release_check
+    assert 'REPO_ROOT / "docs" / "memory-context-scorecard.md"' in release_check
     assert 'REPO_ROOT / "docs" / "ci-recipes.md"' in release_check
     assert 'REPO_ROOT / "docs" / "artifacts-and-manual-grading.md"' in release_check
     assert 'REPO_ROOT / "docs" / "standalone-claim-alignment.md"' in release_check
@@ -52,4 +53,8 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     )
     assert "memory effectiveness fixture count drifted" in release_check
     assert "memory effectiveness scoring smoke failed" in release_check
+    assert "MemoryContextScorecardV1 root export missing" in release_check
+    assert "build_memory_context_scorecard root export missing" in release_check
+    assert "memory context scorecard packaged fixture missing" in release_check
+    assert "memory context scorecard smoke failed" in release_check
     assert "openminion-eval" in release_check

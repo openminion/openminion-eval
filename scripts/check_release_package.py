@@ -41,6 +41,7 @@ def _assert_package_docs_shape() -> None:
         REPO_ROOT / "docs" / "eval-cases.md",
         REPO_ROOT / "docs" / "eval-families.md",
         REPO_ROOT / "docs" / "memory-effectiveness.md",
+        REPO_ROOT / "docs" / "memory-context-scorecard.md",
         REPO_ROOT / "docs" / "ci-recipes.md",
         REPO_ROOT / "docs" / "artifacts-and-manual-grading.md",
         REPO_ROOT / "docs" / "standalone-claim-alignment.md",
@@ -101,15 +102,20 @@ from openminion_eval import (
     MemoryEffectivenessTrace,
     MemoryBenchmarkSource,
     MemoryExpectation,
+    MEMORY_CONTEXT_SCORECARD_VERSION,
+    MemoryContextScorecardV1,
     build_case_traces,
+    build_memory_context_scorecard,
     build_memory_scorecard,
     build_run_manifest,
     build_manual_review_queue,
+    default_memory_context_scorecard_cases_path,
     default_memory_benchmark_manifest_path,
     default_memory_effectiveness_cases_path,
     compare_suite_results,
     hash_transcripts,
     load_packaged_memory_benchmark_sample,
+    load_memory_context_scorecard_fixtures,
     load_memory_effectiveness_cases,
     load_eval_dataset_jsonl,
     load_red_team_security_artifact,
@@ -173,6 +179,16 @@ if not callable(score_memory_case):
     raise SystemExit("score_memory_case root export missing")
 if not callable(build_memory_scorecard):
     raise SystemExit("build_memory_scorecard root export missing")
+if MEMORY_CONTEXT_SCORECARD_VERSION != "memory-context-scorecard.v1":
+    raise SystemExit("memory context scorecard version drifted")
+if MemoryContextScorecardV1.__name__ != "MemoryContextScorecardV1":
+    raise SystemExit("MemoryContextScorecardV1 root export missing")
+if not callable(build_memory_context_scorecard):
+    raise SystemExit("build_memory_context_scorecard root export missing")
+if not callable(load_memory_context_scorecard_fixtures):
+    raise SystemExit("load_memory_context_scorecard_fixtures root export missing")
+if not callable(default_memory_context_scorecard_cases_path):
+    raise SystemExit("default_memory_context_scorecard_cases_path root export missing")
 if not callable(build_case_traces):
     raise SystemExit("build_case_traces root export missing")
 if not callable(compare_suite_results):
@@ -270,6 +286,21 @@ if len(load_nl_named_skill_manifest()[1]) != 10:
 memory_cases = load_memory_effectiveness_cases()
 if len(memory_cases) != 16:
     raise SystemExit("memory effectiveness fixture count drifted")
+scorecard_fixtures = load_memory_context_scorecard_fixtures()
+if len(scorecard_fixtures) != 6:
+    raise SystemExit("memory context scorecard fixture count drifted")
+if not default_memory_context_scorecard_cases_path().is_file():
+    raise SystemExit("memory context scorecard packaged fixture missing")
+scorecard = build_memory_context_scorecard(
+    scorecard_fixtures,
+    run_id="smoke",
+    generated_at="1970-01-01T00:00:00Z",
+)
+if (
+    scorecard.report_version != "memory-context-scorecard.v1"
+    or scorecard.summary["blocking_fail_count"] != 11
+):
+    raise SystemExit("memory context scorecard smoke failed")
 if not default_memory_effectiveness_cases_path().is_file():
     raise SystemExit("memory effectiveness packaged fixture missing")
 if not default_memory_benchmark_manifest_path("beam").is_file():

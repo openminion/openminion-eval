@@ -72,6 +72,9 @@ The public package currently ships:
   policy, and skills
 - deterministic memory-effectiveness DTOs, packaged cases, scorecards, and
   paired-run comparison helpers for structured SophiaGraph/OpenMinion traces
+- deterministic memory/context scorecards for paired ablation, trace-linked
+  usefulness, influence, and governance gates; see
+  [`docs/memory-context-scorecard.md`](docs/memory-context-scorecard.md)
 - packaged sample adapters for LoCoMo, LongMemEval, and BEAM-shaped
   memory-effectiveness cases with source revision, license, and fixture-hash
   metadata
