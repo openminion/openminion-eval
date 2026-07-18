@@ -1,0 +1,140 @@
+{
+  "version": "memory-context-scorecard-fixtures.v1",
+  "cases": [
+    {
+      "case_id": "recall-precision-known-good",
+      "task_input_ref": "fixture://memory-context/task/release-check",
+      "tool_fixture_ref": "fixture://memory-context/tools/no-tools",
+      "model_config_ref": "fixture://memory-context/model/deterministic-local",
+      "seed": "seed-recall-precision",
+      "metrics": [
+        {
+          "metric_name": "recall_precision",
+          "value": 1.0,
+          "threshold": 0.8,
+          "status": "pass",
+          "blocking": true,
+          "evidence_refs": ["trace://ctx/release-check"],
+          "context_trace_ids": ["ctx-release-check"]
+        }
+      ]
+    },
+    {
+      "case_id": "block-usefulness-known-bad",
+      "task_input_ref": "fixture://memory-context/task/pinned-block",
+      "tool_fixture_ref": "fixture://memory-context/tools/no-tools",
+      "model_config_ref": "fixture://memory-context/model/deterministic-local",
+      "seed": "seed-block-usefulness",
+      "metrics": [
+        {
+          "metric_name": "block_usefulness",
+          "value": 0.0,
+          "threshold": 0.5,
+          "status": "fail",
+          "blocking": true,
+          "evidence_refs": ["trace://ctx/pinned-block-unused"],
+          "context_trace_ids": ["ctx-pinned-block-unused"],
+          "disabled_outcome": {
+            "output_ref": "output://block/disabled",
+            "oracle_passed": true,
+            "score": 1.0
+          },
+          "enabled_outcome": {
+            "output_ref": "output://block/enabled",
+            "oracle_passed": true,
+            "score": 1.0
+          },
+          "oracle": {
+            "oracle_id": "oracle-pinned-block-required",
+            "kind": "boolean",
+            "expected_value": "true"
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "memory-influence-known-bad",
+      "task_input_ref": "fixture://memory-context/task/handoff-recall",
+      "tool_fixture_ref": "fixture://memory-context/tools/no-tools",
+      "model_config_ref": "fixture://memory-context/model/deterministic-local",
+      "seed": "seed-memory-influence",
+      "metrics": [
+        {
+          "metric_name": "memory_influence",
+          "value": 0.0,
+          "threshold": 0.5,
+          "status": "fail",
+          "blocking": true,
+          "evidence_refs": ["trace://provenance/handoff"],
+          "provenance_trace_ids": ["prov-handoff"],
+          "disabled_outcome": {
+            "output_ref": "output://memory/disabled",
+            "oracle_passed": false,
+            "score": 0.0
+          },
+          "enabled_outcome": {
+            "output_ref": "output://memory/enabled",
+            "oracle_passed": false,
+            "score": 0.0
+          },
+          "oracle": {
+            "oracle_id": "oracle-handoff-recall",
+            "kind": "exact_text",
+            "expected_value": "Use the remembered deployment command."
+          }
+        }
+      ]
+    },
+    {
+      "case_id": "governance-regression-known-bad",
+      "task_input_ref": "fixture://memory-context/task/private-data",
+      "tool_fixture_ref": "fixture://memory-context/tools/no-tools",
+      "model_config_ref": "fixture://memory-context/model/deterministic-local",
+      "seed": "seed-governance-regression",
+      "metrics": [
+        {
+          "metric_name": "governance_regression",
+          "value": 0.0,
+          "threshold": 1.0,
+          "status": "fail",
+          "blocking": true,
+          "evidence_refs": ["trace://governance/private-leak"]
+        }
+      ]
+    },
+    {
+      "case_id": "session-continuation-known-good",
+      "task_input_ref": "fixture://session-continuation/task/continue-source",
+      "tool_fixture_ref": "fixture://session-continuation/tools/no-replay",
+      "model_config_ref": "fixture://memory-context/model/deterministic-local",
+      "seed": "seed-session-continuation-good",
+      "metrics": [
+        {"metric_name": "selected_source_precision", "value": 1.0, "threshold": 1.0, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/source"]},
+        {"metric_name": "continuation_completeness", "value": 1.0, "threshold": 0.8, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/completeness"]},
+        {"metric_name": "stale_reference_safety", "value": 1.0, "threshold": 1.0, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/stale-refs"]},
+        {"metric_name": "non_replay_safety", "value": 1.0, "threshold": 1.0, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/no-replay"]},
+        {"metric_name": "permission_safety", "value": 1.0, "threshold": 1.0, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/permissions"]},
+        {"metric_name": "lineage_accuracy", "value": 1.0, "threshold": 1.0, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/lineage"]},
+        {"metric_name": "context_budget_stability", "value": 1.0, "threshold": 1.0, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/budget"]},
+        {"metric_name": "first_turn_usefulness", "value": 1.0, "threshold": 0.5, "status": "pass", "blocking": true, "evidence_refs": ["trace://continuation/first-turn"]}
+      ]
+    },
+    {
+      "case_id": "session-continuation-known-bad",
+      "task_input_ref": "fixture://session-continuation/task/mixed-source",
+      "tool_fixture_ref": "fixture://session-continuation/tools/replayed-call",
+      "model_config_ref": "fixture://memory-context/model/deterministic-local",
+      "seed": "seed-session-continuation-bad",
+      "metrics": [
+        {"metric_name": "selected_source_precision", "value": 0.0, "threshold": 1.0, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/source-mixed"]},
+        {"metric_name": "continuation_completeness", "value": 0.0, "threshold": 0.8, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/incomplete"]},
+        {"metric_name": "stale_reference_safety", "value": 0.0, "threshold": 1.0, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/stale-ref-used"]},
+        {"metric_name": "non_replay_safety", "value": 0.0, "threshold": 1.0, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/tool-replayed"]},
+        {"metric_name": "permission_safety", "value": 0.0, "threshold": 1.0, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/grant-copied"]},
+        {"metric_name": "lineage_accuracy", "value": 0.0, "threshold": 1.0, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/lineage-missing"]},
+        {"metric_name": "context_budget_stability", "value": 0.0, "threshold": 1.0, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/budget-overflow"]},
+        {"metric_name": "first_turn_usefulness", "value": 0.0, "threshold": 0.5, "status": "fail", "blocking": true, "evidence_refs": ["trace://continuation/first-turn-failed"]}
+      ]
+    }
+  ]
+}

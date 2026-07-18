@@ -1,0 +1,38 @@
+{
+  "version": "memory-context-scorecard-fixtures.v1",
+  "cases": [
+    {
+      "case_id": "fixture-pair-valid",
+      "task_input_ref": "fixture://task",
+      "tool_fixture_ref": "fixture://tools",
+      "model_config_ref": "fixture://model",
+      "seed": "seed-1",
+      "metrics": [
+        {
+          "metric_name": "memory_influence",
+          "value": 1.0,
+          "threshold": 0.5,
+          "status": "pass",
+          "blocking": true,
+          "evidence_refs": ["trace://prov/1"],
+          "provenance_trace_ids": ["prov-1"],
+          "disabled_outcome": {
+            "output_ref": "output://disabled",
+            "oracle_passed": false,
+            "score": 0.0
+          },
+          "enabled_outcome": {
+            "output_ref": "output://enabled",
+            "oracle_passed": true,
+            "score": 1.0
+          },
+          "oracle": {
+            "oracle_id": "oracle-1",
+            "kind": "exact_text",
+            "expected_value": "remembered answer"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -10,6 +10,9 @@ import sys
 from typing import Any
 
 from openminion_eval.datasets import hash_eval_dataset, load_eval_dataset
+from openminion_eval.memory_context_scorecard.cli import (
+    add_memory_context_scorecard_parser,
+)
 from openminion_eval.memory_effectiveness import (
     MemoryEffectivenessTrace,
     MemoryTraceClaim,
@@ -41,9 +44,16 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    _add_run_parser(subparsers)
+    _add_diff_parser(subparsers)
+    _add_memory_effectiveness_parser(subparsers)
+    add_memory_context_scorecard_parser(subparsers)
+    return parser
+
+
+def _add_run_parser(subparsers: Any) -> None:
     run_parser = subparsers.add_parser(
-        "run",
-        help="run a JSON or JSONL dataset through the package eval suite",
+        "run", help="run a JSON or JSONL dataset through the package eval suite"
     )
     run_parser.add_argument("dataset", type=Path, help="dataset JSON or JSONL file")
     run_parser.add_argument(
@@ -71,6 +81,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     run_parser.set_defaults(func=_run_command)
 
+
+def _add_diff_parser(subparsers: Any) -> None:
     diff_parser = subparsers.add_parser(
         "diff",
         help="compare two suite-result JSON artifacts",
@@ -85,6 +97,8 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     diff_parser.set_defaults(func=_diff_command)
 
+
+def _add_memory_effectiveness_parser(subparsers: Any) -> None:
     memory_parser = subparsers.add_parser(
         "memory-effectiveness",
         help="score structured memory-effectiveness trace artifacts",
@@ -120,7 +134,6 @@ def _build_parser() -> argparse.ArgumentParser:
         help="write scorecard JSON artifact to PATH",
     )
     score_parser.set_defaults(func=_memory_score_command)
-    return parser
 
 
 def _run_command(args: argparse.Namespace) -> int:

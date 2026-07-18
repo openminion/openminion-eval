@@ -50,6 +50,7 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 "openminion_eval" = ["py.typed"]
+"openminion_eval.memory_context_scorecard" = ["resources/*.json"]
 "openminion_eval.memory_effectiveness" = ["resources/*.json"]
 "openminion_eval.skills" = ["resources/**/*"]
 

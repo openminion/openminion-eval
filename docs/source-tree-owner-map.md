@@ -16,7 +16,8 @@ The public alpha surface is documented in:
 The preferred public entrypoint is `openminion_eval`, with stable import roots
 for cases, tools, freshness, routing, closure, policy, skills,
 goal-trajectory, reporting helpers, dataset/artifact helpers, family registry,
-manual review artifacts, and boundary artifact validators.
+manual review artifacts, boundary artifact validators, memory-effectiveness
+helpers, and memory/context scorecards.
 
 ## Source-tree owner map
 
@@ -39,12 +40,17 @@ manual review artifacts, and boundary artifact validators.
    builders.
 10. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
    aggregate reports.
-11. `reporting/` owns package-level certification signal helpers.
-12. `cli.py` and `__main__.py` own the public package command line.
-13. `py.typed` marks the installed package as PEP 561 typed.
-14. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
+11. `memory_effectiveness/` owns structured memory trace scoring, packaged
+    benchmark samples, and memory-effectiveness scorecards.
+12. `memory_context_scorecard/` owns deterministic memory/context scorecard
+    fixtures, typed metric validation, report IO, and the matching CLI
+    subcommand owner.
+13. `reporting/` owns package-level certification signal helpers.
+14. `cli.py` and `__main__.py` own the public package command line dispatcher.
+15. `py.typed` marks the installed package as PEP 561 typed.
+16. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
     package support used by the public surfaces above.
-15. `integration_quarantine.py` owns installed support metadata for
+17. `integration_quarantine.py` owns installed support metadata for
     source-tree integration probes; it does not make those probes stable
     package APIs.
 
