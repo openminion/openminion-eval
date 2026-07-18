@@ -57,4 +57,7 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "build_memory_context_scorecard root export missing" in release_check
     assert "memory context scorecard packaged fixture missing" in release_check
     assert "memory context scorecard smoke failed" in release_check
+    assert '"memory-context-scorecard"' in release_check
+    assert "memory-context-scorecard CLI artifact missing" in release_check
+    assert "expected_returncode=1" in release_check
     assert "openminion-eval" in release_check

@@ -25,6 +25,9 @@ This directory holds the public package documentation for standalone
 - [`memory-effectiveness.md`](memory-effectiveness.md)
   documents structured SophiaGraph/OpenMinion memory trace scoring,
   scorecards, paired-run deltas, and optional live evidence.
+- [`memory-context-scorecard.md`](memory-context-scorecard.md)
+  documents deterministic memory/context quality scorecards, paired ablation
+  evidence, trace links, and blocking-vs-advisory metric policy.
 - [`ci-recipes.md`](ci-recipes.md) gives pytest-native and CI examples for
   package users.
 - [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md)

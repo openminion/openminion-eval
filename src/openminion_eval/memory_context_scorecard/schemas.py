@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Literal, get_args
+from typing import Any, Literal, cast, get_args
 
 
 MemoryContextMetricName = Literal[
@@ -35,6 +35,24 @@ _PAIR_REQUIRED_BLOCKING_METRICS = frozenset({"block_usefulness", "memory_influen
 def _require_literal(value: str, allowed: tuple[str, ...], label: str) -> None:
     if value not in allowed:
         raise ValueError(f"invalid {label}: {value!r}")
+
+
+def metric_name_from_value(value: object) -> MemoryContextMetricName:
+    normalized = _require_non_empty(str(value or ""), "metric_name")
+    _require_literal(normalized, _METRIC_NAMES, "metric name")
+    return cast(MemoryContextMetricName, normalized)
+
+
+def metric_status_from_value(value: object) -> MemoryContextMetricStatus:
+    normalized = _require_non_empty(str(value or ""), "status")
+    _require_literal(normalized, _STATUSES, "metric status")
+    return cast(MemoryContextMetricStatus, normalized)
+
+
+def task_oracle_kind_from_value(value: object) -> TaskOracleKind:
+    normalized = _require_non_empty(str(value or ""), "kind")
+    _require_literal(normalized, _ORACLE_KINDS, "oracle kind")
+    return cast(TaskOracleKind, normalized)
 
 
 def _require_non_empty(value: str, label: str) -> str:

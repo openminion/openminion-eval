@@ -12,6 +12,8 @@ from openminion_eval.memory_context_scorecard.schemas import (
     MemoryContextMetric,
     MemoryContextScorecardV1,
     ScorecardCaseFixture,
+    metric_name_from_value,
+    metric_status_from_value,
 )
 
 MEMORY_CONTEXT_SCORECARD_VERSION = "memory-context-scorecard.v1"
@@ -104,28 +106,54 @@ def _metric_from_fixture(metric) -> MemoryContextMetric:
     )
 
 
-def _metric_from_payload(data: dict) -> MemoryContextMetric:
+def _metric_from_payload(data: dict[str, object]) -> MemoryContextMetric:
     from openminion_eval.memory_context_scorecard.schemas import (
         AblationOutcome,
         TaskOracle,
+        task_oracle_kind_from_value,
     )
 
     disabled = data.get("disabled_outcome")
     enabled = data.get("enabled_outcome")
     oracle = data.get("oracle")
     return MemoryContextMetric(
-        metric_name=data.get("metric_name"),  # type: ignore[arg-type]
-        status=data.get("status"),  # type: ignore[arg-type]
+        metric_name=metric_name_from_value(data.get("metric_name")),
+        status=metric_status_from_value(data.get("status")),
         value=float(data.get("value", 0.0)),
         threshold=float(data.get("threshold", 0.0)),
         blocking=bool(data.get("blocking", False)),
         evidence_refs=tuple(data.get("evidence_refs", ())),
         context_trace_ids=tuple(data.get("context_trace_ids", ())),
         provenance_trace_ids=tuple(data.get("provenance_trace_ids", ())),
-        disabled_outcome=AblationOutcome(**disabled) if disabled else None,
-        enabled_outcome=AblationOutcome(**enabled) if enabled else None,
+        disabled_outcome=_outcome_from_payload(disabled, AblationOutcome),
+        enabled_outcome=_outcome_from_payload(enabled, AblationOutcome),
         delta=data.get("delta"),
-        oracle=TaskOracle(**oracle) if oracle else None,
+        oracle=_oracle_from_payload(oracle, TaskOracle, task_oracle_kind_from_value),
         provider_backed=bool(data.get("provider_backed", False)),
         variance_evidence_ref=str(data.get("variance_evidence_ref", "") or ""),
+    )
+
+
+def _outcome_from_payload(value: object, outcome_type) -> object | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise ValueError("ablation outcome must be an object")
+    return outcome_type(
+        output_ref=str(value.get("output_ref", "")),
+        oracle_passed=bool(value.get("oracle_passed", False)),
+        score=float(value.get("score", 0.0)),
+    )
+
+
+def _oracle_from_payload(value: object, oracle_type, kind_from_value) -> object | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        raise ValueError("oracle must be an object")
+    return oracle_type(
+        oracle_id=str(value.get("oracle_id", "")),
+        kind=kind_from_value(value.get("kind")),
+        expected_value=str(value.get("expected_value", "")),
+        field_path=str(value.get("field_path", "") or ""),
     )

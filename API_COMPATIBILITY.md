@@ -24,6 +24,7 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.policy`
 - `openminion_eval.skills`
 - `openminion_eval.memory_effectiveness`
+- `openminion_eval.memory_context_scorecard`
 - `openminion_eval.goal_trajectory`
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
@@ -89,6 +90,14 @@ The following top-level exports are part of the current public contract:
   `load_memory_benchmark_cases(...)`,
   `load_packaged_memory_benchmark_sample(...)`, and
   `hash_benchmark_manifest_cases(...)`
+- memory/context scorecard exports such as
+  `MEMORY_CONTEXT_SCORECARD_VERSION`, `MemoryContextScorecardV1`,
+  `ScorecardCaseFixture`, `ScorecardMetricFixture`,
+  `load_memory_context_scorecard_fixtures(...)`,
+  `default_memory_context_scorecard_cases_path(...)`,
+  `build_memory_context_scorecard(...)`,
+  `write_memory_context_scorecard(...)`, and
+  `load_memory_context_scorecard(...)`
 - certification helpers such as `FamilyCertificationSignal` and
   `apply_family_signals_to_certification_cells(...)`
 - type/version contract: `openminion_eval.__version__` and packaged
@@ -173,6 +182,8 @@ Public-contract confidence should be enforced by tests that cover:
 14. CLI help, suite-run artifact output, and baseline-diff exit policy.
 15. boundary artifact validation, provenance failures, and no-provider-core
     checks.
+16. memory/context scorecard fixture loading, typed metric validation,
+    installed-wheel resource inclusion, and CLI exit policy.
 
 ## Non-goals
 

@@ -12,6 +12,9 @@ from openminion_eval.memory_context_scorecard.schemas import (
     ScorecardCaseFixture,
     ScorecardMetricFixture,
     TaskOracle,
+    metric_name_from_value,
+    metric_status_from_value,
+    task_oracle_kind_from_value,
 )
 
 FIXTURE_VERSION = "memory-context-scorecard-fixtures.v1"
@@ -64,10 +67,10 @@ def _case_from_mapping(data: Mapping[str, Any]) -> ScorecardCaseFixture:
 
 def _metric_from_mapping(data: Mapping[str, Any]) -> ScorecardMetricFixture:
     return ScorecardMetricFixture(
-        metric_name=data.get("metric_name"),  # type: ignore[arg-type]
+        metric_name=metric_name_from_value(data.get("metric_name")),
         value=float(data.get("value", 0.0)),
         threshold=float(data.get("threshold", 0.0)),
-        status=data.get("status"),  # type: ignore[arg-type]
+        status=metric_status_from_value(data.get("status")),
         blocking=bool(data.get("blocking", False)),
         evidence_refs=tuple(data.get("evidence_refs", ())),
         context_trace_ids=tuple(data.get("context_trace_ids", ())),
@@ -97,7 +100,7 @@ def _oracle_or_none(value: Any) -> TaskOracle | None:
     data = _require_mapping(value)
     return TaskOracle(
         oracle_id=str(data.get("oracle_id", "")),
-        kind=data.get("kind"),  # type: ignore[arg-type]
+        kind=task_oracle_kind_from_value(data.get("kind")),
         expected_value=str(data.get("expected_value", "")),
         field_path=str(data.get("field_path", "") or ""),
     )

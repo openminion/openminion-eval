@@ -13,8 +13,19 @@ import tempfile
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def _run(args: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
-    subprocess.run(args, cwd=cwd, env=env, check=True)
+def _run(
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str] | None = None,
+    expected_returncode: int = 0,
+) -> None:
+    result = subprocess.run(args, cwd=cwd, env=env, check=False)
+    if result.returncode != expected_returncode:
+        raise RuntimeError(
+            f"expected return code {expected_returncode}, got {result.returncode}: "
+            f"{args!r}"
+        )
 
 
 def _single_artifact(dist_dir: Path, suffix: str) -> Path:
@@ -414,6 +425,24 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
+            scorecard_path = tmp_root / "memory-context-scorecard.json"
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "memory-context-scorecard",
+                    "--run-id",
+                    "release-smoke",
+                    "--out",
+                    str(scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+                expected_returncode=1,
+            )
+            if not scorecard_path.is_file():
+                raise RuntimeError("memory-context-scorecard CLI artifact missing")
 
             print(f"release-check ok: {sdist.name}, {wheel.name}")
     finally:

@@ -10,10 +10,8 @@ import sys
 from typing import Any
 
 from openminion_eval.datasets import hash_eval_dataset, load_eval_dataset
-from openminion_eval.memory_context_scorecard import (
-    build_memory_context_scorecard,
-    load_memory_context_scorecard_fixtures,
-    write_memory_context_scorecard,
+from openminion_eval.memory_context_scorecard.cli import (
+    add_memory_context_scorecard_parser,
 )
 from openminion_eval.memory_effectiveness import (
     MemoryEffectivenessTrace,
@@ -24,7 +22,6 @@ from openminion_eval.memory_effectiveness import (
     score_memory_case,
     write_memory_scorecard,
 )
-from openminion_eval.paths import generated_root
 from openminion_eval.suite import EvalSuite
 from openminion_eval.suite_artifacts import (
     build_run_manifest,
@@ -50,7 +47,7 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_run_parser(subparsers)
     _add_diff_parser(subparsers)
     _add_memory_effectiveness_parser(subparsers)
-    _add_memory_context_scorecard_parser(subparsers)
+    add_memory_context_scorecard_parser(subparsers)
     return parser
 
 
@@ -137,31 +134,6 @@ def _add_memory_effectiveness_parser(subparsers: Any) -> None:
         help="write scorecard JSON artifact to PATH",
     )
     score_parser.set_defaults(func=_memory_score_command)
-
-
-def _add_memory_context_scorecard_parser(subparsers: Any) -> None:
-    memory_context_parser = subparsers.add_parser(
-        "memory-context-scorecard",
-        help="write a deterministic memory/context quality scorecard report",
-    )
-    memory_context_parser.add_argument(
-        "--fixtures",
-        type=Path,
-        default=None,
-        help="optional scorecard fixture JSON; defaults to packaged fixtures",
-    )
-    memory_context_parser.add_argument(
-        "--run-id",
-        default="memory-context-scorecard-local",
-        help="run id for scorecard artifacts",
-    )
-    memory_context_parser.add_argument(
-        "--out",
-        type=Path,
-        default=None,
-        help="write report JSON to PATH; defaults under generated root",
-    )
-    memory_context_parser.set_defaults(func=_memory_context_scorecard_command)
 
 
 def _run_command(args: argparse.Namespace) -> int:
@@ -254,35 +226,6 @@ def _memory_score_command(args: argparse.Namespace) -> int:
         }
     )
     return 1 if scorecard.critical_failures or unmatched_cases else 0
-
-
-def _memory_context_scorecard_command(args: argparse.Namespace) -> int:
-    fixtures = load_memory_context_scorecard_fixtures(args.fixtures)
-    scorecard = build_memory_context_scorecard(
-        fixtures,
-        run_id=args.run_id,
-        metadata={
-            "fixture_source": "packaged"
-            if args.fixtures is None
-            else str(args.fixtures)
-        },
-    )
-    output = args.out or (
-        generated_root() / "memory-context-scorecard" / f"{args.run_id}.json"
-    )
-    write_memory_context_scorecard(output, scorecard)
-    _write_json(
-        {
-            "report_version": scorecard.report_version,
-            "run_id": scorecard.run_id,
-            "fixture_count": scorecard.summary["fixture_count"],
-            "metric_count": scorecard.summary["metric_count"],
-            "blocking_fail_count": scorecard.summary["blocking_fail_count"],
-            "all_blocking_passed": scorecard.summary["all_blocking_passed"],
-            "artifact": str(output),
-        }
-    )
-    return 0 if bool(scorecard.summary["all_blocking_passed"]) else 1
 
 
 def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:

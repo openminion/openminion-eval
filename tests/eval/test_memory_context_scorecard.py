@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import cast
 
 import pytest
 
 from openminion_eval.memory_context_scorecard import (
     AblationOutcome,
     MemoryContextScorecardV1,
+    MemoryContextMetricStatus,
     ScorecardMetricFixture,
     TaskOracle,
     build_memory_context_scorecard,
@@ -23,32 +25,41 @@ FIXTURE_PATH = (
 )
 
 
-def _paired_metric(**overrides: object) -> ScorecardMetricFixture:
-    values = {
-        "metric_name": "memory_influence",
-        "value": 1.0,
-        "threshold": 0.5,
-        "status": "pass",
-        "blocking": True,
-        "evidence_refs": ("trace://memory/1",),
-        "disabled_outcome": AblationOutcome(
+def _paired_metric(
+    *,
+    status: MemoryContextMetricStatus = "pass",
+    provider_backed: bool = False,
+    disabled_outcome: AblationOutcome | None = None,
+    enabled_outcome: AblationOutcome | None = None,
+    variance_evidence_ref: str = "",
+) -> ScorecardMetricFixture:
+    return ScorecardMetricFixture(
+        metric_name="memory_influence",
+        value=1.0,
+        threshold=0.5,
+        status=status,
+        blocking=True,
+        evidence_refs=("trace://memory/1",),
+        disabled_outcome=disabled_outcome
+        or AblationOutcome(
             output_ref="output://disabled",
             oracle_passed=False,
             score=0.0,
         ),
-        "enabled_outcome": AblationOutcome(
+        enabled_outcome=enabled_outcome
+        or AblationOutcome(
             output_ref="output://enabled",
             oracle_passed=True,
             score=1.0,
         ),
-        "oracle": TaskOracle(
+        oracle=TaskOracle(
             oracle_id="oracle-memory",
             kind="exact_text",
             expected_value="uses memory",
         ),
-    }
-    values.update(overrides)
-    return ScorecardMetricFixture(**values)  # type: ignore[arg-type]
+        provider_backed=provider_backed,
+        variance_evidence_ref=variance_evidence_ref,
+    )
 
 
 def test_scorecard_schema_rejects_missing_metrics() -> None:
@@ -65,7 +76,7 @@ def test_scorecard_schema_rejects_missing_metrics() -> None:
 
 def test_scorecard_schema_rejects_unknown_status() -> None:
     with pytest.raises(ValueError, match="invalid metric status"):
-        _paired_metric(status="blocked")  # type: ignore[arg-type]
+        _paired_metric(status=cast(MemoryContextMetricStatus, "blocked"))
 
 
 def test_blocking_influence_requires_pair_and_oracle() -> None:
