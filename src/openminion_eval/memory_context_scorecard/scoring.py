@@ -9,11 +9,14 @@ from typing import Iterable
 
 from openminion_eval.family_support import report_generated_at
 from openminion_eval.memory_context_scorecard.schemas import (
+    AblationOutcome,
     MemoryContextMetric,
     MemoryContextScorecardV1,
     ScorecardCaseFixture,
+    TaskOracle,
     metric_name_from_value,
     metric_status_from_value,
+    task_oracle_kind_from_value,
 )
 
 MEMORY_CONTEXT_SCORECARD_VERSION = "memory-context-scorecard.v1"
@@ -107,12 +110,6 @@ def _metric_from_fixture(metric) -> MemoryContextMetric:
 
 
 def _metric_from_payload(data: dict[str, object]) -> MemoryContextMetric:
-    from openminion_eval.memory_context_scorecard.schemas import (
-        AblationOutcome,
-        TaskOracle,
-        task_oracle_kind_from_value,
-    )
-
     disabled = data.get("disabled_outcome")
     enabled = data.get("enabled_outcome")
     oracle = data.get("oracle")
@@ -125,35 +122,35 @@ def _metric_from_payload(data: dict[str, object]) -> MemoryContextMetric:
         evidence_refs=tuple(data.get("evidence_refs", ())),
         context_trace_ids=tuple(data.get("context_trace_ids", ())),
         provenance_trace_ids=tuple(data.get("provenance_trace_ids", ())),
-        disabled_outcome=_outcome_from_payload(disabled, AblationOutcome),
-        enabled_outcome=_outcome_from_payload(enabled, AblationOutcome),
+        disabled_outcome=_outcome_from_payload(disabled),
+        enabled_outcome=_outcome_from_payload(enabled),
         delta=data.get("delta"),
-        oracle=_oracle_from_payload(oracle, TaskOracle, task_oracle_kind_from_value),
+        oracle=_oracle_from_payload(oracle),
         provider_backed=bool(data.get("provider_backed", False)),
         variance_evidence_ref=str(data.get("variance_evidence_ref", "") or ""),
     )
 
 
-def _outcome_from_payload(value: object, outcome_type) -> object | None:
+def _outcome_from_payload(value: object) -> AblationOutcome | None:
     if value is None:
         return None
     if not isinstance(value, dict):
         raise ValueError("ablation outcome must be an object")
-    return outcome_type(
+    return AblationOutcome(
         output_ref=str(value.get("output_ref", "")),
         oracle_passed=bool(value.get("oracle_passed", False)),
         score=float(value.get("score", 0.0)),
     )
 
 
-def _oracle_from_payload(value: object, oracle_type, kind_from_value) -> object | None:
+def _oracle_from_payload(value: object) -> TaskOracle | None:
     if value is None:
         return None
     if not isinstance(value, dict):
         raise ValueError("oracle must be an object")
-    return oracle_type(
+    return TaskOracle(
         oracle_id=str(value.get("oracle_id", "")),
-        kind=kind_from_value(value.get("kind")),
+        kind=task_oracle_kind_from_value(value.get("kind")),
         expected_value=str(value.get("expected_value", "")),
         field_path=str(value.get("field_path", "") or ""),
     )
