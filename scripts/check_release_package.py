@@ -100,11 +100,16 @@ from openminion_eval import (
     EvalResult,
     EvalRunner,
     EvalScorer,
+    EvalScorerInfo,
     EvalScorerSpec,
     EvalSubjectInterface,
+    CliSubject,
+    HttpSubject,
+    ReplaySubject,
     EvalDatasetValidationError,
     BOUNDARY_ARTIFACT_VERSION,
     BoundaryArtifactValidationError,
+    IntegrationProbeDisposition,
     RedTeamSecurityArtifact,
     SyntheticGoldenArtifact,
     GoalDriftSignalKind,
@@ -115,7 +120,9 @@ from openminion_eval import (
     MemoryExpectation,
     MEMORY_CONTEXT_SCORECARD_VERSION,
     MemoryContextScorecardV1,
+    build_eval_dataset_template,
     build_case_traces,
+    build_integration_quarantine_map,
     build_memory_context_scorecard,
     build_memory_scorecard,
     build_run_manifest,
@@ -126,15 +133,20 @@ from openminion_eval import (
     compare_suite_results,
     hash_transcripts,
     load_packaged_memory_benchmark_sample,
+    load_replay_subject,
     load_memory_context_scorecard_fixtures,
     load_memory_effectiveness_cases,
     load_eval_dataset_jsonl,
     load_red_team_security_artifact,
     load_synthetic_golden_artifact,
     list_builtin_families,
+    parse_http_headers,
+    render_suite_result_markdown,
+    render_baseline_diff_markdown,
     registered_cases,
     score_memory_case,
     select_transcripts,
+    write_eval_dataset_template,
     write_red_team_security_artifact,
     write_synthetic_golden_artifact,
 )
@@ -158,12 +170,24 @@ if EvalScorer.__name__ != "EvalScorer":
     raise SystemExit("EvalScorer root export missing")
 if EvalScorerSpec.__name__ != "EvalScorerSpec":
     raise SystemExit("EvalScorerSpec root export missing")
+if EvalScorerInfo.__name__ != "EvalScorerInfo":
+    raise SystemExit("EvalScorerInfo root export missing")
 if not isinstance(openminion_eval.__version__, str) or not openminion_eval.__version__:
     raise SystemExit("__version__ root export missing")
 if EvalRunContext.__name__ != "EvalRunContext":
     raise SystemExit("EvalRunContext root export missing")
 if EvalSubjectInterface.__name__ != "EvalSubjectInterface":
     raise SystemExit("EvalSubjectInterface root export missing")
+if CliSubject.__name__ != "CliSubject":
+    raise SystemExit("CliSubject root export missing")
+if HttpSubject.__name__ != "HttpSubject":
+    raise SystemExit("HttpSubject root export missing")
+if ReplaySubject.__name__ != "ReplaySubject":
+    raise SystemExit("ReplaySubject root export missing")
+if not callable(load_replay_subject):
+    raise SystemExit("load_replay_subject root export missing")
+if parse_http_headers(["X-Test=yes"])["X-Test"] != "yes":
+    raise SystemExit("parse_http_headers root export drifted")
 if EvalCase.__name__ != "EvalCase":
     raise SystemExit("EvalCase root export missing")
 if EvalRunManifest.__name__ != "EvalRunManifest":
@@ -210,8 +234,20 @@ if not callable(select_transcripts):
     raise SystemExit("select_transcripts root export missing")
 if not callable(load_eval_dataset_jsonl):
     raise SystemExit("load_eval_dataset_jsonl root export missing")
+if build_eval_dataset_template(family="routing")["name"] != "routing-starter":
+    raise SystemExit("dataset template root export drifted")
+if not callable(write_eval_dataset_template):
+    raise SystemExit("write_eval_dataset_template root export missing")
 if EvalDatasetValidationError.__name__ != "EvalDatasetValidationError":
     raise SystemExit("EvalDatasetValidationError root export missing")
+if IntegrationProbeDisposition.__name__ != "IntegrationProbeDisposition":
+    raise SystemExit("IntegrationProbeDisposition root export missing")
+if not callable(build_integration_quarantine_map):
+    raise SystemExit("build_integration_quarantine_map root export missing")
+if not callable(render_suite_result_markdown):
+    raise SystemExit("render_suite_result_markdown root export missing")
+if not callable(render_baseline_diff_markdown):
+    raise SystemExit("render_baseline_diff_markdown root export missing")
 if BOUNDARY_ARTIFACT_VERSION != "1":
     raise SystemExit("boundary artifact version drifted")
 if BoundaryArtifactValidationError.__name__ != "BoundaryArtifactValidationError":
@@ -254,6 +290,8 @@ threshold_result = EvalScorer().score(
 )
 if threshold_result.scorer_reason != "passed" or threshold_result.scorer_threshold != 0.8:
     raise SystemExit("threshold-aware scorer metadata drifted")
+if {item.name for item in EvalScorer().list_scorers()} != {"exact_match", "substring_match"}:
+    raise SystemExit("scorer registry metadata drifted")
 
 dist_files = {str(path) for path in distribution("openminion-eval").files or ()}
 if "openminion_eval/py.typed" not in dist_files:

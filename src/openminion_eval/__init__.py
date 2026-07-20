@@ -16,15 +16,36 @@ from openminion_eval.interfaces import (
     ensure_eval_suite_compatibility,
 )
 from openminion_eval.runner import EvalRunner
-from openminion_eval.scorer import EvalScorer, EvalScorerSpec
+from openminion_eval.scorer import EvalScorer, EvalScorerInfo, EvalScorerSpec
+from openminion_eval.subject_adapters import (
+    CliSubject,
+    HttpSubject,
+    ReplaySubject,
+    load_replay_subject,
+    parse_http_headers,
+)
 from openminion_eval.suite import EvalSuite, select_transcripts
 from openminion_eval.datasets import (
     DATASET_VERSION,
     EvalDatasetValidationError,
+    build_eval_dataset_template,
     hash_eval_dataset,
     load_eval_dataset,
     load_eval_dataset_json,
     load_eval_dataset_jsonl,
+    write_eval_dataset_template,
+)
+from openminion_eval.integration_quarantine import (
+    INTEGRATION_QUARANTINE_VERSION,
+    IntegrationProbeDisposition,
+    build_integration_quarantine_map,
+    integration_probe_tiers,
+)
+from openminion_eval.reports import (
+    render_baseline_diff_html,
+    render_baseline_diff_markdown,
+    render_suite_result_html,
+    render_suite_result_markdown,
 )
 from openminion_eval.boundary_artifacts import (
     BOUNDARY_ARTIFACT_VERSION,
@@ -228,7 +249,11 @@ __all__ = [
     "__version__",
     "EvalRunner",
     "EvalScorer",
+    "EvalScorerInfo",
     "EvalScorerSpec",
+    "CliSubject",
+    "HttpSubject",
+    "ReplaySubject",
     "EvalSuite",
     "EvalResult",
     "EvalCaseTrace",
@@ -240,10 +265,22 @@ __all__ = [
     "EvalDatasetCase",
     "DATASET_VERSION",
     "EvalDatasetValidationError",
+    "build_eval_dataset_template",
     "hash_eval_dataset",
     "load_eval_dataset",
     "load_eval_dataset_json",
     "load_eval_dataset_jsonl",
+    "write_eval_dataset_template",
+    "load_replay_subject",
+    "parse_http_headers",
+    "INTEGRATION_QUARANTINE_VERSION",
+    "IntegrationProbeDisposition",
+    "build_integration_quarantine_map",
+    "integration_probe_tiers",
+    "render_baseline_diff_html",
+    "render_baseline_diff_markdown",
+    "render_suite_result_html",
+    "render_suite_result_markdown",
     "BOUNDARY_ARTIFACT_VERSION",
     "BoundaryArtifactValidationError",
     "RED_TEAM_SECURITY_OUTCOMES",

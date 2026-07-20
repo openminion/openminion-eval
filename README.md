@@ -65,6 +65,12 @@ The public package currently ships:
 - provider-free boundary artifact contracts for red-team/security fixtures and
   synthetic goldens with explicit provenance
 - package CLI entrypoints for suite runs and baseline diffs
+- black-box subject adapters for local commands, JSON HTTP endpoints, and JSONL
+  replay fixtures
+- dataset CLI helpers for validation, stable hashing, and starter dataset
+  creation
+- Markdown/HTML report rendering for suite artifacts and baseline diffs
+- scorer discovery CLI for built-in scorer metadata
 - opt-in parallel suite execution and partial rerun selection by previous
   failures, transcript name, and transcript tags
 - the starter `EvalCase` registry under `openminion_eval.cases`
@@ -164,6 +170,37 @@ Generic suite run:
 ```bash
 openminion-eval run eval-dataset.jsonl --out suite-result.json
 python -m openminion_eval diff baseline.json suite-result.json
+```
+
+Black-box subject runs:
+
+```bash
+openminion-eval run eval-dataset.jsonl --command "python subject.py"
+openminion-eval run eval-dataset.jsonl --http-url http://127.0.0.1:8080/eval
+openminion-eval run eval-dataset.jsonl --replay-jsonl replay-outputs.jsonl
+```
+
+Dataset and registry helpers:
+
+```bash
+openminion-eval dataset validate eval-dataset.jsonl
+openminion-eval dataset hash eval-dataset.jsonl
+openminion-eval dataset init --family routing --out routing-starter.json
+openminion-eval scorers list
+```
+
+Human-readable reports:
+
+```bash
+openminion-eval report suite suite-result.json --out suite-report.md
+openminion-eval report diff baseline.json suite-result.json --format html --out diff.html
+```
+
+Repo-local integration tiers:
+
+```bash
+openminion-eval integration list --root .
+openminion-eval integration list --root . --tier live-provider
 ```
 
 Memory-effectiveness trace scoring:

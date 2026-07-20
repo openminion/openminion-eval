@@ -160,6 +160,35 @@ def test_run_command_returns_one_on_threshold_failure(tmp_path, capsys) -> None:
     assert stdout["failed_transcripts"] == 1
 
 
+def test_run_command_can_use_replay_jsonl_subject(tmp_path, capsys) -> None:
+    dataset = _jsonl_dataset(tmp_path / "dataset.jsonl", expected="expected")
+    replay = tmp_path / "replay.jsonl"
+    replay.write_text('{"user": "hello", "actual": "expected"}\n', encoding="utf-8")
+
+    exit_code = main(["run", str(dataset), "--replay-jsonl", str(replay)])
+
+    stdout = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert stdout["all_passed"] is True
+
+
+def test_run_command_can_use_command_subject(tmp_path, capsys) -> None:
+    dataset = _jsonl_dataset(tmp_path / "dataset.jsonl", expected="hello")
+
+    exit_code = main(
+        [
+            "run",
+            str(dataset),
+            "--command",
+            f"{sys.executable} -c 'import sys; print(sys.stdin.read().strip())'",
+        ]
+    )
+
+    stdout = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert stdout["all_passed"] is True
+
+
 def test_diff_command_reports_categories_and_failure_exit(tmp_path, capsys) -> None:
     previous_path = tmp_path / "previous.json"
     current_path = tmp_path / "current.json"
@@ -224,3 +253,61 @@ def test_diff_command_writes_output_and_returns_zero_for_non_regression(
     assert json.loads(output_path.read_text(encoding="utf-8"))["categories"] == {
         "fixed": 1
     }
+
+
+def test_dataset_validate_hash_and_init_commands(tmp_path, capsys) -> None:
+    dataset = _jsonl_dataset(tmp_path / "dataset.jsonl", expected="hello")
+    init_output = tmp_path / "routing.json"
+
+    assert main(["dataset", "validate", str(dataset)]) == 0
+    validate_stdout = json.loads(capsys.readouterr().out)
+    assert validate_stdout["valid"] is True
+    assert validate_stdout["case_count"] == 1
+
+    assert main(["dataset", "hash", str(dataset)]) == 0
+    hash_stdout = json.loads(capsys.readouterr().out)
+    assert hash_stdout["dataset_hash"] == validate_stdout["dataset_hash"]
+
+    assert (
+        main(["dataset", "init", "--family", "routing", "--out", str(init_output)]) == 0
+    )
+    init_stdout = json.loads(capsys.readouterr().out)
+    assert init_stdout["artifact"] == str(init_output)
+    assert json.loads(init_output.read_text(encoding="utf-8"))["name"] == (
+        "routing-starter"
+    )
+
+
+def test_report_suite_command_writes_markdown(tmp_path, capsys) -> None:
+    artifact = tmp_path / "suite.json"
+    report = tmp_path / "suite.md"
+    write_suite_result(
+        artifact,
+        _suite("suite", [_summary("hello", passed=True, score=1.0)]),
+        _manifest(),
+    )
+
+    exit_code = main(["report", "suite", str(artifact), "--out", str(report)])
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    assert "# OpenMinion Eval Suite Report" in report.read_text(encoding="utf-8")
+
+
+def test_scorers_list_command_reports_builtin_scorers(capsys) -> None:
+    exit_code = main(["scorers", "list"])
+
+    stdout = json.loads(capsys.readouterr().out)
+    names = {item["name"] for item in stdout["scorers"]}
+    assert exit_code == 0
+    assert {"exact_match", "substring_match"}.issubset(names)
+
+
+def test_integration_list_command_reports_tiers(capsys) -> None:
+    exit_code = main(["integration", "list", "--root", str(REPO_ROOT)])
+
+    stdout = json.loads(capsys.readouterr().out)
+    tiers = {item["tier"] for item in stdout["probes"]}
+    assert exit_code == 0
+    assert stdout["probe_count"] > 0
+    assert {"local", "host-runtime", "live-provider"}.issubset(tiers)

@@ -53,6 +53,10 @@ This directory holds the public package documentation for standalone
 6. `RELEASING.md` records the package-local release and PyPI publish flow.
 7. `scripts/release_check.py` is the canonical package release smoke entrypoint.
 8. `python -m openminion_eval.cases` is the package-owned case report CLI.
+9. `openminion-eval dataset`, `openminion-eval scorers`,
+   `openminion-eval report`, and `openminion-eval integration` expose the
+   package-owned dataset authoring, scorer discovery, report rendering, and
+   optional integration-tier inspection surfaces.
 
 ## Repository-local but not wheel-shipped
 
@@ -63,6 +67,6 @@ This directory holds the public package documentation for standalone
 ## Public package stance
 
 The `0.0.x` alpha contract is intentionally narrow: deterministic scoring and
-reporting helpers, packaged skill-eval resources, a starter case CLI, and
-provider-free artifact validators, with release checks that prove the
-installed wheel exposes only the documented public surface.
+reporting helpers, black-box subject adapters, packaged skill-eval resources,
+a starter case CLI, and provider-free artifact validators, with release checks
+that prove the installed wheel exposes only the documented public surface.

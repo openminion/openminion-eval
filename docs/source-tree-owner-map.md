@@ -16,8 +16,8 @@ The public alpha surface is documented in:
 The preferred public entrypoint is `openminion_eval`, with stable import roots
 for cases, tools, freshness, routing, closure, policy, skills,
 goal-trajectory, reporting helpers, dataset/artifact helpers, family registry,
-manual review artifacts, boundary artifact validators, memory-effectiveness
-helpers, and memory/context scorecards.
+manual review artifacts, subject adapters, boundary artifact validators,
+memory-effectiveness helpers, and memory/context scorecards.
 
 ## Source-tree owner map
 
@@ -25,7 +25,7 @@ helpers, and memory/context scorecards.
    own the generic eval primitives, scorer contracts, suite summaries, and
    trace-row schemas.
 2. `datasets.py` owns versioned JSON/JSONL dataset loading and stable dataset
-   hashing.
+   hashing plus starter dataset templates.
 3. `suite_artifacts.py` owns suite-result manifests, baseline diffs, and
    scorer trace JSONL output.
 4. `manual.py` owns local manual-review queues and adjudication imports.
@@ -46,13 +46,16 @@ helpers, and memory/context scorecards.
     fixtures, typed metric validation, report IO, and the matching CLI
     subcommand owner.
 13. `reporting/` owns package-level certification signal helpers.
-14. `cli.py` and `__main__.py` own the public package command line dispatcher.
-15. `py.typed` marks the installed package as PEP 561 typed.
-16. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
+14. `reports.py` owns Markdown and HTML rendering for suite artifacts and
+    baseline diffs.
+15. `subject_adapters.py` owns black-box HTTP, command, and replay subjects.
+16. `cli.py` and `__main__.py` own the public package command line dispatcher.
+17. `py.typed` marks the installed package as PEP 561 typed.
+18. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
     package support used by the public surfaces above.
-17. `integration_quarantine.py` owns installed support metadata for
-    source-tree integration probes; it does not make those probes stable
-    package APIs.
+19. `integration_quarantine.py` owns installed support metadata and optional
+    gate tiers for source-tree integration probes; it does not make those
+    probes stable package APIs.
 
 ## Repo-local but not public API
 

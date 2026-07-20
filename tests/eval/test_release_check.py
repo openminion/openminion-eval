@@ -31,7 +31,15 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "boundary artifact version drifted" in release_check
     assert "EvalScorer root export missing" in release_check
     assert "EvalScorerSpec root export missing" in release_check
+    assert "EvalScorerInfo root export missing" in release_check
     assert "threshold-aware scorer metadata drifted" in release_check
+    assert "scorer registry metadata drifted" in release_check
+    assert "CliSubject root export missing" in release_check
+    assert "HttpSubject root export missing" in release_check
+    assert "ReplaySubject root export missing" in release_check
+    assert "dataset template root export drifted" in release_check
+    assert "IntegrationProbeDisposition root export missing" in release_check
+    assert "render_suite_result_markdown root export missing" in release_check
     assert "built-in family registry is empty" in release_check
     assert "manual review queue export drifted" in release_check
     assert "py.typed missing from installed wheel" in release_check

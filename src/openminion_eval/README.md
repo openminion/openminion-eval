@@ -14,16 +14,16 @@ The public alpha surface is documented in:
 The preferred public entrypoint is `openminion_eval`, with stable import roots
 for cases, tools, freshness, routing, closure, policy, skills,
 memory-effectiveness trace scoring, goal-trajectory, reporting helpers,
-dataset/artifact helpers, family registry, manual review artifacts, and
-boundary artifact validators.
+dataset/artifact helpers, family registry, manual review artifacts, subject
+adapters, and boundary artifact validators.
 
 ## Source-Tree Owner Map
 
 1. `runner.py`, `scorer.py`, `suite.py`, `schemas.py`, and `interfaces.py`
    own the generic eval primitives, scorer contracts, suite summaries, and
    trace-row schemas.
-2. `datasets.py` owns versioned JSON/JSONL dataset loading and stable dataset
-   hashing.
+2. `datasets.py` owns versioned JSON/JSONL dataset loading, stable dataset
+   hashing, and starter dataset templates.
 3. `suite_artifacts.py` owns suite-result manifests, baseline diffs, and
    scorer trace JSONL output.
 4. `manual.py` owns local manual-review queues and adjudication imports.
@@ -41,14 +41,19 @@ boundary artifact validators.
    comparison helpers.
 11. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
    aggregate reports.
-12. `reporting/` owns package-level certification signal helpers.
-13. `cli.py` and `__main__.py` own the public package command line.
-14. `py.typed` marks the installed package as PEP 561 typed.
-15. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
+12. `memory_context_scorecard/` owns deterministic memory/context scorecard
+    fixtures, typed metric validation, report IO, and the matching CLI.
+13. `reporting/` owns package-level certification signal helpers.
+14. `reports.py` owns Markdown and HTML rendering for suite artifacts and
+    baseline diffs.
+15. `subject_adapters.py` owns black-box HTTP, command, and replay subjects.
+16. `cli.py` and `__main__.py` own the public package command line.
+17. `py.typed` marks the installed package as PEP 561 typed.
+18. `config.py`, `constants.py`, `paths.py`, and `family_support.py` own shared
     package support used by the public surfaces above.
-16. `integration_quarantine.py` owns installed support metadata for
-    source-tree integration probes; it does not make those probes stable
-    package APIs.
+19. `integration_quarantine.py` owns installed support metadata and optional
+    gate tiers for source-tree integration probes; it does not make those
+    probes stable package APIs.
 
 ## Repo-Local But Not Public API
 
