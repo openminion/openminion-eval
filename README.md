@@ -30,6 +30,16 @@ Use it when you want repeatable agent-quality checks for routing, tools,
 freshness, closure, policy, skills, and structured memory-effectiveness traces
 without pulling in the full runtime.
 
+## Read This First
+
+1. Use [At a glance](#at-a-glance) to confirm the standalone package boundary.
+2. Use [Install](#install) for the minimal package smoke.
+3. Use [What ships in the public package](#what-ships-in-the-public-package)
+   to see the stable public surfaces.
+4. Use [What stays repo-local](#what-stays-repo-local) to avoid confusing this
+   package with host-runtime integration tests.
+5. Use [Development](#development) when changing the package.
+
 ## Trust and Brand Safety
 
 - Official GitHub: `https://github.com/openminion/openminion-eval`
@@ -50,6 +60,15 @@ and should be treated as a scam.
 - Not the claim: source-tree memory harnesses and broader host-runtime
   validation flows still live in the repo; the package ships deterministic
   trace scoring, not a live memory engine
+
+## Common Commands
+
+```bash
+python3.11 -m pip install "openminion-eval @ git+https://github.com/openminion/openminion-eval.git"
+openminion-eval dataset validate eval-dataset.jsonl
+openminion-eval run eval-dataset.jsonl --out suite-result.json
+openminion-eval report suite suite-result.json --out suite-report.md
+```
 
 ## What ships in the public package
 
@@ -313,6 +332,17 @@ PY
 - `docs/source-tree-owner-map.md` explains the module layout and
   public boundary.
 - `scripts/release_check.py` is the canonical release smoke entrypoint.
+
+## Development
+
+```bash
+make dev-install
+make check
+make release-check
+```
+
+Use `make test-all` only when you intentionally want the broader repo-local
+integration suite.
 
 ## Surface classification
 
