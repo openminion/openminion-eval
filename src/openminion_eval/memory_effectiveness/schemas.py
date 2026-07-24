@@ -19,11 +19,14 @@ MemoryEffectivenessCaseFamily = Literal[
 MemoryTraceMode = Literal["disabled", "enabled"]
 MemoryComponent = Literal["save", "retrieval", "usage", "longitudinal"]
 MemoryCaseStatus = Literal["passed", "failed", "unsupported_by_design"]
+MemoryTrajectoryMatchMode = Literal["strict", "unordered", "subset", "superset"]
+MemoryTraceRedactionStatus = Literal["sanitized", "unredacted", "unknown"]
 
 _FAMILIES = get_args(MemoryEffectivenessCaseFamily)
 _TRACE_MODES = get_args(MemoryTraceMode)
 _COMPONENTS = get_args(MemoryComponent)
 _STATUSES = get_args(MemoryCaseStatus)
+_REDACTION_STATUSES = get_args(MemoryTraceRedactionStatus)
 
 
 def _require_literal(value: str, allowed: tuple[str, ...], label: str) -> None:
@@ -64,6 +67,8 @@ class MemoryTraceToolCall:
     tool: str
     arguments_ref: str
     memory_ids: tuple[str, ...] = ()
+    operation: str = ""
+    memory_location: str = ""
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "tool", _require_non_empty(self.tool, "tool"))
@@ -90,6 +95,24 @@ class MemoryEffectivenessTrace:
     diagnostics: tuple[str, ...] = ()
     namespace: str = ""
     timestamp: str = ""
+    context_memory_ids: tuple[str, ...] = ()
+    cited_memory_ids: tuple[str, ...] = ()
+    provider_id: str = ""
+    model_id: str = ""
+    token_count: int | None = None
+    cost_usd: float | None = None
+    latency_ms: float | None = None
+    entity_proposal_ids: tuple[str, ...] = ()
+    fact_proposal_ids: tuple[str, ...] = ()
+    lifecycle_event_ids: tuple[str, ...] = ()
+    artifact_ids: tuple[str, ...] = ()
+    citation_spans: tuple[str, ...] = ()
+    trajectory_steps: tuple[str, ...] = ()
+    graph_path_ids: tuple[str, ...] = ()
+    valid_time_refs: tuple[str, ...] = ()
+    transaction_time_refs: tuple[str, ...] = ()
+    redaction_status: MemoryTraceRedactionStatus = "sanitized"
+    private_trace_refs: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "case_id", _require_non_empty(self.case_id, "case_id"))
@@ -100,6 +123,18 @@ class MemoryEffectivenessTrace:
             "retrieved_memory_ids",
             "used_memory_ids",
             "diagnostics",
+            "context_memory_ids",
+            "cited_memory_ids",
+            "entity_proposal_ids",
+            "fact_proposal_ids",
+            "lifecycle_event_ids",
+            "artifact_ids",
+            "citation_spans",
+            "trajectory_steps",
+            "graph_path_ids",
+            "valid_time_refs",
+            "transaction_time_refs",
+            "private_trace_refs",
         ):
             object.__setattr__(
                 self,
@@ -112,6 +147,11 @@ class MemoryEffectivenessTrace:
         for call in self.tool_calls:
             if not isinstance(call, MemoryTraceToolCall):
                 raise TypeError("tool_calls must contain MemoryTraceToolCall")
+        _require_literal(
+            self.redaction_status,
+            _REDACTION_STATUSES,
+            "redaction_status",
+        )
 
 
 @dataclass(frozen=True)
@@ -127,6 +167,22 @@ class MemoryExpectation:
     requires_longitudinal_improvement: bool = False
     critical: bool = False
     description: str = ""
+    expected_operation: str = ""
+    expected_memory_location: str = ""
+    expected_retrieved_order: tuple[str, ...] = ()
+    required_context_memory_ids: tuple[str, ...] = ()
+    required_cited_memory_ids: tuple[str, ...] = ()
+    max_unnecessary_memory_calls: int | None = None
+    required_entity_proposal_ids: tuple[str, ...] = ()
+    required_fact_proposal_ids: tuple[str, ...] = ()
+    required_lifecycle_event_ids: tuple[str, ...] = ()
+    required_artifact_ids: tuple[str, ...] = ()
+    required_citation_spans: tuple[str, ...] = ()
+    expected_trajectory_steps: tuple[str, ...] = ()
+    trajectory_match_mode: MemoryTrajectoryMatchMode = "strict"
+    required_graph_path_ids: tuple[str, ...] = ()
+    required_valid_time_refs: tuple[str, ...] = ()
+    required_transaction_time_refs: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -136,12 +192,29 @@ class MemoryExpectation:
             "required_claim_memory_ids",
             "required_tool_memory_ids",
             "forbidden_memory_ids",
+            "expected_retrieved_order",
+            "required_context_memory_ids",
+            "required_cited_memory_ids",
+            "required_entity_proposal_ids",
+            "required_fact_proposal_ids",
+            "required_lifecycle_event_ids",
+            "required_artifact_ids",
+            "required_citation_spans",
+            "expected_trajectory_steps",
+            "required_graph_path_ids",
+            "required_valid_time_refs",
+            "required_transaction_time_refs",
         ):
             object.__setattr__(
                 self,
                 field_name,
                 _normalize_ids(tuple(getattr(self, field_name)), field_name),
             )
+        _require_literal(
+            self.trajectory_match_mode,
+            get_args(MemoryTrajectoryMatchMode),
+            "trajectory_match_mode",
+        )
 
 
 @dataclass(frozen=True)
@@ -186,6 +259,11 @@ class MemoryEffectivenessCaseResult:
     component_scores: tuple[MemoryComponentScore, ...]
     critical_failures: tuple[str, ...] = ()
     diagnostics: tuple[str, ...] = ()
+    operation: str = ""
+    memory_location: str = ""
+    retrieval_metrics: dict[str, float | int | None] = field(default_factory=dict)
+    overuse_penalty: float = 0.0
+    underuse_penalty: float = 0.0
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "case_id", _require_non_empty(self.case_id, "case_id"))
@@ -211,6 +289,14 @@ class MemoryEffectivenessScorecard:
     overall_score: float
     critical_failures: tuple[str, ...] = ()
     metadata: dict[str, Any] = field(default_factory=dict)
+    operation_scores: dict[str, float] = field(default_factory=dict)
+    memory_location_scores: dict[str, float] = field(default_factory=dict)
+    retrieval_metrics: dict[str, float | int | None] = field(default_factory=dict)
+    overuse_penalties: dict[str, float] = field(default_factory=dict)
+    underuse_penalties: dict[str, float] = field(default_factory=dict)
+    efficiency_metadata: dict[str, Any] = field(default_factory=dict)
+    baseline_trend: dict[str, Any] = field(default_factory=dict)
+    public_report_sections: dict[str, str] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         object.__setattr__(

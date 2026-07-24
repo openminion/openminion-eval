@@ -28,7 +28,9 @@ from openminion_eval.memory_effectiveness.schemas import (
     MemoryPairedRunComparison,
     MemoryTraceClaim,
     MemoryTraceMode,
+    MemoryTraceRedactionStatus,
     MemoryTraceToolCall,
+    MemoryTrajectoryMatchMode,
 )
 from openminion_eval.memory_effectiveness.scoring import (
     SCORECARD_VERSION,
@@ -57,7 +59,9 @@ __all__ = [
     "MemoryPairedRunComparison",
     "MemoryTraceClaim",
     "MemoryTraceMode",
+    "MemoryTraceRedactionStatus",
     "MemoryTraceToolCall",
+    "MemoryTrajectoryMatchMode",
     "build_memory_scorecard",
     "compare_memory_scorecards",
     "default_memory_benchmark_manifest_path",

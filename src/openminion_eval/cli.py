@@ -494,12 +494,32 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
                 tool=str(item.get("tool", "")),
                 arguments_ref=str(item.get("arguments_ref", "")),
                 memory_ids=tuple(item.get("memory_ids", ())),
+                operation=str(item.get("operation", "") or ""),
+                memory_location=str(item.get("memory_location", "") or ""),
             )
             for item in _objects(tool_calls, "tool_calls")
         ),
         diagnostics=tuple(data.get("diagnostics", ())),
         namespace=str(data.get("namespace", "")),
         timestamp=str(data.get("timestamp", "")),
+        context_memory_ids=tuple(data.get("context_memory_ids", ())),
+        cited_memory_ids=tuple(data.get("cited_memory_ids", ())),
+        provider_id=str(data.get("provider_id", "") or ""),
+        model_id=str(data.get("model_id", "") or ""),
+        token_count=data.get("token_count"),
+        cost_usd=data.get("cost_usd"),
+        latency_ms=data.get("latency_ms"),
+        entity_proposal_ids=tuple(data.get("entity_proposal_ids", ())),
+        fact_proposal_ids=tuple(data.get("fact_proposal_ids", ())),
+        lifecycle_event_ids=tuple(data.get("lifecycle_event_ids", ())),
+        artifact_ids=tuple(data.get("artifact_ids", ())),
+        citation_spans=tuple(data.get("citation_spans", ())),
+        trajectory_steps=tuple(data.get("trajectory_steps", ())),
+        graph_path_ids=tuple(data.get("graph_path_ids", ())),
+        valid_time_refs=tuple(data.get("valid_time_refs", ())),
+        transaction_time_refs=tuple(data.get("transaction_time_refs", ())),
+        redaction_status=data.get("redaction_status", "sanitized"),  # type: ignore[arg-type]
+        private_trace_refs=tuple(data.get("private_trace_refs", ())),
     )
 
 

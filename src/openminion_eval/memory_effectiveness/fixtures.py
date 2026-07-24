@@ -88,11 +88,38 @@ def _expectation_from_mapping(data: Mapping[str, Any]) -> MemoryExpectation:
         ),
         critical=bool(data.get("critical", False)),
         description=str(data.get("description", "") or ""),
+        expected_operation=str(data.get("expected_operation", "") or "").strip(),
+        expected_memory_location=str(
+            data.get("expected_memory_location", "") or ""
+        ).strip(),
+        expected_retrieved_order=_strings(data, "expected_retrieved_order"),
+        required_context_memory_ids=_strings(data, "required_context_memory_ids"),
+        required_cited_memory_ids=_strings(data, "required_cited_memory_ids"),
+        max_unnecessary_memory_calls=_optional_int(
+            data, "max_unnecessary_memory_calls"
+        ),
+        required_entity_proposal_ids=_strings(data, "required_entity_proposal_ids"),
+        required_fact_proposal_ids=_strings(data, "required_fact_proposal_ids"),
+        required_lifecycle_event_ids=_strings(data, "required_lifecycle_event_ids"),
+        required_artifact_ids=_strings(data, "required_artifact_ids"),
+        required_citation_spans=_strings(data, "required_citation_spans"),
+        expected_trajectory_steps=_strings(data, "expected_trajectory_steps"),
+        trajectory_match_mode=str(data.get("trajectory_match_mode", "strict")),
+        required_graph_path_ids=_strings(data, "required_graph_path_ids"),
+        required_valid_time_refs=_strings(data, "required_valid_time_refs"),
+        required_transaction_time_refs=_strings(data, "required_transaction_time_refs"),
     )
 
 
 def _strings(data: Mapping[str, Any], key: str) -> tuple[str, ...]:
     return tuple(str(item) for item in data.get(key, ()))
+
+
+def _optional_int(data: Mapping[str, Any], key: str) -> int | None:
+    value = data.get(key)
+    if value is None:
+        return None
+    return int(value)
 
 
 def _validate_family_coverage(cases: list[MemoryEffectivenessCase]) -> None:
