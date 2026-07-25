@@ -5,13 +5,12 @@
 <h1 align="center">OpenMinion Eval</h1>
 
 <p align="center">
-  <strong>Standalone evaluation toolkit for agent quality, routing, tools, memory effectiveness, policy, and closure.</strong>
+  <strong>Deterministic evaluation toolkit for agent behavior, tools, routing, policy, memory, and closure.</strong>
 </p>
 
 <p align="center">
   <a href="https://github.com/openminion/openminion-eval">GitHub</a>
-  · <a href="#install">Install</a>
-  · <a href="#what-ships-in-the-public-package">What Ships</a>
+  · <a href="docs/README.md">Docs</a>
   · <a href="https://www.openminion.com">Website</a>
   · <a href="https://x.com/OpenMinion">X</a>
 </p>
@@ -23,347 +22,197 @@
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-6B7280">
 </p>
 
-`openminion-eval` is the `v0.0.1` public preview of the standalone evaluation
-package for OpenMinion.
-
-Use it when you want repeatable agent-quality checks for routing, tools,
-freshness, closure, policy, skills, and structured memory-effectiveness traces
-without pulling in the full runtime.
+`openminion-eval` `v0.0.1` is the public preview of a standalone evaluation
+package. It provides repeatable datasets, runners, scorers, artifacts, reports,
+and evaluation families without importing the OpenMinion application runtime.
 
 ## Read This First
 
-1. Use [At a glance](#at-a-glance) to confirm the standalone package boundary.
-2. Use [Install](#install) for the minimal package smoke.
-3. Use [What ships in the public package](#what-ships-in-the-public-package)
-   to see the stable public surfaces.
-4. Use [What stays repo-local](#what-stays-repo-local) to avoid confusing this
-   package with host-runtime integration tests.
-5. Use [Development](#development) when changing the package.
+1. Read [At a Glance](#at-a-glance) to distinguish the installable package from
+   repo-local integration probes.
+2. Follow [Install](#install) and [Quick Start](#quick-start) for one
+   deterministic exact-match suite.
+3. Read [Evaluation Families](#evaluation-families) to choose a package-owned
+   scoring surface.
+4. Use the [package docs](docs/README.md) for datasets, artifacts, CI,
+   certification, and memory scorecards.
+5. Read [Development](#development) before changing the package.
 
 ## Trust and Brand Safety
 
-- Official GitHub: `https://github.com/openminion/openminion-eval`
-- Official website: `https://www.openminion.com`
-- Official X account: `https://x.com/OpenMinion`
+- Official GitHub: <https://github.com/openminion/openminion-eval>
+- Official website: <https://www.openminion.com>
+- Official X account: <https://x.com/OpenMinion>
 
-`openminion-eval` has no official token, coin, NFT, airdrop, staking program,
+OpenMinion Eval has no official token, coin, NFT, airdrop, staking program,
 treasury product, or investment offering. Any claim otherwise is unauthorized
 and should be treated as a scam.
 
-## At a glance
+## At a Glance
 
-- Current public line: `v0.0.1` preview
-- Distribution name: `openminion-eval`
-- Python import: `openminion_eval`
-- Best fit when: you want standalone, repeatable eval checks without depending
-  on the full OpenMinion runtime
-- Not the claim: source-tree memory harnesses and broader host-runtime
-  validation flows still live in the repo; the package ships deterministic
-  trace scoring, not a live memory engine
+| | |
+| --- | --- |
+| Package | `openminion-eval` |
+| Import root | `openminion_eval` |
+| Current line | `v0.0.1` alpha |
+| Python | 3.11+ |
+| Best fit | Repeatable package-level evaluation without the full agent runtime |
+| Main artifacts | Versioned datasets, suite results, case traces, reports, and baseline diffs |
+| Not the claim | A live agent runtime, model judge, memory engine, or hosted evaluation service |
 
 ## Common Commands
 
 ```bash
-python3.11 -m pip install "openminion-eval @ git+https://github.com/openminion/openminion-eval.git"
 openminion-eval dataset validate eval-dataset.jsonl
 openminion-eval run eval-dataset.jsonl --out suite-result.json
 openminion-eval report suite suite-result.json --out suite-report.md
+openminion-eval diff baseline.json suite-result.json
 ```
-
-## What ships in the public package
-
-The public package currently ships:
-
-- generic eval runner, scorer, suite, interface, schema, config, and constant
-  surfaces
-- typed `EvalSubjectInterface` and `EvalRunContext` contracts for subjects
-  under test
-- suite run manifests, stable input hashing, JSON suite-result artifacts, and
-  baseline diffs
-- versioned JSON and JSONL dataset loaders with stable dataset hashing
-- provider-free boundary artifact contracts for red-team/security fixtures and
-  synthetic goldens with explicit provenance
-- package CLI entrypoints for suite runs and baseline diffs
-- black-box subject adapters for local commands, JSON HTTP endpoints, and JSONL
-  replay fixtures
-- dataset CLI helpers for validation, stable hashing, and starter dataset
-  creation
-- Markdown/HTML report rendering for suite artifacts and baseline diffs
-- scorer discovery CLI for built-in scorer metadata
-- opt-in parallel suite execution and partial rerun selection by previous
-  failures, transcript name, and transcript tags
-- the starter `EvalCase` registry under `openminion_eval.cases`
-- canonical non-memory eval families for tools, freshness, routing, closure,
-  policy, and skills
-- deterministic memory-effectiveness DTOs, packaged cases, scorecards, and
-  paired-run comparison helpers for structured SophiaGraph/OpenMinion traces
-- deterministic memory/context scorecards for paired ablation, trace-linked
-  usefulness, influence, and governance gates; see
-  [`docs/memory-context-scorecard.md`](docs/memory-context-scorecard.md)
-- packaged sample adapters for LoCoMo, LongMemEval, and BEAM-shaped
-  memory-effectiveness cases with source revision, license, and fixture-hash
-  metadata
-- shared support needed by those surfaces
-
-## What stays repo-local
-
-The repository still contains broader validation tooling that is not part of
-the installable standalone wheel:
-
-- `tests/eval/integration/` for host-runtime memory harness and trace-flywheel
-  work
-- source-only memory baselines and companion reports
-- grounding eval and repo-local eval runners
-- other validation assets that depend on host-runtime state rather than the
-  standalone package alone
-
-Why this split exists: the published wheel is meant to stay small, stable, and
-safe to install into downstream projects. It can score structured memory traces,
-but it does not own live OpenMinion runtime execution or SophiaGraph storage.
-
-The `openminion_eval.config` module is intentionally minimal today. It remains
-as a documented no-op compatibility surface; the public package does not
-currently require runtime-loaded configuration.
 
 ## Install
 
-Install from GitHub:
+The package is currently installed from the official repository:
 
 ```bash
-python3.11 -m pip install "openminion-eval @ git+https://github.com/openminion/openminion-eval.git"
+python3.11 -m pip install \
+  "openminion-eval @ git+https://github.com/openminion/openminion-eval.git"
 ```
 
-Run a minimal public smoke:
+For a source checkout:
 
 ```bash
-python - <<'PY'
-import openminion_eval
-from openminion_eval import EVAL_INTERFACE_VERSION, EvalRunContext, EvalRunner
-from openminion_eval import EvalCase, build_run_manifest, load_eval_dataset_jsonl
-from openminion_eval import registered_cases
+python3.11 -m pip install -e ".[dev]"
+```
+
+## Quick Start
+
+Run a minimal deterministic suite:
+
+```python
+from openminion_eval import EvalRunner, EvalSuite
 from openminion_eval.schemas import EvalTranscript
-from openminion_eval.tools import ToolSelectionCase
-from openminion_eval.freshness import FreshnessCase
-from openminion_eval.routing import RoutingCase
-from openminion_eval.closure import ClosureCase
-from openminion_eval.policy import PolicyCase
-from openminion_eval.skills import load_skill_quality_manifest
 
-print(EVAL_INTERFACE_VERSION)
-print(EvalRunner.__name__)
-print(EvalRunContext.__name__)
-print(EvalCase.__name__, len(registered_cases()))
-print(
-    build_run_manifest(
-        [EvalTranscript(name="smoke", turns=[])],
-        scorer_name="exact_match",
-        threshold=0.8,
-    ).scorer_name
+transcript = EvalTranscript(
+    name="hello-world",
+    turns=[{"user": "ping", "expected": "pong"}],
+    tags=["quickstart"],
 )
-print(
-    ToolSelectionCase.__name__,
-    FreshnessCase.__name__,
-    RoutingCase.__name__,
-    ClosureCase.__name__,
-    PolicyCase.__name__,
+suite = EvalSuite(
+    runner=EvalRunner(agent_executor=lambda _user_input: "pong"),
+    threshold=1.0,
 )
-print(load_skill_quality_manifest().__class__.__name__)
-print(load_eval_dataset_jsonl.__name__)
-PY
+result = suite.run([transcript], scorer_name="exact_match")
+
+print(result.total_transcripts)
+print(result.failed_transcripts)
 ```
 
-Package-local example:
+Run the complete package example:
 
 ```bash
-PYTHONPATH=src python3.11 examples/basic_usage.py
+python3.11 examples/basic_usage.py
 ```
 
-Starter case report:
+Create a starter dataset and render a report:
 
 ```bash
-python -m openminion_eval.cases --category coding
-```
-
-Generic suite run:
-
-```bash
-openminion-eval run eval-dataset.jsonl --out suite-result.json
-python -m openminion_eval diff baseline.json suite-result.json
-```
-
-Black-box subject runs:
-
-```bash
-openminion-eval run eval-dataset.jsonl --command "python subject.py"
-openminion-eval run eval-dataset.jsonl --http-url http://127.0.0.1:8080/eval
-openminion-eval run eval-dataset.jsonl --replay-jsonl replay-outputs.jsonl
-```
-
-Dataset and registry helpers:
-
-```bash
-openminion-eval dataset validate eval-dataset.jsonl
-openminion-eval dataset hash eval-dataset.jsonl
 openminion-eval dataset init --family routing --out routing-starter.json
-openminion-eval scorers list
+openminion-eval run routing-starter.json --out routing-result.json
+openminion-eval report suite routing-result.json --out routing-report.md
 ```
 
-Human-readable reports:
+## What OpenMinion Eval Provides
 
-```bash
-openminion-eval report suite suite-result.json --out suite-report.md
-openminion-eval report diff baseline.json suite-result.json --format html --out diff.html
-```
+- versioned JSON and JSONL dataset contracts with stable hashing
+- runner, scorer, suite, subject, schema, and configuration interfaces
+- CLI, HTTP, and replay subject adapters
+- deterministic run manifests, suite results, case traces, and baseline diffs
+- Markdown and HTML report rendering
+- manual-review queues and adjudication artifacts
+- red-team and synthetic-golden boundary artifact validation
+- built-in agent-behavior and memory-oriented evaluation families
+- partial reruns and opt-in parallel suite execution
+- integration quarantine metadata for distinguishing proof tiers
 
-Repo-local integration tiers:
+## What OpenMinion Eval Does Not Provide
 
-```bash
-openminion-eval integration list --root .
-openminion-eval integration list --root . --tier live-provider
-```
+- OpenMinion runtime execution or SophiaGraph storage
+- provider calls, prompt generation, or model-judge execution
+- automatic synthetic dataset generation
+- a hosted evaluation service or dashboard
+- a guarantee that repo-local integration probes ship in the wheel
+- semantic interpretation of free-form assistant prose for memory scoring
 
-Memory-effectiveness trace scoring:
+The package scores explicit inputs and structured traces. Host applications own
+provider execution, data generation, live runtime setup, and model judging.
 
-```bash
-openminion-eval memory-effectiveness score memory-trace.json --out memory-scorecard.json
-```
+## Evaluation Families
 
-The trace artifact must name structured saved, retrieved, used, claim, and tool
-memory ids. The scorer does not parse assistant prose and does not call a
-provider.
+| Family | What it checks |
+| --- | --- |
+| Tools | Tool selection and use of tool results |
+| Freshness | Whether an answer uses current supplied evidence |
+| Routing | Whether work reaches the intended route or owner |
+| Closure | Whether the run reaches a valid terminal outcome |
+| Policy | Whether explicit policy expectations are satisfied |
+| Skills | Skill selection and rubric-based skill quality |
+| Goal trajectory | Drift and progress across multi-step work |
+| Memory effectiveness | Saved, retrieved, used, and cited memory traces |
+| Memory context | Ablation, usefulness, influence, and governance gates |
 
-Use the CLI when you want a small package-only proof path. Use source-tree
-integration tests when you need host-runtime or memory-eval behavior.
+See [`docs/eval-families.md`](docs/eval-families.md),
+[`docs/memory-effectiveness.md`](docs/memory-effectiveness.md), and
+[`docs/memory-context-scorecard.md`](docs/memory-context-scorecard.md) for
+contracts and artifact shapes.
 
-Exit-code policy:
+## Public Package vs Repo-local Proof
 
-- `openminion-eval run` exits `0` when every transcript passes and `1` when
-  any transcript fails.
-- `openminion-eval diff` exits `1` for `new_fail`, `regressed`, or
-  `missing_transcript` categories, and `0` otherwise.
-- `openminion-eval memory-effectiveness score` exits `1` when critical memory
-  failures are present and `0` otherwise.
+The installable package owns deterministic evaluation contracts and portable
+artifacts. `tests/eval/integration/` and other source-tree probes may depend on
+host runtime state and are not automatically public wheel APIs.
 
-Versioned dataset input:
-
-```json
-{
-  "dataset_version": "1",
-  "name": "smoke",
-  "cases": [
-    {
-      "id": "hello",
-      "name": "hello",
-      "turns": [{"user": "hello", "expected": "hi"}],
-      "tags": ["smoke"]
-    }
-  ]
-}
-```
-
-JSONL uses the same case object per line and preserves file order.
-
-Boundary artifact contracts:
-
-```python
-from openminion_eval import (
-    load_red_team_security_artifact,
-    load_synthetic_golden_artifact,
-)
-
-red_team = load_red_team_security_artifact("red-team-artifact.json")
-goldens = load_synthetic_golden_artifact("synthetic-goldens.json")
-
-print(red_team.fixtures[0].fixture_id)
-print(goldens.goldens[0].provenance.generated_by)
-```
-
-These contracts validate portable artifact shape only. Prompt generation,
-provider calls, synthetic data generation, and model judging stay in the host
-project that creates the artifacts.
-
-Partial rerun selection:
-
-```python
-from openminion_eval import EvalSuite, select_transcripts
-
-selected = select_transcripts(
-    transcripts,
-    previous_result=previous_result,
-    failed_only=True,
-    include_tags=["routing"],
-)
-result = EvalSuite(subject=subject).run(selected, max_workers=4)
-```
-
-Boundary check:
-
-```bash
-python - <<'PY'
-import importlib
-
-try:
-    importlib.import_module("openminion_eval.memory_eval")
-except ModuleNotFoundError as exc:
-    print(exc.name)
-else:
-    raise SystemExit("openminion_eval.memory_eval should not ship in the public wheel")
-PY
-```
-
-## Docs and release
-
-- `docs/README.md` summarizes the package-local docs contract.
-- `docs/eval-families.md` records the public non-memory eval-family
-  contracts.
-- `docs/certification-readiness-matrix.md` records standalone and
-  host-integration proof coverage for the public package surface.
-- `docs/eval-cases.md` records the starter `EvalCase` registry,
-  grade modes, CLI, and extension rules.
-- `docs/ci-recipes.md` gives pytest-native CI examples and artifact upload
-  guidance.
-- `docs/artifacts-and-manual-grading.md` documents scorer traces, manual
-  grading JSON, boundary artifact contracts, and integration quarantine.
-- `docs/standalone-claim-alignment.md` maps public claims to shipped
-  package surfaces and proof.
-- `API_COMPATIBILITY.md` records the supported public import roots and
-  top-level export policy.
-- `RELEASING.md` records the package-local release and PyPI publish flow.
-- `docs/source-tree-owner-map.md` explains the module layout and
-  public boundary.
-- `scripts/release_check.py` is the canonical release smoke entrypoint.
+Use the package CLI for a small standalone proof. Use explicitly labeled
+integration tests when validating OpenMinion, SophiaGraph, providers, or other
+live host behavior. Do not present one proof tier as evidence for another.
 
 ## Development
 
 ```bash
 make dev-install
+make hooks-install
 make check
-make release-check
 ```
 
 Use `make test-all` only when you intentionally want the broader repo-local
-integration suite.
+integration suite. Use `make release-check` before publishing or changing the
+documented public surface.
 
-## Surface classification
+## Docs and Release
 
-- `public_library_api`: top-level primitives, compatibility helpers,
-  starter `EvalCase` registry, `openminion_eval.cases` CLI, canonical
-  non-memory eval families, boundary artifact validators, and package-owned
-  support.
-- `repo_local_integration_tooling`: memory eval, trace-flywheel work,
-  provider certification, fixtures, baselines, and integration tests.
-- `repo_local_tooling`: `conftest.py`, repo-local runners, grounding helpers,
-  and dev/test helpers that rely on host runtime artifacts.
+- [`docs/README.md`](docs/README.md): package documentation map
+- [`docs/getting-started.md`](docs/getting-started.md): contributor bootstrap
+- [`docs/eval-cases.md`](docs/eval-cases.md): starter case registry
+- [`docs/eval-families.md`](docs/eval-families.md): built-in family contracts
+- [`docs/artifacts-and-manual-grading.md`](docs/artifacts-and-manual-grading.md):
+  traces and human review
+- [`docs/ci-recipes.md`](docs/ci-recipes.md): CI integration examples
+- [`docs/certification-readiness-matrix.md`](docs/certification-readiness-matrix.md):
+  package and integration proof
+- [`docs/source-tree-owner-map.md`](docs/source-tree-owner-map.md): code owners
+  and package layout
+- [`docs/standalone-claim-alignment.md`](docs/standalone-claim-alignment.md):
+  standalone-package claim boundaries and validation
+- [`API_COMPATIBILITY.md`](API_COMPATIBILITY.md): supported public imports
+- [`RELEASING.md`](RELEASING.md): release and publish flow
+- [`scripts/release_check.py`](scripts/release_check.py): package release smoke
+  validation
 
-## License and brand-use boundary
+## License and Brand-use Boundary
 
-- Source code license: `MIT`
-- Brand/trademark grant: `none`
+- Source code license: MIT
+- Brand/trademark grant: none
 
-The software license grants rights to use, modify, and redistribute the code.
-It does **not** grant rights to use the OpenMinion or OpenMinion Eval names,
-logos, branding, website identity, or social identity except for truthful
-attribution. Forks, clones, and derivative distributions must not present
-themselves as the official OpenMinion Eval package or imply affiliation,
-endorsement, or maintenance by OpenMinion contributors unless that is actually
-true.
+The license grants rights to use, modify, and redistribute the code. It does
+not grant rights to present a fork, clone, token, website, or social account as
+the official OpenMinion Eval or OpenMinion project or imply affiliation or
+endorsement.
