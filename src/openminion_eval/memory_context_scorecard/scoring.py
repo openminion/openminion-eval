@@ -10,16 +10,24 @@ from typing import Iterable
 from openminion_eval.family_support import report_generated_at
 from openminion_eval.memory_context_scorecard.schemas import (
     AblationOutcome,
+    ContextBudgetCalibrationV1,
+    ContextBudgetRecommendation,
     MemoryContextMetric,
     MemoryContextScorecardV1,
+    MemoryContextOperationalCanaryV1,
+    OperationalCanaryCaseResult,
     ScorecardCaseFixture,
     TaskOracle,
+    budget_calibration_signal_from_value,
     metric_name_from_value,
     metric_status_from_value,
+    operational_canary_status_from_value,
     task_oracle_kind_from_value,
 )
 
 MEMORY_CONTEXT_SCORECARD_VERSION = "memory-context-scorecard.v1"
+MEMORY_CONTEXT_OPERATIONAL_CANARY_VERSION = "memory-context-operational-canary.v1"
+CONTEXT_BUDGET_CALIBRATION_VERSION = "context-budget-calibration.v1"
 
 
 def build_memory_context_scorecard(
@@ -72,6 +80,139 @@ def write_memory_context_scorecard(
     return target
 
 
+def build_operational_canary(
+    scorecard: MemoryContextScorecardV1,
+    *,
+    run_id: str = "memory-context-operational-canary-local",
+    generated_at: str | None = None,
+    metadata: dict | None = None,
+) -> MemoryContextOperationalCanaryV1:
+    cases = tuple(
+        _canary_case_from_metric(index, metric)
+        for index, metric in enumerate(scorecard.metrics, start=1)
+    )
+    pass_count = sum(1 for item in cases if item.status == "pass")
+    warn_count = sum(1 for item in cases if item.status == "warn")
+    fail_count = sum(1 for item in cases if item.status == "fail")
+    return MemoryContextOperationalCanaryV1(
+        report_version=MEMORY_CONTEXT_OPERATIONAL_CANARY_VERSION,
+        generated_at=generated_at or report_generated_at(),
+        run_id=run_id,
+        cases=cases,
+        summary={
+            "case_count": len(cases),
+            "pass_count": pass_count,
+            "warn_count": warn_count,
+            "fail_count": fail_count,
+            "all_passed": fail_count == 0,
+        },
+        metadata={
+            "source_scorecard_run_id": scorecard.run_id,
+            **dict(metadata or {}),
+        },
+    )
+
+
+def write_operational_canary(
+    path: str | Path, report: MemoryContextOperationalCanaryV1
+) -> Path:
+    target = Path(path).expanduser().resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(asdict(report), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
+def load_operational_canary(path: str | Path) -> MemoryContextOperationalCanaryV1:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    return MemoryContextOperationalCanaryV1(
+        report_version=str(payload.get("report_version", "")),
+        generated_at=str(payload.get("generated_at", "")),
+        run_id=str(payload.get("run_id", "")),
+        cases=tuple(
+            _canary_case_from_payload(item) for item in payload.get("cases", ())
+        ),
+        summary=dict(payload.get("summary", {})),
+        metadata=dict(payload.get("metadata", {})),
+    )
+
+
+def build_context_budget_calibration(
+    canary: MemoryContextOperationalCanaryV1,
+    *,
+    run_id: str = "context-budget-calibration-local",
+    generated_at: str | None = None,
+    evidence_window: str = "local",
+    metadata: dict | None = None,
+) -> ContextBudgetCalibrationV1:
+    recommendations = tuple(
+        _recommendation_from_canary_case(index, case)
+        for index, case in enumerate(canary.cases, start=1)
+        if case.scorecard_metric in {"budget_stability", "context_budget_stability"}
+    )
+    if not recommendations:
+        recommendations = (
+            ContextBudgetRecommendation(
+                recommendation_id="budget-rec-1",
+                budget_profile="default",
+                signal="stable",
+                current_cap_tokens=0,
+                recommended_cap_tokens=0,
+                confidence=0.5,
+                evidence_refs=("canary-summary",),
+                reason_code="no_budget_specific_signal",
+            ),
+        )
+    change_count = sum(
+        1
+        for item in recommendations
+        if item.current_cap_tokens != item.recommended_cap_tokens
+    )
+    return ContextBudgetCalibrationV1(
+        report_version=CONTEXT_BUDGET_CALIBRATION_VERSION,
+        generated_at=generated_at or report_generated_at(),
+        run_id=run_id,
+        evidence_window=evidence_window,
+        recommendations=recommendations,
+        summary={
+            "recommendation_count": len(recommendations),
+            "change_count": change_count,
+            "writes_runtime_config": False,
+        },
+        metadata={"source_canary_run_id": canary.run_id, **dict(metadata or {})},
+    )
+
+
+def write_context_budget_calibration(
+    path: str | Path, report: ContextBudgetCalibrationV1
+) -> Path:
+    target = Path(path).expanduser().resolve()
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(asdict(report), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
+def load_context_budget_calibration(path: str | Path) -> ContextBudgetCalibrationV1:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    return ContextBudgetCalibrationV1(
+        report_version=str(payload.get("report_version", "")),
+        generated_at=str(payload.get("generated_at", "")),
+        run_id=str(payload.get("run_id", "")),
+        evidence_window=str(payload.get("evidence_window", "")),
+        recommendations=tuple(
+            _recommendation_from_payload(item)
+            for item in payload.get("recommendations", ())
+        ),
+        summary=dict(payload.get("summary", {})),
+        metadata=dict(payload.get("metadata", {})),
+    )
+
+
 def load_memory_context_scorecard(path: str | Path) -> MemoryContextScorecardV1:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
     return MemoryContextScorecardV1(
@@ -85,6 +226,101 @@ def load_memory_context_scorecard(path: str | Path) -> MemoryContextScorecardV1:
         summary=dict(payload.get("summary", {})),
         metadata=dict(payload.get("metadata", {})),
     )
+
+
+def _canary_case_from_metric(
+    index: int, metric: MemoryContextMetric
+) -> OperationalCanaryCaseResult:
+    status = (
+        "pass"
+        if metric.status == "pass"
+        else "fail"
+        if metric.status == "fail"
+        else "warn"
+    )
+    return OperationalCanaryCaseResult(
+        case_id=f"canary-case-{index}",
+        task_type=str(metric.metric_name),
+        status=status,
+        scorecard_metric=metric.metric_name,
+        score=float(metric.value),
+        threshold=float(metric.threshold),
+        memory_enabled=True,
+        blocks_enabled=bool(metric.context_trace_ids),
+        session_length_bucket="fixture",
+        context_budget_policy="default",
+        evidence_refs=metric.evidence_refs,
+        provider="provider-backed" if metric.provider_backed else "",
+        model="",
+        source_trace_refs=metric.context_trace_ids + metric.provenance_trace_ids,
+        redaction_status="redacted",
+        disabled_score=metric.disabled_outcome.score
+        if metric.disabled_outcome
+        else None,
+        enabled_score=metric.enabled_outcome.score if metric.enabled_outcome else None,
+    )
+
+
+def _canary_case_from_payload(data: dict[str, object]) -> OperationalCanaryCaseResult:
+    return OperationalCanaryCaseResult(
+        case_id=str(data.get("case_id", "")),
+        task_type=str(data.get("task_type", "")),
+        status=operational_canary_status_from_value(data.get("status")),
+        scorecard_metric=metric_name_from_value(data.get("scorecard_metric")),
+        score=float(data.get("score", 0.0)),
+        threshold=float(data.get("threshold", 0.0)),
+        memory_enabled=bool(data.get("memory_enabled", False)),
+        blocks_enabled=bool(data.get("blocks_enabled", False)),
+        session_length_bucket=str(data.get("session_length_bucket", "")),
+        context_budget_policy=str(data.get("context_budget_policy", "")),
+        evidence_refs=tuple(data.get("evidence_refs", ())),
+        provider=str(data.get("provider", "") or ""),
+        model=str(data.get("model", "") or ""),
+        source_trace_refs=tuple(data.get("source_trace_refs", ())),
+        redaction_status=str(data.get("redaction_status", "") or "redacted"),
+        disabled_score=_optional_float(data.get("disabled_score")),
+        enabled_score=_optional_float(data.get("enabled_score")),
+    )
+
+
+def _recommendation_from_canary_case(
+    index: int, case: OperationalCanaryCaseResult
+) -> ContextBudgetRecommendation:
+    if case.status == "fail":
+        signal = "underuse" if case.score < case.threshold else "overuse"
+        recommended = 1200 if signal == "underuse" else 800
+    else:
+        signal = "stable"
+        recommended = 1000
+    return ContextBudgetRecommendation(
+        recommendation_id=f"budget-rec-{index}",
+        budget_profile=case.context_budget_policy,
+        signal=budget_calibration_signal_from_value(signal),
+        current_cap_tokens=1000,
+        recommended_cap_tokens=recommended,
+        confidence=round(abs(float(case.score) - float(case.threshold)), 4),
+        evidence_refs=case.evidence_refs,
+        reason_code=f"{case.scorecard_metric}_{signal}",
+    )
+
+
+def _recommendation_from_payload(
+    data: dict[str, object],
+) -> ContextBudgetRecommendation:
+    return ContextBudgetRecommendation(
+        recommendation_id=str(data.get("recommendation_id", "")),
+        budget_profile=str(data.get("budget_profile", "")),
+        signal=budget_calibration_signal_from_value(data.get("signal")),
+        current_cap_tokens=int(data.get("current_cap_tokens", 0)),
+        recommended_cap_tokens=int(data.get("recommended_cap_tokens", 0)),
+        confidence=float(data.get("confidence", 0.0)),
+        evidence_refs=tuple(data.get("evidence_refs", ())),
+        reason_code=str(data.get("reason_code", "")),
+    )
+
+
+def _optional_float(value: object) -> float | None:
+    return None if value is None else float(value)
 
 
 def _metric_from_fixture(metric) -> MemoryContextMetric:

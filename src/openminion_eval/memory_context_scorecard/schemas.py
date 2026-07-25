@@ -25,10 +25,14 @@ MemoryContextMetricName = Literal[
 ]
 MemoryContextMetricStatus = Literal["pass", "warn", "fail", "advisory"]
 TaskOracleKind = Literal["exact_text", "boolean", "structured_field"]
+OperationalCanaryStatus = Literal["pass", "warn", "fail"]
+BudgetCalibrationSignal = Literal["overuse", "underuse", "stable"]
 
 _METRIC_NAMES = get_args(MemoryContextMetricName)
 _STATUSES = get_args(MemoryContextMetricStatus)
 _ORACLE_KINDS = get_args(TaskOracleKind)
+_OPERATIONAL_CANARY_STATUSES = get_args(OperationalCanaryStatus)
+_BUDGET_CALIBRATION_SIGNALS = get_args(BudgetCalibrationSignal)
 _PAIR_REQUIRED_BLOCKING_METRICS = frozenset({"block_usefulness", "memory_influence"})
 
 
@@ -47,6 +51,18 @@ def metric_status_from_value(value: object) -> MemoryContextMetricStatus:
     normalized = _require_non_empty(str(value or ""), "status")
     _require_literal(normalized, _STATUSES, "metric status")
     return cast(MemoryContextMetricStatus, normalized)
+
+
+def operational_canary_status_from_value(value: object) -> OperationalCanaryStatus:
+    normalized = _require_non_empty(str(value or ""), "canary status")
+    _require_literal(normalized, _OPERATIONAL_CANARY_STATUSES, "canary status")
+    return cast(OperationalCanaryStatus, normalized)
+
+
+def budget_calibration_signal_from_value(value: object) -> BudgetCalibrationSignal:
+    normalized = _require_non_empty(str(value or ""), "budget signal")
+    _require_literal(normalized, _BUDGET_CALIBRATION_SIGNALS, "budget signal")
+    return cast(BudgetCalibrationSignal, normalized)
 
 
 def task_oracle_kind_from_value(value: object) -> TaskOracleKind:
@@ -240,6 +256,157 @@ class MemoryContextScorecardV1:
         )
         if not self.metrics:
             raise ValueError("metrics is required")
+
+
+@dataclass(frozen=True)
+class OperationalCanaryCaseResult:
+    case_id: str
+    task_type: str
+    status: OperationalCanaryStatus
+    scorecard_metric: MemoryContextMetricName
+    score: float
+    threshold: float
+    memory_enabled: bool
+    blocks_enabled: bool
+    session_length_bucket: str
+    context_budget_policy: str
+    evidence_refs: tuple[str, ...]
+    provider: str = ""
+    model: str = ""
+    source_trace_refs: tuple[str, ...] = ()
+    redaction_status: str = "redacted"
+    disabled_score: float | None = None
+    enabled_score: float | None = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "case_id", _require_non_empty(self.case_id, "case_id"))
+        object.__setattr__(
+            self, "task_type", _require_non_empty(self.task_type, "task_type")
+        )
+        _require_literal(self.status, _OPERATIONAL_CANARY_STATUSES, "canary status")
+        _require_literal(self.scorecard_metric, _METRIC_NAMES, "metric name")
+        if not 0.0 <= float(self.score) <= 1.0:
+            raise ValueError("score must be between 0 and 1")
+        if not 0.0 <= float(self.threshold) <= 1.0:
+            raise ValueError("threshold must be between 0 and 1")
+        object.__setattr__(
+            self,
+            "session_length_bucket",
+            _require_non_empty(self.session_length_bucket, "session_length_bucket"),
+        )
+        object.__setattr__(
+            self,
+            "context_budget_policy",
+            _require_non_empty(self.context_budget_policy, "context_budget_policy"),
+        )
+        object.__setattr__(
+            self,
+            "evidence_refs",
+            _normalize_ids(tuple(self.evidence_refs), "evidence_refs"),
+        )
+        if not self.evidence_refs:
+            raise ValueError("evidence_refs is required")
+        object.__setattr__(
+            self,
+            "source_trace_refs",
+            _normalize_ids(tuple(self.source_trace_refs), "source_trace_refs"),
+        )
+        object.__setattr__(
+            self,
+            "redaction_status",
+            _require_non_empty(self.redaction_status, "redaction_status"),
+        )
+        if self.status == "pass" and (
+            self.disabled_score is None or self.enabled_score is None
+        ):
+            raise ValueError(
+                "passing canary cases require paired disabled/enabled scores"
+            )
+
+
+@dataclass(frozen=True)
+class MemoryContextOperationalCanaryV1:
+    report_version: str
+    generated_at: str
+    run_id: str
+    cases: tuple[OperationalCanaryCaseResult, ...]
+    summary: dict[str, int | float | bool | str]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.report_version != "memory-context-operational-canary.v1":
+            raise ValueError(f"unsupported report_version: {self.report_version!r}")
+        object.__setattr__(
+            self, "generated_at", _require_non_empty(self.generated_at, "generated_at")
+        )
+        object.__setattr__(self, "run_id", _require_non_empty(self.run_id, "run_id"))
+        if not self.cases:
+            raise ValueError("cases is required")
+
+
+@dataclass(frozen=True)
+class ContextBudgetRecommendation:
+    recommendation_id: str
+    budget_profile: str
+    signal: BudgetCalibrationSignal
+    current_cap_tokens: int
+    recommended_cap_tokens: int
+    confidence: float
+    evidence_refs: tuple[str, ...]
+    reason_code: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "recommendation_id",
+            _require_non_empty(self.recommendation_id, "recommendation_id"),
+        )
+        object.__setattr__(
+            self,
+            "budget_profile",
+            _require_non_empty(self.budget_profile, "budget_profile"),
+        )
+        _require_literal(self.signal, _BUDGET_CALIBRATION_SIGNALS, "budget signal")
+        if int(self.current_cap_tokens) < 0 or int(self.recommended_cap_tokens) < 0:
+            raise ValueError("budget caps must be non-negative")
+        if not 0.0 <= float(self.confidence) <= 1.0:
+            raise ValueError("confidence must be between 0 and 1")
+        object.__setattr__(
+            self,
+            "evidence_refs",
+            _normalize_ids(tuple(self.evidence_refs), "evidence_refs"),
+        )
+        if not self.evidence_refs:
+            raise ValueError("evidence_refs is required")
+        object.__setattr__(
+            self, "reason_code", _require_non_empty(self.reason_code, "reason_code")
+        )
+
+
+@dataclass(frozen=True)
+class ContextBudgetCalibrationV1:
+    report_version: str
+    generated_at: str
+    run_id: str
+    evidence_window: str
+    recommendations: tuple[ContextBudgetRecommendation, ...]
+    summary: dict[str, int | float | bool | str]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        if self.report_version != "context-budget-calibration.v1":
+            raise ValueError(f"unsupported report_version: {self.report_version!r}")
+        object.__setattr__(
+            self, "generated_at", _require_non_empty(self.generated_at, "generated_at")
+        )
+        object.__setattr__(self, "run_id", _require_non_empty(self.run_id, "run_id"))
+        object.__setattr__(
+            self,
+            "evidence_window",
+            _require_non_empty(self.evidence_window, "evidence_window"),
+        )
+        if not self.recommendations:
+            raise ValueError("recommendations is required")
 
 
 def _controlled_pair_has_delta(
