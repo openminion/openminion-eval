@@ -86,6 +86,8 @@ def test_source_tree_owner_map_covers_public_root_modules() -> None:
         "manual.py",
         "family_registry.py",
         "cli.py",
+        "reports.py",
+        "subject_adapters.py",
         "py.typed",
         "integration_quarantine.py",
     ):

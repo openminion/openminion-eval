@@ -29,6 +29,8 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
 - `openminion_eval.datasets`
+- `openminion_eval.reports`
+- `openminion_eval.subject_adapters`
 - `openminion_eval.boundary_artifacts`
 - `openminion_eval.family_registry`
 - `openminion_eval.manual`
@@ -44,8 +46,12 @@ The following top-level exports are part of the current public contract:
 - `openminion_eval.EvalRunner`
 - `openminion_eval.EvalRunContext`
 - `openminion_eval.EvalScorer`
+- `openminion_eval.EvalScorerInfo`
 - `openminion_eval.EvalScorerSpec`
 - `openminion_eval.EvalSubjectInterface`
+- `openminion_eval.CliSubject`
+- `openminion_eval.HttpSubject`
+- `openminion_eval.ReplaySubject`
 - `openminion_eval.EvalSuite`
 - `openminion_eval.EvalResult`
 - `openminion_eval.EvalRunManifest`
@@ -58,6 +64,13 @@ The following top-level exports are part of the current public contract:
 - dataset loader helpers: `load_eval_dataset(...)`,
   `load_eval_dataset_json(...)`, `load_eval_dataset_jsonl(...)`, and
   `hash_eval_dataset(...)`
+- dataset authoring helpers: `build_eval_dataset_template(...)` and
+  `write_eval_dataset_template(...)`
+- subject adapter helpers: `load_replay_subject(...)` and
+  `parse_http_headers(...)`
+- human-readable report helpers:
+  `render_suite_result_markdown(...)`, `render_suite_result_html(...)`,
+  `render_baseline_diff_markdown(...)`, and `render_baseline_diff_html(...)`
 - boundary artifact helpers:
   `load_red_team_security_artifact(...)`,
   `write_red_team_security_artifact(...)`,
@@ -111,6 +124,9 @@ The following top-level exports are part of the current public contract:
   `load_manual_adjudications(...)`, and `apply_manual_adjudications(...)`
 - static family registry helpers: `list_builtin_families(...)` and
   `get_builtin_family(...)`
+- integration quarantine metadata helpers:
+  `build_integration_quarantine_map(...)`, `integration_probe_tiers(...)`, and
+  `IntegrationProbeDisposition`
 
 ## Integration quarantine and promotion checklist
 
@@ -184,6 +200,10 @@ Public-contract confidence should be enforced by tests that cover:
     checks.
 16. memory/context scorecard fixture loading, typed metric validation,
     installed-wheel resource inclusion, and CLI exit policy.
+17. black-box subject adapters for CLI, HTTP, and JSONL replay targets.
+18. dataset validate/hash/init CLI behavior.
+19. scorer registry listing and human-readable suite/diff reports.
+20. integration quarantine tiers and requirement metadata.
 
 ## Non-goals
 

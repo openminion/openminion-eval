@@ -1,15 +1,23 @@
 """Eval scorer for OpenMinion."""
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
-from typing import Callable, Optional, Sequence
-from openminion_eval.schemas import EvalResult
+
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
+from openminion_eval.schemas import EvalResult
 
 
 @dataclass(frozen=True)
 class EvalScorerSpec:
     name: str
     threshold: float | None = None
+
+
+@dataclass(frozen=True)
+class EvalScorerInfo:
+    name: str
+    description: str
+    reserved: bool = False
 
 
 class EvalScorer:
@@ -22,6 +30,10 @@ class EvalScorer:
         self._scorers: dict[str, Callable[[str, str], float]] = {
             "exact_match": self._exact_match,
             "substring_match": self._substring_match,
+        }
+        self._descriptions = {
+            "exact_match": "Scores 1.0 when actual text exactly matches expected text after trimming.",
+            "substring_match": "Scores 1.0 when expected text appears inside actual text.",
         }
 
     def _exact_match(self, actual: str, expected: str) -> float:
@@ -37,15 +49,29 @@ class EvalScorer:
         self,
         name: str,
         scorer: Callable[[str, str], float],
+        *,
+        description: str = "Custom scorer registered by the host application.",
     ) -> None:
         if name in self._RESERVED_SCORER_NAMES:
             raise ValueError(f"Reserved scorer name: {name}")
         self._scorers[name] = scorer
+        self._descriptions[name] = description
+
+    def list_scorers(self) -> tuple[EvalScorerInfo, ...]:
+        names = sorted(self._scorers)
+        return tuple(
+            EvalScorerInfo(
+                name=name,
+                description=self._descriptions.get(name, ""),
+                reserved=name in self._RESERVED_SCORER_NAMES,
+            )
+            for name in names
+        )
 
     def score(
         self,
         result: EvalResult,
-        expected: Optional[str] = None,
+        expected: str | None = None,
         scorer_name: str = "substring_match",
         threshold: float | None = None,
     ) -> EvalResult:
@@ -82,7 +108,7 @@ class EvalScorer:
         result: EvalResult,
         scorers: Sequence[EvalScorerSpec],
         *,
-        expected: Optional[str] = None,
+        expected: str | None = None,
     ) -> list[EvalResult]:
         return [
             self.score(
