@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
 import os
-from pathlib import Path
 import shlex
 import subprocess
-from typing import Any, Mapping, Sequence
+from collections.abc import Mapping, Sequence
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any
 from urllib import request
 
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION, EvalRunContext
@@ -96,7 +97,7 @@ class HttpSubject:
         with request.urlopen(http_request, timeout=self._timeout_seconds) as response:
             payload = json.loads(response.read().decode("utf-8"))
         if not isinstance(payload, dict):
-            raise ValueError("HTTP subject response must be a JSON object")
+            raise TypeError("HTTP subject response must be a JSON object")
         return _string_field(payload, self._output_field, "HTTP subject response")
 
     async def run_async(self, user_input: str, context: EvalRunContext) -> str:
@@ -122,7 +123,7 @@ class ReplaySubject:
                 continue
             payload = json.loads(raw_line)
             if not isinstance(payload, dict):
-                raise ValueError(f"replay record {line_number} must be an object")
+                raise TypeError(f"replay record {line_number} must be an object")
             user_input = _first_string(payload, ("user", "input"), line_number)
             output = _first_string(payload, ("actual", "output"), line_number)
             responses[user_input] = output
@@ -176,7 +177,7 @@ def _context_env(context: EvalRunContext) -> dict[str, str]:
 def _string_field(payload: Mapping[str, Any], key: str, owner: str) -> str:
     value = payload.get(key)
     if not isinstance(value, str):
-        raise ValueError(f"{owner} {key!r} must be a string")
+        raise TypeError(f"{owner} {key!r} must be a string")
     return value
 
 

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
+from collections.abc import Iterable
+from dataclasses import asdict
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryComponent,
@@ -37,7 +38,6 @@ def score_memory_case(
 
     expectation = case.expectations
     component_scores = _score_components(case, trace)
-    save, retrieval, usage, longitudinal = component_scores
     usage_seen = _usage_seen_ids(trace)
     operation = _expected_or_observed_operation(expectation, trace)
     memory_location = _expected_or_observed_memory_location(expectation, trace)
@@ -295,13 +295,13 @@ def _critical_dimension_failures(
     if (
         getattr(expectation, "expected_operation", "")
         and operation
-        and operation != getattr(expectation, "expected_operation")
+        and operation != expectation.expected_operation
     ):
         failures.append(f"operation_mismatch:{operation}")
     if (
         getattr(expectation, "expected_memory_location", "")
         and memory_location
-        and memory_location != getattr(expectation, "expected_memory_location")
+        and memory_location != expectation.expected_memory_location
     ):
         failures.append(f"memory_location_mismatch:{memory_location}")
     if overuse_penalty:

@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
+from pathlib import Path
 
 from openminion_eval.cli import main
 from openminion_eval.schemas import (
@@ -14,7 +14,6 @@ from openminion_eval.schemas import (
     EvalSummary,
 )
 from openminion_eval.suite_artifacts import load_suite_result, write_suite_result
-
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 

@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
+from typing import Self
 
-from openminion_eval import EvalRunContext
-from openminion_eval import subject_adapters
+from openminion_eval import EvalRunContext, subject_adapters
 from openminion_eval.subject_adapters import (
     CliSubject,
     HttpSubject,
@@ -41,7 +41,7 @@ def test_replay_subject_loads_jsonl_outputs(tmp_path: Path) -> None:
 
 def test_http_subject_posts_json_and_reads_output_field(monkeypatch) -> None:
     class Response:
-        def __enter__(self) -> Response:
+        def __enter__(self) -> Self:
             return self
 
         def __exit__(self, *args: object) -> None:

@@ -17,7 +17,6 @@ from openminion_eval.memory_context_scorecard import (
     load_operational_canary,
 )
 
-
 FIXTURE_PATH = (
     Path(__file__).parent / "fixtures" / "memory_context_scorecard" / "cases.json"
 )

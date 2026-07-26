@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 import pytest
 
-from openminion_eval.memory_effectiveness.fixtures import (
-    default_memory_effectiveness_cases_path,
-)
 from openminion_eval import (
     MemoryEffectivenessCase,
     MemoryEffectivenessTrace,
@@ -25,6 +22,9 @@ from openminion_eval import (
     write_memory_scorecard,
 )
 from openminion_eval.cli import main
+from openminion_eval.memory_effectiveness.fixtures import (
+    default_memory_effectiveness_cases_path,
+)
 
 
 class _TextResource:
@@ -672,7 +672,7 @@ def test_memory_effectiveness_cli_rejects_malformed_trace_items(
     trace_path = tmp_path / "trace.json"
     trace_path.write_text(json.dumps({"traces": ["not-an-object"]}), encoding="utf-8")
 
-    with pytest.raises(ValueError, match="trace item 0 must be an object"):
+    with pytest.raises(TypeError, match="trace item 0 must be an object"):
         main(["memory-effectiveness", "score", str(trace_path)])
 
 

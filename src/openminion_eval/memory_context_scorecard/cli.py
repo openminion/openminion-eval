@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import argparse
 import json
-from pathlib import Path
 import sys
+from pathlib import Path
 from typing import Any
 
 from openminion_eval.memory_context_scorecard.fixtures import (
@@ -16,8 +16,8 @@ from openminion_eval.memory_context_scorecard.scoring import (
     build_memory_context_scorecard,
     build_operational_canary,
     load_operational_canary,
-    write_memory_context_scorecard,
     write_context_budget_calibration,
+    write_memory_context_scorecard,
     write_operational_canary,
 )
 from openminion_eval.paths import generated_root

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import json
+from collections.abc import Iterable
+from dataclasses import asdict
 from pathlib import Path
-from typing import Iterable
 
 from openminion_eval.family_support import report_generated_at
 from openminion_eval.memory_context_scorecard.schemas import (
@@ -13,8 +13,8 @@ from openminion_eval.memory_context_scorecard.schemas import (
     ContextBudgetCalibrationV1,
     ContextBudgetRecommendation,
     MemoryContextMetric,
-    MemoryContextScorecardV1,
     MemoryContextOperationalCanaryV1,
+    MemoryContextScorecardV1,
     OperationalCanaryCaseResult,
     ScorecardCaseFixture,
     TaskOracle,
@@ -371,7 +371,7 @@ def _outcome_from_payload(value: object) -> AblationOutcome | None:
     if value is None:
         return None
     if not isinstance(value, dict):
-        raise ValueError("ablation outcome must be an object")
+        raise TypeError("ablation outcome must be an object")
     return AblationOutcome(
         output_ref=str(value.get("output_ref", "")),
         oracle_passed=bool(value.get("oracle_passed", False)),
@@ -383,7 +383,7 @@ def _oracle_from_payload(value: object) -> TaskOracle | None:
     if value is None:
         return None
     if not isinstance(value, dict):
-        raise ValueError("oracle must be an object")
+        raise TypeError("oracle must be an object")
     return TaskOracle(
         oracle_id=str(value.get("oracle_id", "")),
         kind=task_oracle_kind_from_value(value.get("kind")),

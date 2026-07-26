@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import argparse
-from dataclasses import asdict
 import json
-from pathlib import Path
 import sys
+from dataclasses import asdict
+from pathlib import Path
 from typing import Any
 
 from openminion_eval.datasets import (
@@ -459,11 +459,11 @@ def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:
     else:
         raise ValueError("trace artifact must be a list or contain a 'traces' list")
     if not isinstance(items, list):
-        raise ValueError("trace artifact 'traces' value must be a list")
+        raise TypeError("trace artifact 'traces' value must be a list")
     traces: list[MemoryEffectivenessTrace] = []
     for index, item in enumerate(items):
         if not isinstance(item, dict):
-            raise ValueError(f"trace item {index} must be an object")
+            raise TypeError(f"trace item {index} must be an object")
         traces.append(_memory_trace_from_dict(item))
     return tuple(traces)
 
@@ -472,9 +472,9 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
     supporting_claims = data.get("supporting_claims", ())
     tool_calls = data.get("tool_calls", ())
     if not isinstance(supporting_claims, list | tuple):
-        raise ValueError("supporting_claims must be a list")
+        raise TypeError("supporting_claims must be a list")
     if not isinstance(tool_calls, list | tuple):
-        raise ValueError("tool_calls must be a list")
+        raise TypeError("tool_calls must be a list")
     return MemoryEffectivenessTrace(
         case_id=str(data.get("case_id", "")),
         run_id=str(data.get("run_id", "")),
@@ -527,7 +527,7 @@ def _objects(items: list | tuple, label: str) -> tuple[dict[str, Any], ...]:
     objects: list[dict[str, Any]] = []
     for index, item in enumerate(items):
         if not isinstance(item, dict):
-            raise ValueError(f"{label} item {index} must be an object")
+            raise TypeError(f"{label} item {index} must be an object")
         objects.append(item)
     return tuple(objects)
 

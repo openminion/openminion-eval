@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal, cast, get_args
 
-
 MemoryContextMetricName = Literal[
     "recall_precision",
     "block_usefulness",

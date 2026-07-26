@@ -1,9 +1,10 @@
 """Eval scorer for OpenMinion."""
 
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
-from typing import Callable, Optional, Sequence
-from openminion_eval.schemas import EvalResult
+
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
+from openminion_eval.schemas import EvalResult
 
 
 @dataclass(frozen=True)
@@ -70,7 +71,7 @@ class EvalScorer:
     def score(
         self,
         result: EvalResult,
-        expected: Optional[str] = None,
+        expected: str | None = None,
         scorer_name: str = "substring_match",
         threshold: float | None = None,
     ) -> EvalResult:
@@ -107,7 +108,7 @@ class EvalScorer:
         result: EvalResult,
         scorers: Sequence[EvalScorerSpec],
         *,
-        expected: Optional[str] = None,
+        expected: str | None = None,
     ) -> list[EvalResult]:
         return [
             self.score(

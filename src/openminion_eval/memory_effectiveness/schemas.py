@@ -5,7 +5,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Literal, get_args
 
-
 MemoryEffectivenessCaseFamily = Literal[
     "preference_learning",
     "repo_convention",

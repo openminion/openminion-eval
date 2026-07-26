@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import hashlib
 import json
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any
 
 from openminion_eval.schemas import EvalDataset, EvalDatasetCase, EvalTranscript
-
 
 DATASET_VERSION = "1"
 

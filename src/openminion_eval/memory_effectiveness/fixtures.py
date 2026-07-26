@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
 import hashlib
 import json
+from collections.abc import Mapping
+from dataclasses import asdict
 from importlib.resources.abc import Traversable
-from typing import Any, Mapping
+from typing import Any
 
 from openminion_eval.family_support import require_mapping
 from openminion_eval.memory_effectiveness.resource_io import (
