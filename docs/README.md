@@ -5,41 +5,34 @@ Status: alpha
 This directory holds the public package documentation for standalone
 `openminion-eval`.
 
-## Package-local references
+## Start Here
 
-- [`getting-started.md`](getting-started.md) gives the
-  package-local bootstrap and execution summary for contributors and automation.
+| If you want to... | Read |
+| --- | --- |
+| Install and run the package locally | [`getting-started.md`](getting-started.md) |
+| Understand the eval-family contract | [`eval-families.md`](eval-families.md) |
+| Author or run starter eval cases | [`eval-cases.md`](eval-cases.md) |
+| Add reports to CI | [`ci-recipes.md`](ci-recipes.md) |
+| Review manual grading and boundary artifacts | [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md) |
+| Check public claims and proof coverage | [`standalone-claim-alignment.md`](standalone-claim-alignment.md) and [`certification-readiness-matrix.md`](certification-readiness-matrix.md) |
+
+## Memory And Context Evaluation
+
+- [`memory-effectiveness.md`](memory-effectiveness.md): structured
+  SophiaGraph/OpenMinion memory trace scoring, scorecards, paired-run deltas,
+  and optional live evidence.
+- [`memory-context-scorecard.md`](memory-context-scorecard.md): deterministic
+  memory/context quality scorecards, paired ablation evidence, trace links, and
+  blocking-vs-advisory metric policy.
+
+## Contributor References
+
 - [`engineering-patterns.md`](engineering-patterns.md)
-  summarizes the package-local engineering and boundary rules for contributors.
 - [`code-quality-enforcement.md`](code-quality-enforcement.md)
-  summarizes the active public quality gates and validation posture.
-- [`cleanup-workflow.md`](cleanup-workflow.md) defines the live-inventory,
-  per-file-ledger, and closeout process for broad maintainability work.
+- [`cleanup-workflow.md`](cleanup-workflow.md)
 - [`testing-and-validation.md`](testing-and-validation.md)
-  records the package-local install, smoke, test, lint, and release-check
-  flow.
-- [`eval-families.md`](eval-families.md) records the
-  package-owned non-memory eval-family contracts.
-- [`eval-cases.md`](eval-cases.md) records the starter
-  `EvalCase` registry, grade modes, CLI behavior, and extension rules.
-- [`memory-effectiveness.md`](memory-effectiveness.md)
-  documents structured SophiaGraph/OpenMinion memory trace scoring,
-  scorecards, paired-run deltas, and optional live evidence.
-- [`memory-context-scorecard.md`](memory-context-scorecard.md)
-  documents deterministic memory/context quality scorecards, paired ablation
-  evidence, trace links, and blocking-vs-advisory metric policy.
-- [`ci-recipes.md`](ci-recipes.md) gives pytest-native and CI examples for
-  package users.
-- [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md)
-  documents scorer traces, manual review queues, adjudication imports,
-  boundary artifact contracts, and integration quarantine.
-- [`standalone-claim-alignment.md`](standalone-claim-alignment.md)
-  maps public standalone claims to shipped package surfaces and proof.
-- [`certification-readiness-matrix.md`](certification-readiness-matrix.md)
-  records the current standalone and host-integration proof targets for the
-  public package surface.
-- `docs/assets/openminion-eval-logo.png` is the package-local README/social
-  logo asset. It is a public repo asset, not an importable runtime API.
+- `docs/assets/openminion-eval-logo.png`, the public README/social logo asset
+  rather than an importable runtime API.
 
 ## Package-local code/docs boundaries
 
