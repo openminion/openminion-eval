@@ -84,3 +84,19 @@ The default output path is:
 
 Use `--fixtures` to run a specific deterministic fixture file and `--out` to
 choose an explicit artifact path.
+
+## Operational Canary
+
+The operational canary reuses the scorecard report and writes a smaller
+operator-facing report:
+
+```bash
+cd openminion-eval
+OPENMINION_EVAL_DETERMINISTIC_REPORTS=1 \
+  PYTHONPATH=src .venv/bin/python3.11 -m openminion_eval \
+  memory-context-operational-canary --run-id local-canary
+```
+
+`pass` canary cases require paired disabled/enabled scores. Passing scorecard
+metrics without paired scores are surfaced as `warn` in the canary, not
+silently upgraded to `pass`.

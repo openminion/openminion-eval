@@ -15,6 +15,7 @@ from openminion_eval.memory_context_scorecard.schemas import (
     MemoryContextMetric,
     MemoryContextOperationalCanaryV1,
     MemoryContextScorecardV1,
+    OperationalCanaryStatus,
     OperationalCanaryCaseResult,
     ScorecardCaseFixture,
     TaskOracle,
@@ -231,13 +232,7 @@ def load_memory_context_scorecard(path: str | Path) -> MemoryContextScorecardV1:
 def _canary_case_from_metric(
     index: int, metric: MemoryContextMetric
 ) -> OperationalCanaryCaseResult:
-    status = (
-        "pass"
-        if metric.status == "pass"
-        else "fail"
-        if metric.status == "fail"
-        else "warn"
-    )
+    status = _canary_status_from_metric(metric)
     return OperationalCanaryCaseResult(
         case_id=f"canary-case-{index}",
         task_type=str(metric.metric_name),
@@ -259,6 +254,16 @@ def _canary_case_from_metric(
         else None,
         enabled_score=metric.enabled_outcome.score if metric.enabled_outcome else None,
     )
+
+
+def _canary_status_from_metric(metric: MemoryContextMetric) -> OperationalCanaryStatus:
+    if metric.status == "fail":
+        return "fail"
+    if metric.status != "pass":
+        return "warn"
+    if metric.disabled_outcome is None or metric.enabled_outcome is None:
+        return "warn"
+    return "pass"
 
 
 def _canary_case_from_payload(data: dict[str, object]) -> OperationalCanaryCaseResult:

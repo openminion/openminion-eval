@@ -61,6 +61,29 @@ def test_operational_canary_round_trips(tmp_path: Path, capsys) -> None:
     assert loaded.cases[0].enabled_score is not None
 
 
+def test_operational_canary_handles_packaged_known_bad_fixtures(
+    tmp_path: Path, capsys
+) -> None:
+    output = tmp_path / "known-bad-canary.json"
+
+    exit_code = main(
+        [
+            "memory-context-operational-canary",
+            "--run-id",
+            "known-bad-canary",
+            "--out",
+            str(output),
+        ]
+    )
+
+    stdout = json.loads(capsys.readouterr().out)
+    loaded = load_operational_canary(output)
+    assert exit_code == 1
+    assert stdout["fail_count"] == loaded.summary["fail_count"]
+    assert loaded.summary["all_passed"] is False
+    assert any(case.status == "warn" for case in loaded.cases)
+
+
 def test_operational_canary_rejects_unpaired_pass() -> None:
     canary = _canary()
     case = canary.cases[0]

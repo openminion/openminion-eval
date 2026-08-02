@@ -22,14 +22,14 @@
   <img alt="Status" src="https://img.shields.io/badge/status-alpha-6B7280">
 </p>
 
-`openminion-eval` `v0.0.1` is the public preview of a standalone evaluation
+`openminion-eval` `v0.0.1` is the source-only alpha of a standalone evaluation
 package. It provides repeatable datasets, runners, scorers, artifacts, reports,
 and evaluation families without importing the OpenMinion application runtime.
 
 ## Read This First
 
-1. Read [At a Glance](#at-a-glance) to distinguish the installable package from
-   repo-local integration probes.
+1. Read [At a Glance](#at-a-glance) to distinguish the standalone package
+   contract from repo-local integration probes.
 2. Follow [Install](#install) and [Quick Start](#quick-start) for one
    deterministic exact-match suite.
 3. Read [Evaluation Families](#evaluation-families) to choose a package-owned
@@ -54,7 +54,7 @@ and should be treated as a scam.
 | --- | --- |
 | Package | `openminion-eval` |
 | Import root | `openminion_eval` |
-| Current line | `v0.0.1` alpha |
+| Current line | `v0.0.1` source-only alpha |
 | Python | 3.11+ |
 | Best fit | Repeatable package-level evaluation without the full agent runtime |
 | Main artifacts | Versioned datasets, suite results, case traces, reports, and baseline diffs |
