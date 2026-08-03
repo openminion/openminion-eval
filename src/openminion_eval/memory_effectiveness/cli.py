@@ -13,6 +13,8 @@ from openminion_eval.memory_effectiveness.fixtures import (
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessTrace,
     MemoryTraceClaim,
+    MemoryTraceMode,
+    MemoryTraceRedactionStatus,
     MemoryTraceToolCall,
 )
 from openminion_eval.memory_effectiveness.scoring import (
@@ -122,7 +124,7 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
     return MemoryEffectivenessTrace(
         case_id=str(data.get("case_id", "")),
         run_id=str(data.get("run_id", "")),
-        memory_mode=data.get("memory_mode"),  # type: ignore[arg-type]
+        memory_mode=_memory_trace_mode(data),
         saved_memory_ids=tuple(data.get("saved_memory_ids", ())),
         retrieved_memory_ids=tuple(data.get("retrieved_memory_ids", ())),
         used_memory_ids=tuple(data.get("used_memory_ids", ())),
@@ -131,7 +133,7 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
                 claim=str(item.get("claim", "")),
                 memory_id=str(item.get("memory_id", "")),
             )
-            for item in _objects(supporting_claims, "supporting_claims")
+            for item in _json_objects(supporting_claims, "supporting_claims")
         ),
         tool_calls=tuple(
             MemoryTraceToolCall(
@@ -141,7 +143,7 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
                 operation=str(item.get("operation", "") or ""),
                 memory_location=str(item.get("memory_location", "") or ""),
             )
-            for item in _objects(tool_calls, "tool_calls")
+            for item in _json_objects(tool_calls, "tool_calls")
         ),
         diagnostics=tuple(data.get("diagnostics", ())),
         namespace=str(data.get("namespace", "")),
@@ -162,12 +164,26 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
         graph_path_ids=tuple(data.get("graph_path_ids", ())),
         valid_time_refs=tuple(data.get("valid_time_refs", ())),
         transaction_time_refs=tuple(data.get("transaction_time_refs", ())),
-        redaction_status=data.get("redaction_status", "sanitized"),  # type: ignore[arg-type]
+        redaction_status=_redaction_status(data),
         private_trace_refs=tuple(data.get("private_trace_refs", ())),
     )
 
 
-def _objects(items: list | tuple, label: str) -> tuple[dict[str, Any], ...]:
+def _memory_trace_mode(data: dict[str, Any]) -> MemoryTraceMode:
+    value = data.get("memory_mode")
+    if value in ("disabled", "enabled"):
+        return value
+    raise ValueError(f"invalid memory_mode: {value!r}")
+
+
+def _redaction_status(data: dict[str, Any]) -> MemoryTraceRedactionStatus:
+    value = data.get("redaction_status", "sanitized")
+    if value in ("sanitized", "unredacted", "unknown"):
+        return value
+    raise ValueError(f"invalid redaction_status: {value!r}")
+
+
+def _json_objects(items: list | tuple, label: str) -> tuple[dict[str, Any], ...]:
     objects: list[dict[str, Any]] = []
     for index, item in enumerate(items):
         if not isinstance(item, dict):
