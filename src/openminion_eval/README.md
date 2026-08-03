@@ -37,8 +37,8 @@ adapters, and boundary artifact validators.
 9. `skills/` owns packaged skill-quality and named-skill manifests plus
    report builders.
 10. `memory_effectiveness/` owns provider-free SophiaGraph/OpenMinion memory
-   trace DTOs, packaged deterministic cases, scorecards, and paired-run
-   comparison helpers.
+   trace DTOs, packaged deterministic cases, scorecards, paired-run comparison
+   helpers, and the matching CLI.
 11. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
    aggregate reports.
 12. `memory_context_scorecard/` owns deterministic memory/context scorecard
