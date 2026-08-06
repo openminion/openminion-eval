@@ -667,13 +667,17 @@ def test_memory_effectiveness_cli_fails_when_trace_matches_no_cases(
 
 
 def test_memory_effectiveness_cli_rejects_malformed_trace_items(
-    tmp_path: Path,
+    tmp_path: Path, capsys
 ) -> None:
     trace_path = tmp_path / "trace.json"
     trace_path.write_text(json.dumps({"traces": ["not-an-object"]}), encoding="utf-8")
 
-    with pytest.raises(TypeError, match="trace item 0 must be an object"):
-        main(["memory-effectiveness", "score", str(trace_path)])
+    exit_code = main(["memory-effectiveness", "score", str(trace_path)])
+    captured = capsys.readouterr()
+
+    assert exit_code == 2
+    assert captured.out == ""
+    assert "memory-effectiveness error: trace item 0 must be an object" in captured.err
 
 
 def test_memory_effectiveness_code_stays_provider_free() -> None:

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -63,6 +64,14 @@ def add_memory_effectiveness_parser(subparsers: Any) -> None:
 
 
 def memory_score_command(args: argparse.Namespace) -> int:
+    try:
+        return _score_memory_trace(args)
+    except (OSError, TypeError, ValueError) as exc:
+        _write_error(f"memory-effectiveness error: {exc}")
+        return 2
+
+
+def _score_memory_trace(args: argparse.Namespace) -> int:
     cases = load_memory_effectiveness_cases(args.cases)
     traces = _load_memory_traces(args.trace)
     traces_by_case = {trace.case_id: trace for trace in traces}
@@ -194,3 +203,7 @@ def _json_objects(items: list | tuple, label: str) -> tuple[dict[str, Any], ...]
 
 def _write_json(payload: dict[str, Any]) -> None:
     print(json.dumps(payload, indent=2, sort_keys=True))
+
+
+def _write_error(message: str) -> None:
+    sys.stderr.write(f"{message}\n")

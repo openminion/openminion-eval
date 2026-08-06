@@ -20,8 +20,8 @@ A publishable release must satisfy all of the following:
 5. `docs/` remains the canonical package-local docs root.
 6. `docs/source-tree-owner-map.md` continues to document the package
    owner map and repo-local integration boundary.
-7. The starter `EvalCase` registry and `openminion_eval.cases` CLI are covered
-   by package tests and release smoke.
+7. The starter `EvalCase` registry, `openminion_eval.cases` CLI, and
+   memory-effectiveness CLI are covered by package tests and release smoke.
 8. Package tests pass from the package root.
 9. Both wheel and sdist build successfully.
 10. A clean install smoke passes from a fresh target directory using the built

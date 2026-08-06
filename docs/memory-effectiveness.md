@@ -36,6 +36,25 @@ Use a custom fixture file:
 openminion-eval memory-effectiveness score memory-trace.json --cases cases.json --out memory-scorecard.json
 ```
 
+The command prints a compact JSON summary to stdout. A successful clean
+scorecard exits `0`. A valid scorecard with critical failures or unmatched
+cases exits `1`. Malformed input exits `2`, writes a concise error to stderr,
+and does not print a scorecard summary.
+
+Typical stdout:
+
+```json
+{
+  "artifact": "memory-scorecard.json",
+  "case_count": 1,
+  "critical_failure_count": 0,
+  "overall_score": 1.0,
+  "run_id": "memory-effectiveness-local",
+  "suite_id": "openminion-sophiagraph-memory-effectiveness",
+  "unmatched_case_count": 0
+}
+```
+
 The package also exposes Python helpers:
 
 ```python
@@ -66,6 +85,7 @@ Each trace should name the saved, retrieved, and used memory ids explicitly:
       "saved_memory_ids": ["mem-release-check"],
       "retrieved_memory_ids": ["mem-release-check"],
       "used_memory_ids": ["mem-release-check"],
+      "redaction_status": "sanitized",
       "supporting_claims": [
         {
           "claim": "This repo runs make check before release.",
@@ -86,6 +106,9 @@ Each trace should name the saved, retrieved, and used memory ids explicitly:
 ```
 
 The scorer uses the structured ids only. It does not parse final answer text.
+When a live trace contains private raw references, mark the trace
+`redaction_status` explicitly and keep raw artifacts outside the public
+scorecard.
 
 ## Benchmark Adapter Samples
 

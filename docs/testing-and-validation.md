@@ -68,3 +68,6 @@ make release-check
 
 That target builds the artifacts, verifies packaged files, installs the wheel
 into a clean target, and smoke-checks the documented public boundary.
+Package-owned validation targets run Python with bytecode generation disabled
+so routine checks do not leave `__pycache__` files in the source tree. Use
+`make clean` to remove older local cache or build artifacts.

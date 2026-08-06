@@ -61,6 +61,8 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     )
     assert "memory effectiveness fixture count drifted" in release_check
     assert "memory effectiveness scoring smoke failed" in release_check
+    assert '"memory-effectiveness"' in release_check
+    assert "memory-effectiveness CLI artifact missing" in release_check
     assert "MemoryContextScorecardV1 root export missing" in release_check
     assert "build_memory_context_scorecard root export missing" in release_check
     assert "memory context scorecard packaged fixture missing" in release_check

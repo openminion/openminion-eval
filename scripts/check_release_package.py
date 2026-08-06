@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -480,6 +481,82 @@ def main() -> int:
             )
             if not scorecard_path.is_file():
                 raise RuntimeError("memory-context-scorecard CLI artifact missing")
+
+            memory_cases_path = tmp_root / "memory-effectiveness-cases.json"
+            memory_trace_path = tmp_root / "memory-effectiveness-trace.json"
+            memory_scorecard_path = tmp_root / "memory-effectiveness-scorecard.json"
+            memory_cases_path.write_text(
+                json.dumps(
+                    {
+                        "version": "1",
+                        "cases": [
+                            {
+                                "case_id": "release-memory-smoke",
+                                "family": "repo_convention",
+                                "prompt": "Which release check should run?",
+                                "tags": ["positive", "negative"],
+                                "expectations": {
+                                    "required_saved_ids": ["mem-release-check"],
+                                    "required_retrieved_ids": ["mem-release-check"],
+                                    "required_used_ids": ["mem-release-check"],
+                                    "required_claim_memory_ids": ["mem-release-check"],
+                                    "required_tool_memory_ids": ["mem-release-check"],
+                                    "critical": True,
+                                },
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            memory_trace_path.write_text(
+                json.dumps(
+                    {
+                        "traces": [
+                            {
+                                "case_id": "release-memory-smoke",
+                                "run_id": "release-smoke",
+                                "memory_mode": "enabled",
+                                "saved_memory_ids": ["mem-release-check"],
+                                "retrieved_memory_ids": ["mem-release-check"],
+                                "used_memory_ids": ["mem-release-check"],
+                                "supporting_claims": [
+                                    {
+                                        "claim": "Run make release-check before publishing.",
+                                        "memory_id": "mem-release-check",
+                                    }
+                                ],
+                                "tool_calls": [
+                                    {
+                                        "tool": "shell",
+                                        "arguments_ref": "sha256:release-check",
+                                        "memory_ids": ["mem-release-check"],
+                                    }
+                                ],
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "memory-effectiveness",
+                    "score",
+                    str(memory_trace_path),
+                    "--cases",
+                    str(memory_cases_path),
+                    "--out",
+                    str(memory_scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not memory_scorecard_path.is_file():
+                raise RuntimeError("memory-effectiveness CLI artifact missing")
 
             print(f"release-check ok: {sdist.name}, {wheel.name}")
     finally:

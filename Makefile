@@ -7,6 +7,7 @@ PIP := $(PYTHON) -m pip
 PRE_COMMIT := $(PYTHON) -m pre_commit
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
+PYTHON_ENV := PYTHONDONTWRITEBYTECODE=1
 
 .PHONY: help venv dev-install hooks-install hooks-run fix format format-check lint test test-all validate-patterns loc-check method-loc-check helper-duplicates-check path-structure-check filename-underscore-check broad-exception-check type-ignore-check public-surface-check release-check check clean eval
 
@@ -44,20 +45,20 @@ hooks-install: $(DEV_STAMP)
 	$(PRE_COMMIT) install --install-hooks --hook-type pre-commit --hook-type commit-msg
 
 hooks-run: $(DEV_STAMP)
-	$(PRE_COMMIT) run --all-files
+	$(PYTHON_ENV) $(PRE_COMMIT) run --all-files
 
 fix: $(DEV_STAMP)
-	$(RUFF) format "$(REPO_ROOT)"
-	$(RUFF) check --fix "$(REPO_ROOT)"
+	$(PYTHON_ENV) $(RUFF) format "$(REPO_ROOT)"
+	$(PYTHON_ENV) $(RUFF) check --fix "$(REPO_ROOT)"
 
 format: $(DEV_STAMP)
-	$(RUFF) format "$(REPO_ROOT)"
+	$(PYTHON_ENV) $(RUFF) format "$(REPO_ROOT)"
 
 format-check: $(DEV_STAMP)
-	$(RUFF) format --check "$(REPO_ROOT)"
+	$(PYTHON_ENV) $(RUFF) format --check "$(REPO_ROOT)"
 
 lint: $(DEV_STAMP)
-	$(RUFF) check "$(REPO_ROOT)"
+	$(PYTHON_ENV) $(RUFF) check "$(REPO_ROOT)"
 
 test: $(DEV_STAMP)
 	@printf '%s\n' \
@@ -65,41 +66,41 @@ test: $(DEV_STAMP)
 		'Ignoring tests/eval/test_eval_adjacent_owner_dispositions.py: enforced by main workspace gates.' \
 		'Ignoring tests/eval/test_memory_eval.py: yaml-backed optional fixture suite outside the standalone public slice.' \
 		'Ignoring tests/eval/integration/test_trace_flywheel.py: broader integration owner than the standalone public package gate.'
-	PYTHONPATH="$(REPO_ROOT)/src" $(PYTEST) -q "$(REPO_ROOT)/tests/eval" \
+	$(PYTHON_ENV) PYTHONPATH="$(REPO_ROOT)/src" $(PYTEST) -q "$(REPO_ROOT)/tests/eval" \
 		--ignore="$(REPO_ROOT)/tests/eval/integration" \
 		--ignore="$(REPO_ROOT)/tests/eval/test_eval_adjacent_owner_dispositions.py" \
 		--ignore="$(REPO_ROOT)/tests/eval/test_memory_eval.py" \
 		--ignore="$(REPO_ROOT)/tests/eval/integration/test_trace_flywheel.py"
 
 test-all: $(DEV_STAMP)
-	PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src" $(PYTEST) -q "$(REPO_ROOT)/tests"
+	$(PYTHON_ENV) PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src" $(PYTEST) -q "$(REPO_ROOT)/tests"
 
 release-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"
 
 loc-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check max-file-loc
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check max-file-loc
 
 method-loc-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check method-loc
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check method-loc
 
 helper-duplicates-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check helper-duplicates
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check helper-duplicates
 
 path-structure-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check path-structure
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check path-structure
 
 filename-underscore-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check filename-underscore
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check filename-underscore
 
 broad-exception-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check broad-exception
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check broad-exception
 
 type-ignore-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check type-ignore
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check type-ignore
 
 public-surface-check: $(DEV_STAMP)
-	$(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check public-surface
+	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/validate_quality_patterns.py" --check public-surface
 
 validate-patterns: loc-check method-loc-check helper-duplicates-check path-structure-check filename-underscore-check broad-exception-check type-ignore-check public-surface-check
 
@@ -107,6 +108,7 @@ validate-patterns: loc-check method-loc-check helper-duplicates-check path-struc
 eval: $(DEV_STAMP)
 	OPENMINION_REPO_ROOT="$(WORKSPACE_ROOT)" \
 		PYTHONPATH="$(REPO_ROOT)/src" \
+		$(PYTHON_ENV) \
 		$(PYTHON) -m openminion_eval.cases $(ARGS)
 
 check: format-check lint validate-patterns test
