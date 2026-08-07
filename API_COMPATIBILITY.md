@@ -204,6 +204,8 @@ Public-contract confidence should be enforced by tests that cover:
 18. dataset validate/hash/init CLI behavior.
 19. scorer registry listing and human-readable suite/diff reports.
 20. integration quarantine tiers and requirement metadata.
+21. delegated multi-agent memory cases, traces, scorecards, packaged fixtures,
+    and deterministic critical-failure scoring.
 
 ## Non-goals
 

@@ -161,3 +161,37 @@ Recommended live flow:
 
 Live evidence must still be grounded in structured saved, retrieved, cited, and
 tool/action memory ids.
+
+## Delegated Multi-Agent Memory
+
+The package includes eight named delegated-memory cases spanning bounded shared
+recall, sibling scratch isolation, private direct-ID attacks, graph and
+federation boundaries, reviewed child learning, revocation/retry, nested
+delegation, and MCP/A2A audience mismatch. These cases are packaged JSON
+fixtures and deterministic scorers; they do not add a runtime dependency on
+Sophiagraph or require provider access.
+
+```python
+from openminion_eval import (
+    DelegatedMemoryEvalTrace,
+    build_delegated_memory_scorecard,
+    load_delegated_memory_cases,
+)
+
+cases = load_delegated_memory_cases()
+traces = tuple(
+    DelegatedMemoryEvalTrace(
+        case_id=case.case_id,
+        retrieved_memory_ids=case.required_recall_ids,
+    )
+    for case in cases
+)
+scorecard = build_delegated_memory_scorecard(cases, traces)
+```
+
+Scoring is deterministic over typed IDs and counters. Unauthorized disclosure,
+sibling scratch leakage, direct-ID bypass, post-revocation operations,
+forbidden re-sharing, poisoning acceptance, invalid provenance, or failed
+forgetting is a critical failure even when useful recall is perfect. Context
+delivered before revocation is recorded separately and is not misreported as a
+future-operation failure.

@@ -159,6 +159,7 @@ provider execution, data generation, live runtime setup, and model judging.
 | Goal trajectory | Drift and progress across multi-step work |
 | Memory effectiveness | Saved, retrieved, used, and cited memory traces |
 | Memory context | Ablation, usefulness, influence, and governance gates |
+| Delegated memory | Shared-recall utility plus isolation, revocation, provenance, and re-sharing gates |
 
 See [`docs/eval-families.md`](docs/eval-families.md),
 [`docs/memory-effectiveness.md`](docs/memory-effectiveness.md), and

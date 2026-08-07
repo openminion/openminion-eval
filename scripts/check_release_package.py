@@ -109,6 +109,7 @@ from openminion_eval import (
     EvalDatasetValidationError,
     BOUNDARY_ARTIFACT_VERSION,
     BoundaryArtifactValidationError,
+    DelegatedMemoryEvalTrace,
     IntegrationProbeDisposition,
     RedTeamSecurityArtifact,
     SyntheticGoldenArtifact,
@@ -121,6 +122,7 @@ from openminion_eval import (
     MEMORY_CONTEXT_SCORECARD_VERSION,
     MemoryContextScorecardV1,
     build_eval_dataset_template,
+    build_delegated_memory_scorecard,
     build_case_traces,
     build_integration_quarantine_map,
     build_memory_context_scorecard,
@@ -128,11 +130,13 @@ from openminion_eval import (
     build_run_manifest,
     build_manual_review_queue,
     default_memory_context_scorecard_cases_path,
+    default_delegated_memory_cases_path,
     default_memory_benchmark_manifest_path,
     default_memory_effectiveness_cases_path,
     compare_suite_results,
     hash_transcripts,
     load_packaged_memory_benchmark_sample,
+    load_delegated_memory_cases,
     load_replay_subject,
     load_memory_context_scorecard_fixtures,
     load_memory_effectiveness_cases,
@@ -214,6 +218,8 @@ if not callable(score_memory_case):
     raise SystemExit("score_memory_case root export missing")
 if not callable(build_memory_scorecard):
     raise SystemExit("build_memory_scorecard root export missing")
+if not callable(build_delegated_memory_scorecard):
+    raise SystemExit("build_delegated_memory_scorecard root export missing")
 if MEMORY_CONTEXT_SCORECARD_VERSION != "memory-context-scorecard.v1":
     raise SystemExit("memory context scorecard version drifted")
 if MemoryContextScorecardV1.__name__ != "MemoryContextScorecardV1":
@@ -335,6 +341,21 @@ if len(load_nl_named_skill_manifest()[1]) != 10:
 memory_cases = load_memory_effectiveness_cases()
 if len(memory_cases) != 16:
     raise SystemExit("memory effectiveness fixture count drifted")
+delegated_cases = load_delegated_memory_cases()
+if len(delegated_cases) != 8 or not default_delegated_memory_cases_path().is_file():
+    raise SystemExit("delegated memory packaged fixture drifted")
+delegated_scorecard = build_delegated_memory_scorecard(
+    delegated_cases,
+    tuple(
+        DelegatedMemoryEvalTrace(
+            case_id=case.case_id,
+            retrieved_memory_ids=case.required_recall_ids,
+        )
+        for case in delegated_cases
+    ),
+)
+if not delegated_scorecard.passed:
+    raise SystemExit("delegated memory scoring smoke failed")
 scorecard_fixtures = load_memory_context_scorecard_fixtures()
 if len(scorecard_fixtures) != 6:
     raise SystemExit("memory context scorecard fixture count drifted")

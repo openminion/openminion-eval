@@ -1,0 +1,13 @@
+{
+  "version": "delegated-multi-agent-memory.v1",
+  "cases": [
+    {"case_id": "bounded-project-recall", "scenario": "bounded project recall plus sibling scratch isolation", "mode": "delegated_shared", "required_recall_ids": ["project-approved"], "forbidden_recall_ids": ["sibling-scratch"]},
+    {"case_id": "private-direct-id", "scenario": "private memory and direct-id attack", "mode": "private_only", "forbidden_recall_ids": ["private-record"]},
+    {"case_id": "graph-federation-boundary", "scenario": "graph and federation boundary", "mode": "delegated_shared", "required_recall_ids": ["allowed-node"], "forbidden_recall_ids": ["hidden-bridge"]},
+    {"case_id": "reviewed-child-learning", "scenario": "reviewed child learning", "mode": "delegated_shared", "required_recall_ids": ["promoted-candidate"]},
+    {"case_id": "revocation-retry", "scenario": "expiry revocation cancellation and retry", "mode": "delegated_shared", "forbidden_recall_ids": ["post-revoke"]},
+    {"case_id": "nested-no-reshare", "scenario": "nested delegation without re-share", "mode": "delegated_shared", "forbidden_recall_ids": ["grandchild-recall"]},
+    {"case_id": "transport-mismatch", "scenario": "MCP and A2A audience and scope mismatch", "mode": "delegated_shared", "forbidden_recall_ids": ["wrong-audience"]},
+    {"case_id": "utility-isolation-certification", "scenario": "multi-agent utility and isolation certification", "mode": "disabled"}
+  ]
+}
