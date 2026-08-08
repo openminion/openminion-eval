@@ -113,6 +113,8 @@ from openminion_eval.memory_context_scorecard import (
 )
 from openminion_eval.memory_effectiveness import (
     BENCHMARK_ADAPTER_VERSION,
+    DELEGATED_MEMORY_FIXTURE_VERSION,
+    DELEGATED_MEMORY_SCORECARD_VERSION,
     DelegatedMemoryEvalCase,
     DelegatedMemoryEvalMode,
     DelegatedMemoryEvalResult,
@@ -145,11 +147,13 @@ from openminion_eval.memory_effectiveness import (
     hash_memory_effectiveness_cases,
     load_memory_benchmark_cases,
     load_delegated_memory_cases,
+    load_delegated_memory_scorecard,
     load_memory_effectiveness_cases,
     load_memory_scorecard,
     load_packaged_memory_benchmark_sample,
     score_memory_case,
     score_delegated_memory_case,
+    write_delegated_memory_scorecard,
     write_memory_scorecard,
 )
 from openminion_eval.policy import (
@@ -262,6 +266,8 @@ __all__ = [
     "BUILTIN_FAMILIES",
     "CANONICAL_EVAL_FAMILY",
     "DATASET_VERSION",
+    "DELEGATED_MEMORY_FIXTURE_VERSION",
+    "DELEGATED_MEMORY_SCORECARD_VERSION",
     "DelegatedMemoryEvalCase",
     "DelegatedMemoryEvalMode",
     "DelegatedMemoryEvalResult",
@@ -428,6 +434,7 @@ __all__ = [
     "load_manual_adjudications",
     "load_memory_benchmark_cases",
     "load_delegated_memory_cases",
+    "load_delegated_memory_scorecard",
     "load_memory_context_scorecard",
     "load_memory_context_scorecard_fixtures",
     "load_memory_effectiveness_cases",
@@ -458,6 +465,7 @@ __all__ = [
     "score_delegated_memory_case",
     "select_transcripts",
     "write_case_traces_jsonl",
+    "write_delegated_memory_scorecard",
     "write_eval_dataset_template",
     "write_manual_review_queue",
     "write_memory_context_scorecard",

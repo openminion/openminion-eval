@@ -63,6 +63,12 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "memory effectiveness scoring smoke failed" in release_check
     assert '"memory-effectiveness"' in release_check
     assert "memory-effectiveness CLI artifact missing" in release_check
+    assert "build_delegated_memory_scorecard root export missing" in release_check
+    assert "load_delegated_memory_scorecard root export missing" in release_check
+    assert "write_delegated_memory_scorecard root export missing" in release_check
+    assert '"delegated-score"' in release_check
+    assert "delegated memory scorecard IO smoke failed" in release_check
+    assert "delegated-memory CLI artifact missing" in release_check
     assert "MemoryContextScorecardV1 root export missing" in release_check
     assert "build_memory_context_scorecard root export missing" in release_check
     assert "memory context scorecard packaged fixture missing" in release_check

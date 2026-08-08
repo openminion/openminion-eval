@@ -6,10 +6,20 @@ import argparse
 import json
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
+from openminion_eval.memory_effectiveness.delegated_memory import (
+    DelegatedMemoryEvalTrace,
+    build_delegated_memory_scorecard,
+    load_delegated_memory_cases,
+    write_delegated_memory_scorecard,
+)
 from openminion_eval.memory_effectiveness.fixtures import (
     load_memory_effectiveness_cases,
+)
+from openminion_eval.memory_effectiveness.artifact_payloads import (
+    json_objects,
+    string_tuple,
 )
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessTrace,
@@ -62,10 +72,42 @@ def add_memory_effectiveness_parser(subparsers: Any) -> None:
     )
     score_parser.set_defaults(func=memory_score_command)
 
+    delegated_parser = memory_subparsers.add_parser(
+        "delegated-score",
+        help="score delegated-memory trace JSON artifacts",
+    )
+    delegated_parser.add_argument("trace", type=Path, help="delegated trace JSON file")
+    delegated_parser.add_argument(
+        "--cases",
+        type=Path,
+        default=None,
+        help="optional delegated case fixture JSON; defaults to packaged cases",
+    )
+    delegated_parser.add_argument(
+        "--suite-id",
+        default="delegated-multi-agent-memory.v1",
+        help="suite id for scorecard artifacts",
+    )
+    delegated_parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="write delegated scorecard JSON artifact to PATH",
+    )
+    delegated_parser.set_defaults(func=delegated_memory_score_command)
+
 
 def memory_score_command(args: argparse.Namespace) -> int:
+    return _run_memory_command(lambda: _score_memory_trace(args))
+
+
+def delegated_memory_score_command(args: argparse.Namespace) -> int:
+    return _run_memory_command(lambda: _score_delegated_memory_trace(args))
+
+
+def _run_memory_command(command: Callable[[], int]) -> int:
     try:
-        return _score_memory_trace(args)
+        return command()
     except (OSError, TypeError, ValueError) as exc:
         _write_error(f"memory-effectiveness error: {exc}")
         return 2
@@ -105,8 +147,51 @@ def _score_memory_trace(args: argparse.Namespace) -> int:
     return 1 if scorecard.critical_failures or unmatched_cases else 0
 
 
+def _score_delegated_memory_trace(args: argparse.Namespace) -> int:
+    cases = load_delegated_memory_cases(args.cases)
+    traces = _load_delegated_memory_traces(args.trace)
+    scorecard = build_delegated_memory_scorecard(
+        cases,
+        traces,
+        suite_id=args.suite_id,
+    )
+    if args.out is not None:
+        write_delegated_memory_scorecard(args.out, scorecard)
+    _write_json(
+        {
+            "suite_id": scorecard.suite_id,
+            "case_count": len(scorecard.results),
+            "passed": scorecard.passed,
+            "utility_recall": scorecard.utility_recall,
+            "critical_failure_count": len(scorecard.critical_failures),
+            "artifact": None if args.out is None else str(args.out),
+        }
+    )
+    return 0 if scorecard.passed else 1
+
+
 def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:
     payload = json.loads(path.read_text(encoding="utf-8"))
+    items = _trace_items(payload)
+    traces: list[MemoryEffectivenessTrace] = []
+    for index, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise TypeError(f"trace item {index} must be an object")
+        traces.append(_memory_trace_from_dict(item))
+    return tuple(traces)
+
+
+def _load_delegated_memory_traces(path: Path) -> tuple[DelegatedMemoryEvalTrace, ...]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    traces: list[DelegatedMemoryEvalTrace] = []
+    for index, item in enumerate(_trace_items(payload)):
+        if not isinstance(item, dict):
+            raise TypeError(f"trace item {index} must be an object")
+        traces.append(_delegated_memory_trace_from_dict(item))
+    return tuple(traces)
+
+
+def _trace_items(payload: object) -> list[Any]:
     if isinstance(payload, dict) and "traces" in payload:
         items = payload["traces"]
     elif isinstance(payload, list):
@@ -115,12 +200,7 @@ def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:
         raise ValueError("trace artifact must be a list or contain a 'traces' list")
     if not isinstance(items, list):
         raise TypeError("trace artifact 'traces' value must be a list")
-    traces: list[MemoryEffectivenessTrace] = []
-    for index, item in enumerate(items):
-        if not isinstance(item, dict):
-            raise TypeError(f"trace item {index} must be an object")
-        traces.append(_memory_trace_from_dict(item))
-    return tuple(traces)
+    return items
 
 
 def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
@@ -142,7 +222,7 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
                 claim=str(item.get("claim", "")),
                 memory_id=str(item.get("memory_id", "")),
             )
-            for item in _json_objects(supporting_claims, "supporting_claims")
+            for item in json_objects(supporting_claims, "supporting_claims")
         ),
         tool_calls=tuple(
             MemoryTraceToolCall(
@@ -152,7 +232,7 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
                 operation=str(item.get("operation", "") or ""),
                 memory_location=str(item.get("memory_location", "") or ""),
             )
-            for item in _json_objects(tool_calls, "tool_calls")
+            for item in json_objects(tool_calls, "tool_calls")
         ),
         diagnostics=tuple(data.get("diagnostics", ())),
         namespace=str(data.get("namespace", "")),
@@ -178,6 +258,26 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
     )
 
 
+def _delegated_memory_trace_from_dict(data: dict[str, Any]) -> DelegatedMemoryEvalTrace:
+    return DelegatedMemoryEvalTrace(
+        case_id=str(data.get("case_id", "")),
+        retrieved_memory_ids=string_tuple(data, "retrieved_memory_ids"),
+        sibling_scratch_ids=string_tuple(data, "sibling_scratch_ids"),
+        direct_id_bypass_ids=string_tuple(data, "direct_id_bypass_ids"),
+        revoked_future_operation_ids=string_tuple(
+            data,
+            "revoked_future_operation_ids",
+        ),
+        forbidden_reshare_ids=string_tuple(data, "forbidden_reshare_ids"),
+        accepted_poisoning_ids=string_tuple(data, "accepted_poisoning_ids"),
+        provenance_failures=string_tuple(data, "provenance_failures"),
+        forgetting_failures=string_tuple(data, "forgetting_failures"),
+        prior_delivery_ids=string_tuple(data, "prior_delivery_ids"),
+        latency_ms=float(data.get("latency_ms", 0.0)),
+        token_count=int(data.get("token_count", 0)),
+    )
+
+
 def _memory_trace_mode(data: dict[str, Any]) -> MemoryTraceMode:
     value = data.get("memory_mode")
     if value in ("disabled", "enabled"):
@@ -190,15 +290,6 @@ def _redaction_status(data: dict[str, Any]) -> MemoryTraceRedactionStatus:
     if value in ("sanitized", "unredacted", "unknown"):
         return value
     raise ValueError(f"invalid redaction_status: {value!r}")
-
-
-def _json_objects(items: list | tuple, label: str) -> tuple[dict[str, Any], ...]:
-    objects: list[dict[str, Any]] = []
-    for index, item in enumerate(items):
-        if not isinstance(item, dict):
-            raise TypeError(f"{label} item {index} must be an object")
-        objects.append(item)
-    return tuple(objects)
 
 
 def _write_json(payload: dict[str, Any]) -> None:

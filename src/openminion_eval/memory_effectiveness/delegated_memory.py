@@ -3,13 +3,21 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from importlib.resources import files
 from importlib.resources.abc import Traversable
 from pathlib import Path
-from typing import Literal
+from typing import Any, Literal, cast
+
+from openminion_eval.memory_effectiveness.artifact_payloads import (
+    json_objects,
+    strings_from_value,
+)
 
 DelegatedMemoryEvalMode = Literal["disabled", "private_only", "delegated_shared"]
+
+DELEGATED_MEMORY_FIXTURE_VERSION = "delegated-multi-agent-memory.v1"
+DELEGATED_MEMORY_SCORECARD_VERSION = "delegated-memory-scorecard.v1"
 
 _MODES = frozenset({"disabled", "private_only", "delegated_shared"})
 
@@ -149,7 +157,7 @@ def build_delegated_memory_scorecard(
     cases: tuple[DelegatedMemoryEvalCase, ...],
     traces: tuple[DelegatedMemoryEvalTrace, ...],
     *,
-    suite_id: str = "delegated-multi-agent-memory.v1",
+    suite_id: str = DELEGATED_MEMORY_FIXTURE_VERSION,
 ) -> DelegatedMemoryEvalScorecard:
     """Build a deterministic suite result with a critical security gate."""
 
@@ -198,7 +206,7 @@ def load_delegated_memory_cases(
     else:
         source = path
     payload = json.loads(source.read_text(encoding="utf-8"))
-    if payload.get("version") != "delegated-multi-agent-memory.v1":
+    if payload.get("version") != DELEGATED_MEMORY_FIXTURE_VERSION:
         raise ValueError("unsupported delegated memory fixture version")
     return tuple(
         DelegatedMemoryEvalCase(
@@ -212,7 +220,73 @@ def load_delegated_memory_cases(
     )
 
 
+def write_delegated_memory_scorecard(
+    path: str | Path,
+    scorecard: DelegatedMemoryEvalScorecard,
+) -> Path:
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    payload = {
+        "version": DELEGATED_MEMORY_SCORECARD_VERSION,
+        **asdict(scorecard),
+    }
+    output_path.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return output_path
+
+
+def load_delegated_memory_scorecard(path: str | Path) -> DelegatedMemoryEvalScorecard:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("delegated memory scorecard must be a JSON object")
+    if payload.get("version") != DELEGATED_MEMORY_SCORECARD_VERSION:
+        raise ValueError("unsupported delegated memory scorecard version")
+    results = payload.get("results", ())
+    if not isinstance(results, list | tuple):
+        raise TypeError("delegated memory scorecard results must be a list")
+    return DelegatedMemoryEvalScorecard(
+        suite_id=str(payload.get("suite_id", "")),
+        results=tuple(
+            _delegated_memory_result_from_payload(item)
+            for item in json_objects(results, "results")
+        ),
+        utility_recall=float(payload.get("utility_recall", 0.0)),
+        passed=bool(payload.get("passed", False)),
+        critical_failures=strings_from_value(
+            payload.get("critical_failures", ()),
+            "critical_failures",
+        ),
+    )
+
+
+def _delegated_memory_result_from_payload(
+    data: dict[str, Any],
+) -> DelegatedMemoryEvalResult:
+    return DelegatedMemoryEvalResult(
+        case_id=str(data.get("case_id", "")),
+        mode=_delegated_memory_mode(data.get("mode")),
+        utility_recall=float(data.get("utility_recall", 0.0)),
+        passed=bool(data.get("passed", False)),
+        critical_failures=strings_from_value(
+            data.get("critical_failures", ()),
+            "critical_failures",
+        ),
+        latency_ms=float(data.get("latency_ms", 0.0)),
+        token_count=int(data.get("token_count", 0)),
+    )
+
+
+def _delegated_memory_mode(value: object) -> DelegatedMemoryEvalMode:
+    if value in _MODES:
+        return cast(DelegatedMemoryEvalMode, value)
+    raise ValueError(f"invalid delegated memory eval mode: {value!r}")
+
+
 __all__ = [
+    "DELEGATED_MEMORY_FIXTURE_VERSION",
+    "DELEGATED_MEMORY_SCORECARD_VERSION",
     "DelegatedMemoryEvalCase",
     "DelegatedMemoryEvalMode",
     "DelegatedMemoryEvalResult",
@@ -221,5 +295,7 @@ __all__ = [
     "build_delegated_memory_scorecard",
     "default_delegated_memory_cases_path",
     "load_delegated_memory_cases",
+    "load_delegated_memory_scorecard",
     "score_delegated_memory_case",
+    "write_delegated_memory_scorecard",
 ]

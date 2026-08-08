@@ -137,6 +137,7 @@ from openminion_eval import (
     hash_transcripts,
     load_packaged_memory_benchmark_sample,
     load_delegated_memory_cases,
+    load_delegated_memory_scorecard,
     load_replay_subject,
     load_memory_context_scorecard_fixtures,
     load_memory_effectiveness_cases,
@@ -151,6 +152,7 @@ from openminion_eval import (
     score_memory_case,
     select_transcripts,
     write_eval_dataset_template,
+    write_delegated_memory_scorecard,
     write_red_team_security_artifact,
     write_synthetic_golden_artifact,
 )
@@ -220,6 +222,10 @@ if not callable(build_memory_scorecard):
     raise SystemExit("build_memory_scorecard root export missing")
 if not callable(build_delegated_memory_scorecard):
     raise SystemExit("build_delegated_memory_scorecard root export missing")
+if not callable(load_delegated_memory_scorecard):
+    raise SystemExit("load_delegated_memory_scorecard root export missing")
+if not callable(write_delegated_memory_scorecard):
+    raise SystemExit("write_delegated_memory_scorecard root export missing")
 if MEMORY_CONTEXT_SCORECARD_VERSION != "memory-context-scorecard.v1":
     raise SystemExit("memory context scorecard version drifted")
 if MemoryContextScorecardV1.__name__ != "MemoryContextScorecardV1":
@@ -356,6 +362,13 @@ delegated_scorecard = build_delegated_memory_scorecard(
 )
 if not delegated_scorecard.passed:
     raise SystemExit("delegated memory scoring smoke failed")
+delegated_scorecard_path = (
+    Path(os.environ["OPENMINION_EVAL_RELEASE_TMP"])
+    / "delegated-memory-python-scorecard.json"
+)
+write_delegated_memory_scorecard(delegated_scorecard_path, delegated_scorecard)
+if load_delegated_memory_scorecard(delegated_scorecard_path) != delegated_scorecard:
+    raise SystemExit("delegated memory scorecard IO smoke failed")
 scorecard_fixtures = load_memory_context_scorecard_fixtures()
 if len(scorecard_fixtures) != 6:
     raise SystemExit("memory context scorecard fixture count drifted")
@@ -454,6 +467,7 @@ def main() -> int:
             env = os.environ.copy()
             env["PYTHONPATH"] = str(install_dir)
             env["OPENMINION_EVAL_RELEASE_TARGET"] = str(install_dir)
+            env["OPENMINION_EVAL_RELEASE_TMP"] = str(tmp_root)
             _run([sys.executable, "-c", _smoke_script()], cwd=tmp_root, env=env)
             _run(
                 [
@@ -578,6 +592,52 @@ def main() -> int:
             )
             if not memory_scorecard_path.is_file():
                 raise RuntimeError("memory-effectiveness CLI artifact missing")
+
+            delegated_cases_payload = json.loads(
+                (
+                    REPO_ROOT
+                    / "src"
+                    / "openminion_eval"
+                    / "memory_effectiveness"
+                    / "resources"
+                    / "delegated_multi_agent_memory_cases.json"
+                ).read_text(encoding="utf-8")
+            )
+            delegated_trace_path = tmp_root / "delegated-memory-trace.json"
+            delegated_scorecard_path = tmp_root / "delegated-memory-scorecard.json"
+            delegated_trace_path.write_text(
+                json.dumps(
+                    {
+                        "traces": [
+                            {
+                                "case_id": case["case_id"],
+                                "retrieved_memory_ids": case.get(
+                                    "required_recall_ids",
+                                    [],
+                                ),
+                            }
+                            for case in delegated_cases_payload["cases"]
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "memory-effectiveness",
+                    "delegated-score",
+                    str(delegated_trace_path),
+                    "--out",
+                    str(delegated_scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not delegated_scorecard_path.is_file():
+                raise RuntimeError("delegated-memory CLI artifact missing")
 
             print(f"release-check ok: {sdist.name}, {wheel.name}")
     finally:

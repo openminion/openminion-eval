@@ -40,9 +40,9 @@ memory-effectiveness helpers, and memory/context scorecards.
    builders.
 10. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
    aggregate reports.
-11. `memory_effectiveness/` owns structured memory trace scoring, packaged
-    benchmark samples, memory-effectiveness scorecards, and the matching CLI
-    subcommand owner.
+11. `memory_effectiveness/` owns structured memory trace scoring, delegated
+    multi-agent memory scoring, packaged benchmark samples, scorecard IO, and
+    the matching CLI subcommand owner.
 12. `memory_context_scorecard/` owns deterministic memory/context scorecard
     fixtures, typed metric validation, report IO, and the matching CLI
     subcommand owner.

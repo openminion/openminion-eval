@@ -97,6 +97,11 @@ The following top-level exports are part of the current public contract:
   `load_memory_effectiveness_cases(...)`,
   `default_memory_effectiveness_cases_path(...)`, and
   `write_memory_scorecard(...)`
+- delegated memory exports such as `DelegatedMemoryEvalCase`,
+  `DelegatedMemoryEvalTrace`, `build_delegated_memory_scorecard(...)`,
+  `load_delegated_memory_cases(...)`,
+  `write_delegated_memory_scorecard(...)`, and
+  `load_delegated_memory_scorecard(...)`
 - benchmark adapter exports for memory-effectiveness samples:
   `BENCHMARK_ADAPTER_VERSION`, `MemoryBenchmarkSource`,
   `default_memory_benchmark_manifest_path(...)`,

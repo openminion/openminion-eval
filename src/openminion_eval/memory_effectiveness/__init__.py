@@ -17,6 +17,8 @@ from openminion_eval.memory_effectiveness.fixtures import (
     load_memory_effectiveness_cases,
 )
 from openminion_eval.memory_effectiveness.delegated_memory import (
+    DELEGATED_MEMORY_FIXTURE_VERSION,
+    DELEGATED_MEMORY_SCORECARD_VERSION,
     DelegatedMemoryEvalCase,
     DelegatedMemoryEvalMode,
     DelegatedMemoryEvalResult,
@@ -25,7 +27,9 @@ from openminion_eval.memory_effectiveness.delegated_memory import (
     build_delegated_memory_scorecard,
     default_delegated_memory_cases_path,
     load_delegated_memory_cases,
+    load_delegated_memory_scorecard,
     score_delegated_memory_case,
+    write_delegated_memory_scorecard,
 )
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryComponent,
@@ -54,6 +58,8 @@ from openminion_eval.memory_effectiveness.scoring import (
 
 __all__ = [
     "BENCHMARK_ADAPTER_VERSION",
+    "DELEGATED_MEMORY_FIXTURE_VERSION",
+    "DELEGATED_MEMORY_SCORECARD_VERSION",
     "FIXTURE_VERSION",
     "SCORECARD_VERSION",
     "MemoryBenchmarkFamily",
@@ -89,9 +95,11 @@ __all__ = [
     "load_memory_benchmark_cases",
     "load_memory_effectiveness_cases",
     "load_delegated_memory_cases",
+    "load_delegated_memory_scorecard",
     "load_memory_scorecard",
     "load_packaged_memory_benchmark_sample",
     "score_memory_case",
     "score_delegated_memory_case",
+    "write_delegated_memory_scorecard",
     "write_memory_scorecard",
 ]
