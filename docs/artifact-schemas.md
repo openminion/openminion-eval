@@ -38,6 +38,12 @@ Render with:
 openminion-eval report suite artifacts/suite-result.json --out artifacts/suite-result.md
 ```
 
+Schema:
+
+```text
+docs/schemas/suite-result.v1.schema.json
+```
+
 ## Baseline Diff
 
 Produced by:
@@ -50,6 +56,7 @@ Top-level shape:
 
 ```json
 {
+  "version": "suite-diff.v1",
   "previous_suite_name": "previous",
   "current_suite_name": "current",
   "categories": {
@@ -63,6 +70,13 @@ Render with:
 
 ```bash
 openminion-eval report diff artifacts/previous.json artifacts/current.json --out artifacts/diff.md
+openminion-eval report suite-diff artifacts/diff.json --out artifacts/diff.md
+```
+
+Schema:
+
+```text
+docs/schemas/suite-diff.v1.schema.json
 ```
 
 ## Dataset
@@ -197,16 +211,24 @@ Validate known artifacts before uploading them from CI:
 
 ```bash
 openminion-eval artifact validate artifacts/suite-result.json
+openminion-eval artifact validate artifacts/diff.json
 openminion-eval artifact validate artifacts/memory-scorecard.json
 openminion-eval artifact validate artifacts/delegated-memory-scorecard.json
 openminion-eval artifact validate artifacts/delegated-diff.json
 openminion-eval artifact validate artifacts/memory-context-scorecard.json
 ```
 
+Summarize artifacts for logs or review:
+
+```bash
+openminion-eval artifact inspect artifacts/suite-result.json
+openminion-eval report bundle artifacts/suite-result.json artifacts/diff.json --out artifacts/index.html
+```
+
 ## Boundary And Manual Review Artifacts
 
 Manual review and red-team boundary artifacts are versioned JSON contracts
-exposed through Python helpers rather than a dedicated CLI command. They are
+exposed through Python helpers and the `manual` CLI commands. They are
 documented in [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md).
 
 ## Portability Rules

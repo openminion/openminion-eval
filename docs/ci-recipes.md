@@ -57,15 +57,18 @@ For human review, render JSON artifacts before upload:
 
 ```bash
 openminion-eval artifact validate artifacts/eval/suite-result.json
+openminion-eval artifact validate artifacts/eval/diff.json
 openminion-eval artifact validate artifacts/eval/memory-scorecard.json
 openminion-eval artifact validate artifacts/eval/delegated-memory-scorecard.json
 openminion-eval artifact validate artifacts/eval/delegated-diff.json
 openminion-eval artifact validate artifacts/eval/memory-context-scorecard.json
 openminion-eval report suite artifacts/eval/suite-result.json --out artifacts/eval/suite-result.md
+openminion-eval report suite-diff artifacts/eval/diff.json --out artifacts/eval/diff.md
 openminion-eval report memory-scorecard artifacts/eval/memory-scorecard.json --out artifacts/eval/memory-scorecard.md
 openminion-eval report delegated-memory artifacts/eval/delegated-memory-scorecard.json --out artifacts/eval/delegated-memory-scorecard.md
 openminion-eval report delegated-diff artifacts/eval/delegated-diff.json --out artifacts/eval/delegated-diff.md
 openminion-eval report memory-context artifacts/eval/memory-context-scorecard.json --out artifacts/eval/memory-context-scorecard.md
+openminion-eval report bundle artifacts/eval/suite-result.json artifacts/eval/diff.json artifacts/eval/memory-context-scorecard.json --out artifacts/eval/index.html
 ```
 
 For a minimal offline memory/context CI case, start from

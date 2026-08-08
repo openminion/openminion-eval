@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 import hashlib
 import json
@@ -24,6 +24,22 @@ from openminion_eval.schemas import (
 
 
 SUITE_ARTIFACT_VERSION = "1"
+SUITE_DIFF_VERSION = "suite-diff.v1"
+
+
+@dataclass(frozen=True)
+class EvalSuiteDiffArtifact:
+    version: str
+    previous_suite_name: str
+    current_suite_name: str
+    categories: dict[str, int]
+    entries: list[EvalBaselineDiffEntry]
+
+    def __post_init__(self) -> None:
+        if self.version != SUITE_DIFF_VERSION:
+            raise ValueError(f"unsupported suite diff version: {self.version!r}")
+        if not self.previous_suite_name or not self.current_suite_name:
+            raise ValueError("previous_suite_name and current_suite_name are required")
 
 
 def hash_transcripts(transcripts: Sequence[EvalTranscript]) -> str:
@@ -84,6 +100,30 @@ def write_suite_result(
     return target
 
 
+def build_suite_diff_artifact(
+    previous: EvalSuiteResult,
+    current: EvalSuiteResult,
+) -> EvalSuiteDiffArtifact:
+    diff = compare_suite_results(previous, current)
+    return EvalSuiteDiffArtifact(
+        version=SUITE_DIFF_VERSION,
+        previous_suite_name=diff.previous_suite_name,
+        current_suite_name=diff.current_suite_name,
+        categories=diff.categories,
+        entries=diff.entries,
+    )
+
+
+def write_suite_diff(path: str | Path, artifact: EvalSuiteDiffArtifact) -> Path:
+    target = Path(path)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(asdict(artifact), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
 def build_case_traces(result: EvalSuiteResult) -> list[EvalCaseTrace]:
     traces: list[EvalCaseTrace] = []
     for summary in result.summaries:
@@ -125,6 +165,28 @@ def load_suite_result(path: str | Path) -> tuple[EvalSuiteResult, EvalRunManifes
     return (
         _suite_result_from_dict(payload["result"]),
         _manifest_from_dict(payload["manifest"]),
+    )
+
+
+def load_suite_diff(path: str | Path) -> EvalSuiteDiffArtifact:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("suite diff artifact must be a JSON object")
+    categories = payload.get("categories", {})
+    entries = payload.get("entries", [])
+    if not isinstance(categories, dict):
+        raise TypeError("suite diff categories must be an object")
+    if not isinstance(entries, list):
+        raise TypeError("suite diff entries must be a list")
+    return EvalSuiteDiffArtifact(
+        version=str(payload.get("version", "")),
+        previous_suite_name=str(payload.get("previous_suite_name", "")),
+        current_suite_name=str(payload.get("current_suite_name", "")),
+        categories={
+            _diff_category_from_value(key): int(value)
+            for key, value in categories.items()
+        },
+        entries=[_diff_entry_from_dict(item) for item in entries],
     )
 
 
@@ -182,6 +244,47 @@ def _diff_category(previous: EvalSummary | None, current: EvalSummary | None) ->
     if not previous.passed and current.passed:
         return "fixed"
     return "regressed"
+
+
+def _diff_category_from_value(value: object) -> str:
+    category = str(value)
+    allowed = {
+        "fixed",
+        "missing_transcript",
+        "new_fail",
+        "new_pass",
+        "regressed",
+        "unchanged_fail",
+        "unchanged_pass",
+    }
+    if category not in allowed:
+        raise ValueError(f"unsupported suite diff category: {category!r}")
+    return category
+
+
+def _diff_entry_from_dict(data: Any) -> EvalBaselineDiffEntry:
+    if not isinstance(data, dict):
+        raise TypeError("suite diff entries must be objects")
+    return EvalBaselineDiffEntry(
+        transcript_name=str(data.get("transcript_name", "")),
+        category=_diff_category_from_value(data.get("category")),
+        previous_passed=_optional_bool(data.get("previous_passed")),
+        current_passed=_optional_bool(data.get("current_passed")),
+        previous_average_score=_optional_float(data.get("previous_average_score")),
+        current_average_score=_optional_float(data.get("current_average_score")),
+    )
+
+
+def _optional_bool(value: object) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    raise TypeError("suite diff pass fields must be booleans or null")
+
+
+def _optional_float(value: object) -> float | None:
+    return None if value is None else float(value)
 
 
 def _manifest_from_dict(data: dict[str, Any]) -> EvalRunManifest:

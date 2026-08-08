@@ -112,6 +112,7 @@ from openminion_eval import (
     BoundaryArtifactValidationError,
     DELEGATED_MEMORY_DIFF_VERSION,
     DelegatedMemoryEvalTrace,
+    EvalSuiteDiffArtifact,
     IntegrationProbeDisposition,
     RedTeamSecurityArtifact,
     SyntheticGoldenArtifact,
@@ -123,11 +124,13 @@ from openminion_eval import (
     MemoryExpectation,
     MEMORY_CONTEXT_SCORECARD_VERSION,
     MemoryContextScorecardV1,
+    SUITE_DIFF_VERSION,
     build_eval_dataset_template,
     build_delegated_memory_scorecard_diff,
     build_delegated_memory_scorecard,
     build_case_traces,
     build_integration_quarantine_map,
+    build_suite_diff_artifact,
     build_memory_context_scorecard,
     build_memory_scorecard,
     build_run_manifest,
@@ -143,6 +146,7 @@ from openminion_eval import (
     load_delegated_memory_cases,
     load_delegated_memory_scorecard_diff,
     load_delegated_memory_scorecard,
+    load_suite_diff,
     load_replay_subject,
     load_memory_context_scorecard_fixtures,
     load_memory_effectiveness_cases,
@@ -157,12 +161,14 @@ from openminion_eval import (
     render_delegated_memory_diff_markdown,
     render_delegated_memory_scorecard_markdown,
     render_memory_context_scorecard_markdown,
+    render_suite_diff_artifact_markdown,
     registered_cases,
     score_memory_case,
     select_transcripts,
     write_eval_dataset_template,
     write_delegated_memory_scorecard_diff,
     write_delegated_memory_scorecard,
+    write_suite_diff,
     write_red_team_security_artifact,
     write_synthetic_golden_artifact,
 )
@@ -260,6 +266,16 @@ if not callable(build_case_traces):
     raise SystemExit("build_case_traces root export missing")
 if not callable(compare_suite_results):
     raise SystemExit("compare_suite_results root export missing")
+if not callable(build_suite_diff_artifact):
+    raise SystemExit("build_suite_diff_artifact root export missing")
+if SUITE_DIFF_VERSION != "suite-diff.v1":
+    raise SystemExit("suite diff version drifted")
+if EvalSuiteDiffArtifact.__name__ != "EvalSuiteDiffArtifact":
+    raise SystemExit("EvalSuiteDiffArtifact root export missing")
+if not callable(load_suite_diff):
+    raise SystemExit("load_suite_diff root export missing")
+if not callable(write_suite_diff):
+    raise SystemExit("write_suite_diff root export missing")
 if not callable(hash_transcripts):
     raise SystemExit("hash_transcripts root export missing")
 if not callable(select_transcripts):
@@ -280,6 +296,8 @@ if not callable(render_suite_result_markdown):
     raise SystemExit("render_suite_result_markdown root export missing")
 if not callable(render_baseline_diff_markdown):
     raise SystemExit("render_baseline_diff_markdown root export missing")
+if not callable(render_suite_diff_artifact_markdown):
+    raise SystemExit("render_suite_diff_artifact_markdown root export missing")
 if not callable(render_memory_scorecard_markdown):
     raise SystemExit("render_memory_scorecard_markdown root export missing")
 if not callable(render_delegated_memory_scorecard_markdown):
@@ -407,6 +425,52 @@ if "Delegated-Memory Diff" not in render_delegated_memory_diff_markdown(
     delegated_diff
 ):
     raise SystemExit("delegated memory diff report renderer smoke failed")
+suite_diff = openminion_eval.build_suite_diff_artifact(
+    openminion_eval.EvalSuiteResult(
+        suite_name="previous",
+        total_transcripts=1,
+        passed_transcripts=0,
+        failed_transcripts=1,
+        summaries=[
+            openminion_eval.EvalSummary(
+                transcript_name="fixed",
+                total_turns=1,
+                average_score=0.0,
+                min_score=0.0,
+                max_score=0.0,
+                results=[],
+                passed=False,
+            )
+        ],
+        all_passed=False,
+    ),
+    openminion_eval.EvalSuiteResult(
+        suite_name="current",
+        total_transcripts=1,
+        passed_transcripts=1,
+        failed_transcripts=0,
+        summaries=[
+            openminion_eval.EvalSummary(
+                transcript_name="fixed",
+                total_turns=1,
+                average_score=1.0,
+                min_score=1.0,
+                max_score=1.0,
+                results=[],
+                passed=True,
+            )
+        ],
+        all_passed=True,
+    ),
+)
+suite_diff_path = (
+    Path(os.environ["OPENMINION_EVAL_RELEASE_TMP"]) / "suite-diff-python.json"
+)
+write_suite_diff(suite_diff_path, suite_diff)
+if load_suite_diff(suite_diff_path) != suite_diff:
+    raise SystemExit("suite diff IO smoke failed")
+if "Eval Suite Diff" not in render_suite_diff_artifact_markdown(suite_diff):
+    raise SystemExit("suite diff report renderer smoke failed")
 delegated_scorecard_path = (
     Path(os.environ["OPENMINION_EVAL_RELEASE_TMP"])
     / "delegated-memory-python-scorecard.json"
@@ -560,6 +624,192 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
+            previous_suite_dataset_path = tmp_root / "previous-suite-dataset.json"
+            current_suite_dataset_path = tmp_root / "current-suite-dataset.json"
+            previous_suite_path = tmp_root / "previous-suite.json"
+            current_suite_path = tmp_root / "current-suite.json"
+            suite_diff_path = tmp_root / "suite-diff.json"
+            suite_diff_report_path = tmp_root / "suite-diff.md"
+            artifact_index_path = tmp_root / "artifact-index.html"
+            previous_suite_dataset_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "1",
+                        "name": "previous-suite",
+                        "cases": [
+                            {
+                                "id": "fixed",
+                                "turns": [
+                                    {
+                                        "user": "hello",
+                                        "expected": "not present",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            current_suite_dataset_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "1",
+                        "name": "current-suite",
+                        "cases": [
+                            {
+                                "id": "fixed",
+                                "turns": [
+                                    {
+                                        "user": "hello",
+                                        "expected": "Mock response",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "run",
+                    str(previous_suite_dataset_path),
+                    "--out",
+                    str(previous_suite_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+                expected_returncode=1,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "run",
+                    str(current_suite_dataset_path),
+                    "--out",
+                    str(current_suite_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "diff",
+                    str(previous_suite_path),
+                    str(current_suite_path),
+                    "--out",
+                    str(suite_diff_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not suite_diff_path.is_file():
+                raise RuntimeError("suite-diff CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "artifact",
+                    "inspect",
+                    str(suite_diff_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "suite-diff",
+                    str(suite_diff_path),
+                    "--out",
+                    str(suite_diff_report_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not suite_diff_report_path.is_file():
+                raise RuntimeError("suite-diff report CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "bundle",
+                    str(current_suite_path),
+                    str(suite_diff_path),
+                    "--out",
+                    str(artifact_index_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not artifact_index_path.is_file():
+                raise RuntimeError("artifact bundle CLI index missing")
+
+            manual_queue_path = tmp_root / "manual-review-queue.json"
+            manual_adjudications_path = tmp_root / "manual-adjudications.json"
+            manual_results_path = tmp_root / "manual-results.json"
+            manual_adjudications_path.write_text(
+                json.dumps(
+                    {
+                        "artifact_version": "1",
+                        "adjudications": [
+                            {
+                                "case_id": "coding_minimax_markdown_table",
+                                "outcome": "pass",
+                                "detail": "release smoke review",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "manual",
+                    "queue",
+                    "--out",
+                    str(manual_queue_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not manual_queue_path.is_file():
+                raise RuntimeError("manual queue CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "manual",
+                    "apply",
+                    str(manual_adjudications_path),
+                    "--out",
+                    str(manual_results_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not manual_results_path.is_file():
+                raise RuntimeError("manual apply CLI artifact missing")
+
             scorecard_path = tmp_root / "memory-context-scorecard.json"
             scorecard_report_path = tmp_root / "memory-context-scorecard.md"
             _run(

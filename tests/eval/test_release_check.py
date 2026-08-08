@@ -41,6 +41,19 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "dataset template root export drifted" in release_check
     assert "IntegrationProbeDisposition root export missing" in release_check
     assert "render_suite_result_markdown root export missing" in release_check
+    assert "suite diff version drifted" in release_check
+    assert "EvalSuiteDiffArtifact root export missing" in release_check
+    assert "build_suite_diff_artifact root export missing" in release_check
+    assert "load_suite_diff root export missing" in release_check
+    assert "write_suite_diff root export missing" in release_check
+    assert "render_suite_diff_artifact_markdown root export missing" in release_check
+    assert "suite diff IO smoke failed" in release_check
+    assert "suite diff report renderer smoke failed" in release_check
+    assert "suite-diff CLI artifact missing" in release_check
+    assert "suite-diff report CLI artifact missing" in release_check
+    assert "artifact bundle CLI index missing" in release_check
+    assert "manual queue CLI artifact missing" in release_check
+    assert "manual apply CLI artifact missing" in release_check
     assert "render_memory_scorecard_markdown root export missing" in release_check
     assert "render_delegated_memory_scorecard_markdown root export missing" in (
         release_check

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from html import escape
+from typing import Mapping, Sequence
 
 from openminion_eval.memory_context_scorecard import MemoryContextScorecardV1
 from openminion_eval.memory_effectiveness import (
@@ -16,6 +17,7 @@ from openminion_eval.schemas import (
     EvalSuiteResult,
     EvalSummary,
 )
+from openminion_eval.suite_artifacts import EvalSuiteDiffArtifact
 
 
 def render_suite_result_markdown(
@@ -87,6 +89,39 @@ def render_baseline_diff_markdown(diff: EvalBaselineDiff) -> str:
     return "\n".join(lines) + "\n"
 
 
+def render_suite_diff_artifact_markdown(diff: EvalSuiteDiffArtifact) -> str:
+    lines = [
+        "# OpenMinion Eval Suite Diff",
+        "",
+        "## Summary",
+        "",
+        f"- Previous suite: `{diff.previous_suite_name}`",
+        f"- Current suite: `{diff.current_suite_name}`",
+    ]
+    for category, count in sorted(diff.categories.items()):
+        lines.append(f"- {category}: {count}")
+    lines.extend(
+        [
+            "",
+            "## Entries",
+            "",
+            "| Transcript | Category | Previous | Current | Previous Avg | Current Avg |",
+            "| --- | --- | --- | --- | ---: | ---: |",
+        ]
+    )
+    for entry in diff.entries:
+        lines.append(
+            "| "
+            f"{_cell(entry.transcript_name)} | "
+            f"{_cell(entry.category)} | "
+            f"{_status(entry.previous_passed)} | "
+            f"{_status(entry.current_passed)} | "
+            f"{_score(entry.previous_average_score)} | "
+            f"{_score(entry.current_average_score)} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
 def render_suite_result_html(
     result: EvalSuiteResult,
     manifest: EvalRunManifest | None = None,
@@ -98,6 +133,11 @@ def render_suite_result_html(
 def render_baseline_diff_html(diff: EvalBaselineDiff) -> str:
     markdown = render_baseline_diff_markdown(diff)
     return _html_page("OpenMinion Eval Baseline Diff", markdown)
+
+
+def render_suite_diff_artifact_html(diff: EvalSuiteDiffArtifact) -> str:
+    markdown = render_suite_diff_artifact_markdown(diff)
+    return _html_page("OpenMinion Eval Suite Diff", markdown)
 
 
 def render_memory_scorecard_markdown(scorecard: MemoryEffectivenessScorecard) -> str:
@@ -266,6 +306,23 @@ def render_memory_context_scorecard_html(scorecard: MemoryContextScorecardV1) ->
     return _html_page("OpenMinion Memory/Context Scorecard", markdown)
 
 
+def render_artifact_index_html(items: Sequence[Mapping[str, object]]) -> str:
+    rows = [
+        "| Artifact | Kind | Version | Summary |",
+        "| --- | --- | --- | --- |",
+    ]
+    for item in items:
+        rows.append(
+            "| "
+            f"{_cell(str(item.get('artifact', '')))} | "
+            f"{_cell(str(item.get('artifact_kind', '')))} | "
+            f"{_cell(str(item.get('version', '')))} | "
+            f"{_cell(str(item.get('summary', '')))} |"
+        )
+    markdown = "\n".join(["# OpenMinion Eval Artifact Index", "", *rows]) + "\n"
+    return _html_page("OpenMinion Eval Artifact Index", markdown)
+
+
 def _summary_row(summary: EvalSummary) -> str:
     status = "pass" if summary.passed else "fail"
     return (
@@ -303,13 +360,41 @@ def _failure_sections(result: EvalSuiteResult) -> list[str]:
 
 def _html_page(title: str, markdown: str) -> str:
     body = "\n".join(_markdown_blocks(markdown))
+    styles = _html_styles()
     return (
         "<!doctype html>\n"
         '<html lang="en">\n'
-        '<head><meta charset="utf-8"><title>'
-        f"{escape(title)}</title></head>\n"
+        "<head>"
+        '<meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>{escape(title)}</title>"
+        f"<style>{styles}</style>"
+        "</head>\n"
         f"<body>\n{body}\n</body>\n"
         "</html>\n"
+    )
+
+
+def _html_styles() -> str:
+    return (
+        ":root{color-scheme:light dark;--bg:#f8fafc;--fg:#0f172a;"
+        "--muted:#64748b;--line:#cbd5e1;--panel:#ffffff;--pass:#047857;"
+        "--fail:#b91c1c;--warn:#b45309}"
+        "@media(prefers-color-scheme:dark){:root{--bg:#0b1220;--fg:#e5e7eb;"
+        "--muted:#94a3b8;--line:#334155;--panel:#111827}}"
+        "body{margin:0 auto;max-width:1120px;padding:32px 24px;"
+        "background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,"
+        "-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}"
+        "h1{font-size:32px;margin:0 0 24px}h2{font-size:22px;margin-top:28px}"
+        "h3{font-size:18px;margin-top:24px}p,ul{max-width:840px}"
+        "code{padding:.1rem .3rem;border:1px solid var(--line);border-radius:4px}"
+        "table{width:100%;border-collapse:collapse;margin:16px 0 28px;"
+        "background:var(--panel)}th,td{border:1px solid var(--line);"
+        "padding:8px 10px;text-align:left;vertical-align:top}th{font-weight:650}"
+        ".status-pass{color:var(--pass);font-weight:650}.status-fail,"
+        ".status-regressed,.status-new_fail,.status-missing_transcript{"
+        "color:var(--fail);font-weight:650}.status-warn{color:var(--warn);"
+        "font-weight:650}@media print{body{background:white;color:black}}"
     )
 
 
@@ -369,8 +454,7 @@ def _table_block(lines: list[str], start: int) -> tuple[str, int]:
         index += 1
     header_html = "".join(f"<th>{_inline_html(cell)}</th>" for cell in header)
     body_rows = [
-        "<tr>" + "".join(f"<td>{_inline_html(cell)}</td>" for cell in row) + "</tr>"
-        for row in rows
+        "<tr>" + "".join(_data_cell(cell) for cell in row) + "</tr>" for row in rows
     ]
     table = (
         "<table>\n<thead><tr>"
@@ -380,6 +464,30 @@ def _table_block(lines: list[str], start: int) -> tuple[str, int]:
         + "\n</tbody>\n</table>"
     )
     return table, index
+
+
+def _data_cell(cell: str) -> str:
+    class_name = _status_class(cell)
+    attrs = "" if not class_name else f' class="{class_name}"'
+    return f"<td{attrs}>{_inline_html(cell)}</td>"
+
+
+def _status_class(value: str) -> str:
+    token = value.strip().lower().replace(" ", "_")
+    if token in {
+        "fail",
+        "failed",
+        "regressed",
+        "new_fail",
+        "missing_transcript",
+        "unchanged_fail",
+    }:
+        return f"status-{token}"
+    if token in {"pass", "passed", "yes", "fixed", "new_pass", "unchanged_pass"}:
+        return "status-pass"
+    if token in {"warn", "warning"}:
+        return "status-warn"
+    return ""
 
 
 def _table_cells(row: str) -> list[str]:

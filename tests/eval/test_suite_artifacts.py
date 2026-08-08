@@ -4,11 +4,15 @@ import json
 
 from openminion_eval import (
     EvalBaselineDiff,
+    EvalSuiteDiffArtifact,
     EvalRunManifest,
+    build_suite_diff_artifact,
     build_run_manifest,
     compare_suite_results,
     hash_transcripts,
+    load_suite_diff,
     load_suite_result,
+    write_suite_diff,
     write_suite_result,
 )
 from openminion_eval.schemas import (
@@ -153,3 +157,16 @@ def test_compare_suite_results_reports_every_category() -> None:
         "unchanged_fail": 1,
         "unchanged_pass": 1,
     }
+
+
+def test_suite_diff_artifact_round_trips(tmp_path) -> None:
+    previous = _suite([_summary("regressed", passed=True, score=1.0)])
+    current = _suite([_summary("regressed", passed=False, score=0.0)])
+
+    artifact = build_suite_diff_artifact(previous, current)
+    path = write_suite_diff(tmp_path / "suite-diff.json", artifact)
+
+    assert isinstance(artifact, EvalSuiteDiffArtifact)
+    assert artifact.version == "suite-diff.v1"
+    assert artifact.categories == {"regressed": 1}
+    assert load_suite_diff(path) == artifact

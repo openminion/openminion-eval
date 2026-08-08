@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/suite-diff.v1.schema.json",
+  "additionalProperties": false,
+  "properties": {
+    "categories": {
+      "additionalProperties": {
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "current_suite_name": {
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "fixed",
+              "missing_transcript",
+              "new_fail",
+              "new_pass",
+              "regressed",
+              "unchanged_fail",
+              "unchanged_pass"
+            ]
+          },
+          "current_average_score": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "current_passed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "previous_average_score": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "previous_passed": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "transcript_name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "category",
+          "current_average_score",
+          "current_passed",
+          "previous_average_score",
+          "previous_passed",
+          "transcript_name"
+        ],
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "previous_suite_name": {
+      "type": "string"
+    },
+    "version": {
+      "const": "suite-diff.v1"
+    }
+  },
+  "required": [
+    "categories",
+    "current_suite_name",
+    "entries",
+    "previous_suite_name",
+    "version"
+  ],
+  "title": "OpenMinion Eval Suite Diff v1",
+  "type": "object"
+}
