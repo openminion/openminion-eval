@@ -17,6 +17,7 @@ from openminion_eval.memory_effectiveness.fixtures import (
     load_memory_effectiveness_cases,
 )
 from openminion_eval.memory_effectiveness.delegated_memory import (
+    DELEGATED_MEMORY_DIFF_VERSION,
     DELEGATED_MEMORY_FIXTURE_VERSION,
     DELEGATED_MEMORY_SCORECARD_VERSION,
     DelegatedMemoryDiffCategory,
@@ -26,12 +27,16 @@ from openminion_eval.memory_effectiveness.delegated_memory import (
     DelegatedMemoryEvalScorecard,
     DelegatedMemoryEvalTrace,
     DelegatedMemoryScorecardComparison,
+    DelegatedMemoryScorecardDiff,
+    build_delegated_memory_scorecard_diff,
     build_delegated_memory_scorecard,
     compare_delegated_memory_scorecards,
     default_delegated_memory_cases_path,
     load_delegated_memory_cases,
+    load_delegated_memory_scorecard_diff,
     load_delegated_memory_scorecard,
     score_delegated_memory_case,
+    write_delegated_memory_scorecard_diff,
     write_delegated_memory_scorecard,
 )
 from openminion_eval.memory_effectiveness.schemas import (
@@ -61,6 +66,7 @@ from openminion_eval.memory_effectiveness.scoring import (
 
 __all__ = [
     "BENCHMARK_ADAPTER_VERSION",
+    "DELEGATED_MEMORY_DIFF_VERSION",
     "DELEGATED_MEMORY_FIXTURE_VERSION",
     "DELEGATED_MEMORY_SCORECARD_VERSION",
     "FIXTURE_VERSION",
@@ -75,6 +81,7 @@ __all__ = [
     "DelegatedMemoryEvalScorecard",
     "DelegatedMemoryEvalTrace",
     "DelegatedMemoryScorecardComparison",
+    "DelegatedMemoryScorecardDiff",
     "MemoryComponent",
     "MemoryComponentScore",
     "MemoryEffectivenessCase",
@@ -90,6 +97,7 @@ __all__ = [
     "MemoryTraceToolCall",
     "MemoryTrajectoryMatchMode",
     "build_memory_scorecard",
+    "build_delegated_memory_scorecard_diff",
     "build_delegated_memory_scorecard",
     "compare_delegated_memory_scorecards",
     "compare_memory_scorecards",
@@ -101,11 +109,13 @@ __all__ = [
     "load_memory_benchmark_cases",
     "load_memory_effectiveness_cases",
     "load_delegated_memory_cases",
+    "load_delegated_memory_scorecard_diff",
     "load_delegated_memory_scorecard",
     "load_memory_scorecard",
     "load_packaged_memory_benchmark_sample",
     "score_memory_case",
     "score_delegated_memory_case",
+    "write_delegated_memory_scorecard_diff",
     "write_delegated_memory_scorecard",
     "write_memory_scorecard",
 ]

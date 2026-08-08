@@ -26,6 +26,7 @@ DelegatedMemoryDiffCategory = Literal[
 
 DELEGATED_MEMORY_FIXTURE_VERSION = "delegated-multi-agent-memory.v1"
 DELEGATED_MEMORY_SCORECARD_VERSION = "delegated-memory-scorecard.v1"
+DELEGATED_MEMORY_DIFF_VERSION = "delegated-memory-diff.v1"
 
 _MODES = frozenset({"disabled", "private_only", "delegated_shared"})
 
@@ -134,6 +135,23 @@ class DelegatedMemoryScorecardComparison:
     critical_failures: tuple[str, ...] = ()
 
 
+@dataclass(frozen=True, slots=True)
+class DelegatedMemoryScorecardDiff:
+    version: str
+    previous_suite_id: str
+    current_suite_id: str
+    categories: dict[str, int]
+    entries: tuple[DelegatedMemoryScorecardComparison, ...]
+
+    def __post_init__(self) -> None:
+        if self.version != DELEGATED_MEMORY_DIFF_VERSION:
+            raise ValueError(
+                f"unsupported delegated memory diff version: {self.version!r}"
+            )
+        if not self.previous_suite_id or not self.current_suite_id:
+            raise ValueError("previous_suite_id and current_suite_id are required")
+
+
 def score_delegated_memory_case(
     case: DelegatedMemoryEvalCase,
     trace: DelegatedMemoryEvalTrace,
@@ -226,6 +244,24 @@ def compare_delegated_memory_scorecards(
     )
 
 
+def build_delegated_memory_scorecard_diff(
+    previous: DelegatedMemoryEvalScorecard,
+    current: DelegatedMemoryEvalScorecard,
+) -> DelegatedMemoryScorecardDiff:
+    entries = compare_delegated_memory_scorecards(previous, current)
+    categories = {
+        category: sum(1 for item in entries if item.category == category)
+        for category in sorted({item.category for item in entries})
+    }
+    return DelegatedMemoryScorecardDiff(
+        version=DELEGATED_MEMORY_DIFF_VERSION,
+        previous_suite_id=previous.suite_id,
+        current_suite_id=current.suite_id,
+        categories=categories,
+        entries=entries,
+    )
+
+
 def default_delegated_memory_cases_path() -> Traversable:
     return files("openminion_eval.memory_effectiveness").joinpath(
         "resources/delegated_multi_agent_memory_cases.json"
@@ -297,6 +333,48 @@ def load_delegated_memory_scorecard(path: str | Path) -> DelegatedMemoryEvalScor
     )
 
 
+def write_delegated_memory_scorecard_diff(
+    path: str | Path,
+    diff: DelegatedMemoryScorecardDiff,
+) -> Path:
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(
+        json.dumps(asdict(diff), indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return output_path
+
+
+def load_delegated_memory_scorecard_diff(
+    path: str | Path,
+) -> DelegatedMemoryScorecardDiff:
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("delegated memory diff must be a JSON object")
+    if payload.get("version") != DELEGATED_MEMORY_DIFF_VERSION:
+        raise ValueError("unsupported delegated memory diff version")
+    entries = payload.get("entries", ())
+    if not isinstance(entries, list | tuple):
+        raise TypeError("delegated memory diff entries must be a list")
+    categories = payload.get("categories", {})
+    if not isinstance(categories, dict):
+        raise TypeError("delegated memory diff categories must be an object")
+    normalized_categories = {
+        _delegated_memory_diff_category(key): int(value)
+        for key, value in categories.items()
+    }
+    return DelegatedMemoryScorecardDiff(
+        version=str(payload.get("version", "")),
+        previous_suite_id=str(payload.get("previous_suite_id", "")),
+        current_suite_id=str(payload.get("current_suite_id", "")),
+        categories=normalized_categories,
+        entries=tuple(
+            _comparison_from_payload(item) for item in json_objects(entries, "entries")
+        ),
+    )
+
+
 def _delegated_memory_result_from_payload(
     data: dict[str, Any],
 ) -> DelegatedMemoryEvalResult:
@@ -318,6 +396,50 @@ def _delegated_memory_mode(value: object) -> DelegatedMemoryEvalMode:
     if value in _MODES:
         return cast(DelegatedMemoryEvalMode, value)
     raise ValueError(f"invalid delegated memory eval mode: {value!r}")
+
+
+def _delegated_memory_diff_category(value: object) -> DelegatedMemoryDiffCategory:
+    categories = {
+        "unchanged_pass",
+        "unchanged_fail",
+        "improved",
+        "regressed",
+        "new_case",
+        "missing_case",
+    }
+    if value in categories:
+        return cast(DelegatedMemoryDiffCategory, value)
+    raise ValueError(f"invalid delegated memory diff category: {value!r}")
+
+
+def _comparison_from_payload(
+    data: dict[str, Any],
+) -> DelegatedMemoryScorecardComparison:
+    return DelegatedMemoryScorecardComparison(
+        case_id=str(data.get("case_id", "")),
+        category=_delegated_memory_diff_category(data.get("category")),
+        previous_passed=_optional_bool(data.get("previous_passed")),
+        current_passed=_optional_bool(data.get("current_passed")),
+        previous_utility_recall=_optional_float(data.get("previous_utility_recall")),
+        current_utility_recall=_optional_float(data.get("current_utility_recall")),
+        delta=_optional_float(data.get("delta")),
+        critical_failures=strings_from_value(
+            data.get("critical_failures", ()),
+            "critical_failures",
+        ),
+    )
+
+
+def _optional_bool(value: object) -> bool | None:
+    if value is None:
+        return None
+    if isinstance(value, bool):
+        return value
+    raise TypeError("delegated memory diff pass fields must be booleans or null")
+
+
+def _optional_float(value: object) -> float | None:
+    return None if value is None else float(value)
 
 
 def _compare_delegated_memory_case(
@@ -366,6 +488,7 @@ def _delegated_comparison(
 
 
 __all__ = [
+    "DELEGATED_MEMORY_DIFF_VERSION",
     "DELEGATED_MEMORY_FIXTURE_VERSION",
     "DELEGATED_MEMORY_SCORECARD_VERSION",
     "DelegatedMemoryDiffCategory",
@@ -375,11 +498,15 @@ __all__ = [
     "DelegatedMemoryEvalScorecard",
     "DelegatedMemoryEvalTrace",
     "DelegatedMemoryScorecardComparison",
+    "DelegatedMemoryScorecardDiff",
+    "build_delegated_memory_scorecard_diff",
     "build_delegated_memory_scorecard",
     "compare_delegated_memory_scorecards",
     "default_delegated_memory_cases_path",
     "load_delegated_memory_cases",
+    "load_delegated_memory_scorecard_diff",
     "load_delegated_memory_scorecard",
     "score_delegated_memory_case",
+    "write_delegated_memory_scorecard_diff",
     "write_delegated_memory_scorecard",
 ]

@@ -11,10 +11,11 @@ from typing import Any, Callable
 
 from openminion_eval.memory_effectiveness.delegated_memory import (
     DelegatedMemoryEvalTrace,
+    build_delegated_memory_scorecard_diff,
     build_delegated_memory_scorecard,
-    compare_delegated_memory_scorecards,
     load_delegated_memory_cases,
     load_delegated_memory_scorecard,
+    write_delegated_memory_scorecard_diff,
     write_delegated_memory_scorecard,
 )
 from openminion_eval.memory_effectiveness.fixtures import (
@@ -194,31 +195,18 @@ def _score_delegated_memory_trace(args: argparse.Namespace) -> int:
 def _diff_delegated_memory_scorecards(args: argparse.Namespace) -> int:
     previous = load_delegated_memory_scorecard(args.previous)
     current = load_delegated_memory_scorecard(args.current)
-    comparisons = compare_delegated_memory_scorecards(previous, current)
-    categories = {
-        category: sum(1 for item in comparisons if item.category == category)
-        for category in sorted({item.category for item in comparisons})
-    }
-    payload = {
-        "previous_suite_id": previous.suite_id,
-        "current_suite_id": current.suite_id,
-        "categories": categories,
-        "entries": [asdict(item) for item in comparisons],
-    }
+    diff = build_delegated_memory_scorecard_diff(previous, current)
+    payload = asdict(diff)
     if args.out is None:
         _write_json(payload)
     else:
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(
-            json.dumps(payload, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        write_delegated_memory_scorecard_diff(args.out, diff)
     regressions = {"regressed", "missing_case"}
     current_failures = any(
         item.current_passed is False and item.category != "improved"
-        for item in comparisons
+        for item in diff.entries
     )
-    return 1 if regressions.intersection(categories) or current_failures else 0
+    return 1 if regressions.intersection(diff.categories) or current_failures else 0
 
 
 def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:

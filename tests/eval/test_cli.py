@@ -155,14 +155,25 @@ def test_nested_report_and_memory_help_are_discoverable() -> None:
         capture_output=True,
         text=True,
     )
+    artifact_help = subprocess.run(
+        [sys.executable, "-m", "openminion_eval", "artifact", "--help"],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
 
     assert report_help.returncode == 0
     assert "memory-scorecard" in report_help.stdout
     assert "delegated-memory" in report_help.stdout
+    assert "delegated-diff" in report_help.stdout
     assert "memory-context" in report_help.stdout
     assert memory_help.returncode == 0
     assert "delegated-score" in memory_help.stdout
     assert "delegated-diff" in memory_help.stdout
+    assert artifact_help.returncode == 0
+    assert "validate" in artifact_help.stdout
 
 
 def test_run_command_writes_suite_artifact_and_returns_zero_on_pass(
@@ -327,6 +338,34 @@ def test_report_suite_command_writes_markdown(tmp_path, capsys) -> None:
     assert exit_code == 0
     assert capsys.readouterr().out == ""
     assert "# OpenMinion Eval Suite Report" in report.read_text(encoding="utf-8")
+
+
+def test_artifact_validate_reports_known_suite_artifact(tmp_path, capsys) -> None:
+    artifact = tmp_path / "suite.json"
+    write_suite_result(
+        artifact,
+        _suite("suite", [_summary("hello", passed=True, score=1.0)]),
+        _manifest(),
+    )
+
+    exit_code = main(["artifact", "validate", str(artifact)])
+
+    stdout = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert stdout["valid"] is True
+    assert stdout["artifact_kind"] == "suite-result"
+
+
+def test_artifact_validate_rejects_unknown_json(tmp_path, capsys) -> None:
+    artifact = tmp_path / "unknown.json"
+    artifact.write_text('{"hello": "world"}', encoding="utf-8")
+
+    exit_code = main(["artifact", "validate", str(artifact)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert captured.out == ""
+    assert "unsupported artifact shape" in captured.err
 
 
 def test_scorers_list_command_reports_builtin_scorers(capsys) -> None:

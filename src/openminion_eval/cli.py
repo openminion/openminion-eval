@@ -22,9 +22,19 @@ from openminion_eval.integration_quarantine import (
 from openminion_eval.memory_context_scorecard.cli import (
     add_memory_context_scorecard_parser,
 )
-from openminion_eval.memory_context_scorecard import load_memory_context_scorecard
+from openminion_eval.memory_context_scorecard import (
+    CONTEXT_BUDGET_CALIBRATION_VERSION,
+    MEMORY_CONTEXT_OPERATIONAL_CANARY_VERSION,
+    MEMORY_CONTEXT_SCORECARD_VERSION,
+    load_context_budget_calibration,
+    load_memory_context_scorecard,
+    load_operational_canary,
+)
 from openminion_eval.memory_effectiveness import (
+    DELEGATED_MEMORY_DIFF_VERSION,
+    DELEGATED_MEMORY_SCORECARD_VERSION,
     load_delegated_memory_scorecard,
+    load_delegated_memory_scorecard_diff,
     load_memory_scorecard,
 )
 from openminion_eval.memory_effectiveness.cli import (
@@ -33,6 +43,8 @@ from openminion_eval.memory_effectiveness.cli import (
 from openminion_eval.reports import (
     render_baseline_diff_html,
     render_baseline_diff_markdown,
+    render_delegated_memory_diff_html,
+    render_delegated_memory_diff_markdown,
     render_delegated_memory_scorecard_html,
     render_delegated_memory_scorecard_markdown,
     render_memory_context_scorecard_html,
@@ -74,6 +86,7 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_run_parser(subparsers)
     _add_diff_parser(subparsers)
     _add_dataset_parser(subparsers)
+    _add_artifact_parser(subparsers)
     _add_report_parser(subparsers)
     _add_scorers_parser(subparsers)
     _add_integration_parser(subparsers)
@@ -233,6 +246,14 @@ def _add_report_parser(subparsers: Any) -> None:
     _add_report_output_args(delegated_parser)
     delegated_parser.set_defaults(func=_report_delegated_memory_command)
 
+    delegated_diff_parser = report_subparsers.add_parser(
+        "delegated-diff",
+        help="render a delegated-memory diff artifact",
+    )
+    delegated_diff_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(delegated_diff_parser)
+    delegated_diff_parser.set_defaults(func=_report_delegated_memory_diff_command)
+
     context_parser = report_subparsers.add_parser(
         "memory-context",
         help="render a memory/context scorecard artifact",
@@ -250,6 +271,22 @@ def _add_report_output_args(parser: argparse.ArgumentParser) -> None:
         help="report format (default: markdown)",
     )
     parser.add_argument("--out", type=Path, default=None)
+
+
+def _add_artifact_parser(subparsers: Any) -> None:
+    artifact_parser = subparsers.add_parser(
+        "artifact",
+        help="validate package JSON artifacts",
+    )
+    artifact_subparsers = artifact_parser.add_subparsers(
+        dest="artifact_command", required=True
+    )
+    validate_parser = artifact_subparsers.add_parser(
+        "validate",
+        help="validate a known openminion-eval artifact",
+    )
+    validate_parser.add_argument("artifact", type=Path)
+    validate_parser.set_defaults(func=_artifact_validate_command)
 
 
 def _add_scorers_parser(subparsers: Any) -> None:
@@ -411,6 +448,17 @@ def _report_delegated_memory_command(args: argparse.Namespace) -> int:
     return 0
 
 
+def _report_delegated_memory_diff_command(args: argparse.Namespace) -> int:
+    diff = load_delegated_memory_scorecard_diff(args.artifact)
+    report = (
+        render_delegated_memory_diff_html(diff)
+        if args.format == "html"
+        else render_delegated_memory_diff_markdown(diff)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
 def _report_memory_context_command(args: argparse.Namespace) -> int:
     scorecard = load_memory_context_scorecard(args.artifact)
     report = (
@@ -420,6 +468,52 @@ def _report_memory_context_command(args: argparse.Namespace) -> int:
     )
     _write_text(report, args.out)
     return 0
+
+
+def _artifact_validate_command(args: argparse.Namespace) -> int:
+    try:
+        info = _validate_artifact(args.artifact)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        sys.stderr.write(f"artifact validation error: {exc}\n")
+        return 2
+    _write_json({"valid": True, "artifact": str(args.artifact), **info})
+    return 0
+
+
+def _validate_artifact(path: Path) -> dict[str, str]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("artifact must be a JSON object")
+    version = str(payload.get("version") or payload.get("report_version") or "")
+    artifact_version = str(payload.get("artifact_version") or "")
+    if artifact_version and "manifest" in payload and "result" in payload:
+        load_suite_result(path)
+        return {"artifact_kind": "suite-result", "version": artifact_version}
+    if artifact_version and "scorecard" in payload:
+        load_memory_scorecard(path)
+        return {
+            "artifact_kind": "memory-effectiveness-scorecard",
+            "version": artifact_version,
+        }
+    if version == DELEGATED_MEMORY_SCORECARD_VERSION:
+        load_delegated_memory_scorecard(path)
+        return {"artifact_kind": "delegated-memory-scorecard", "version": version}
+    if version == DELEGATED_MEMORY_DIFF_VERSION:
+        load_delegated_memory_scorecard_diff(path)
+        return {"artifact_kind": "delegated-memory-diff", "version": version}
+    if version == MEMORY_CONTEXT_SCORECARD_VERSION:
+        load_memory_context_scorecard(path)
+        return {"artifact_kind": "memory-context-scorecard", "version": version}
+    if version == MEMORY_CONTEXT_OPERATIONAL_CANARY_VERSION:
+        load_operational_canary(path)
+        return {
+            "artifact_kind": "memory-context-operational-canary",
+            "version": version,
+        }
+    if version == CONTEXT_BUDGET_CALIBRATION_VERSION:
+        load_context_budget_calibration(path)
+        return {"artifact_kind": "context-budget-calibration", "version": version}
+    raise ValueError("unsupported artifact shape")
 
 
 def _scorers_list_command(args: argparse.Namespace) -> int:

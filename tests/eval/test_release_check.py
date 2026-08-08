@@ -71,17 +71,29 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "memory effectiveness scoring smoke failed" in release_check
     assert '"memory-effectiveness"' in release_check
     assert "memory-effectiveness CLI artifact missing" in release_check
+    assert '"artifact"' in release_check
+    assert '"validate"' in release_check
     assert "build_delegated_memory_scorecard root export missing" in release_check
+    assert "build_delegated_memory_scorecard_diff root export missing" in release_check
     assert "compare_delegated_memory_scorecards root export missing" in release_check
+    assert "delegated memory diff version drifted" in release_check
     assert "load_delegated_memory_scorecard root export missing" in release_check
+    assert "load_delegated_memory_scorecard_diff root export missing" in release_check
     assert "write_delegated_memory_scorecard root export missing" in release_check
+    assert "write_delegated_memory_scorecard_diff root export missing" in (
+        release_check
+    )
     assert '"delegated-score"' in release_check
     assert "delegated memory scorecard IO smoke failed" in release_check
     assert "delegated memory scorecard diff smoke failed" in release_check
+    assert "delegated memory diff IO smoke failed" in release_check
+    assert "delegated memory diff report renderer smoke failed" in release_check
     assert "delegated memory report renderer smoke failed" in release_check
     assert "delegated-memory CLI artifact missing" in release_check
     assert "delegated-memory report CLI artifact missing" in release_check
     assert "delegated-memory diff CLI artifact missing" in release_check
+    assert "delegated-memory diff report CLI artifact missing" in release_check
+    assert '"delegated-diff"' in release_check
     assert "MemoryContextScorecardV1 root export missing" in release_check
     assert "build_memory_context_scorecard root export missing" in release_check
     assert "memory context scorecard packaged fixture missing" in release_check

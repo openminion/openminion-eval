@@ -143,6 +143,21 @@ Render and compare with:
 ```bash
 openminion-eval report delegated-memory artifacts/delegated-memory-scorecard.json --out artifacts/delegated-memory-scorecard.md
 openminion-eval memory-effectiveness delegated-diff artifacts/previous-delegated.json artifacts/current-delegated.json --out artifacts/delegated-diff.json
+openminion-eval report delegated-diff artifacts/delegated-diff.json --out artifacts/delegated-diff.md
+```
+
+The delegated diff artifact is versioned for upload and review:
+
+```json
+{
+  "version": "delegated-memory-diff.v1",
+  "previous_suite_id": "delegated-multi-agent-memory.v1",
+  "current_suite_id": "delegated-multi-agent-memory.v1",
+  "categories": {
+    "unchanged_pass": 8
+  },
+  "entries": []
+}
 ```
 
 ## Memory/Context Scorecard
@@ -151,6 +166,9 @@ Produced by:
 
 ```bash
 openminion-eval memory-context-scorecard --out artifacts/memory-context-scorecard.json
+openminion-eval memory-context-scorecard \
+  --fixtures examples/memory-context-scorecard-cases.json \
+  --out artifacts/memory-context-scorecard.json
 ```
 
 Top-level shape:
@@ -171,6 +189,18 @@ Render with:
 
 ```bash
 openminion-eval report memory-context artifacts/memory-context-scorecard.json --out artifacts/memory-context-scorecard.md
+```
+
+## Artifact Validation
+
+Validate known artifacts before uploading them from CI:
+
+```bash
+openminion-eval artifact validate artifacts/suite-result.json
+openminion-eval artifact validate artifacts/memory-scorecard.json
+openminion-eval artifact validate artifacts/delegated-memory-scorecard.json
+openminion-eval artifact validate artifacts/delegated-diff.json
+openminion-eval artifact validate artifacts/memory-context-scorecard.json
 ```
 
 ## Boundary And Manual Review Artifacts

@@ -27,6 +27,11 @@ from openminion_eval.cli import main
 FIXTURE_PATH = (
     Path(__file__).parent / "fixtures" / "memory_context_scorecard" / "cases.json"
 )
+EXAMPLE_FIXTURE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "examples"
+    / "memory-context-scorecard-cases.json"
+)
 
 
 def _paired_metric(
@@ -127,6 +132,18 @@ def test_fixture_loader_accepts_controlled_pair() -> None:
     assert fixtures[0].task_input_ref == "fixture://task"
 
 
+def test_public_example_fixture_builds_passing_scorecard() -> None:
+    report = build_memory_context_scorecard(
+        load_memory_context_scorecard_fixtures(EXAMPLE_FIXTURE_PATH),
+        run_id="example",
+        generated_at="1970-01-01T00:00:00Z",
+    )
+
+    assert report.summary["all_blocking_passed"] is True
+    assert report.metrics[0].metric_name == "memory_influence"
+    assert report.metrics[0].delta == 1.0
+
+
 def test_scorecard_report_contains_delta_and_trace_refs() -> None:
     fixtures = load_memory_context_scorecard_fixtures(FIXTURE_PATH)
 
@@ -170,7 +187,8 @@ def test_memory_context_scorecard_renders_human_readable_report() -> None:
 
     assert "# OpenMinion Memory/Context Scorecard" in markdown
     assert "| memory_influence | pass | 1.000 | 0.500 | yes |" in markdown
-    assert "<!doctype html>" in html
+    assert "<table>" in html
+    assert "<pre>" not in html
 
 
 def test_report_cli_renders_memory_context_scorecard(tmp_path: Path, capsys) -> None:
