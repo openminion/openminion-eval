@@ -15,6 +15,14 @@ from openminion_eval.memory_effectiveness.artifact_payloads import (
 )
 
 DelegatedMemoryEvalMode = Literal["disabled", "private_only", "delegated_shared"]
+DelegatedMemoryDiffCategory = Literal[
+    "unchanged_pass",
+    "unchanged_fail",
+    "improved",
+    "regressed",
+    "new_case",
+    "missing_case",
+]
 
 DELEGATED_MEMORY_FIXTURE_VERSION = "delegated-multi-agent-memory.v1"
 DELEGATED_MEMORY_SCORECARD_VERSION = "delegated-memory-scorecard.v1"
@@ -114,6 +122,18 @@ class DelegatedMemoryEvalScorecard:
     critical_failures: tuple[str, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class DelegatedMemoryScorecardComparison:
+    case_id: str
+    category: DelegatedMemoryDiffCategory
+    previous_passed: bool | None
+    current_passed: bool | None
+    previous_utility_recall: float | None
+    current_utility_recall: float | None
+    delta: float | None
+    critical_failures: tuple[str, ...] = ()
+
+
 def score_delegated_memory_case(
     case: DelegatedMemoryEvalCase,
     trace: DelegatedMemoryEvalTrace,
@@ -187,6 +207,22 @@ def build_delegated_memory_scorecard(
         utility_recall=round(utility, 6),
         passed=not failures,
         critical_failures=failures,
+    )
+
+
+def compare_delegated_memory_scorecards(
+    previous: DelegatedMemoryEvalScorecard,
+    current: DelegatedMemoryEvalScorecard,
+) -> tuple[DelegatedMemoryScorecardComparison, ...]:
+    previous_by_case = {result.case_id: result for result in previous.results}
+    current_by_case = {result.case_id: result for result in current.results}
+    return tuple(
+        _compare_delegated_memory_case(
+            case_id,
+            previous_by_case.get(case_id),
+            current_by_case.get(case_id),
+        )
+        for case_id in sorted(previous_by_case.keys() | current_by_case.keys())
     )
 
 
@@ -284,15 +320,63 @@ def _delegated_memory_mode(value: object) -> DelegatedMemoryEvalMode:
     raise ValueError(f"invalid delegated memory eval mode: {value!r}")
 
 
+def _compare_delegated_memory_case(
+    case_id: str,
+    previous: DelegatedMemoryEvalResult | None,
+    current: DelegatedMemoryEvalResult | None,
+) -> DelegatedMemoryScorecardComparison:
+    if previous is None:
+        return _delegated_comparison(case_id, "new_case", previous, current)
+    if current is None:
+        return _delegated_comparison(case_id, "missing_case", previous, current)
+    if previous.passed and not current.passed:
+        category: DelegatedMemoryDiffCategory = "regressed"
+    elif not previous.passed and current.passed:
+        category = "improved"
+    elif current.passed:
+        category = "unchanged_pass"
+    else:
+        category = "unchanged_fail"
+    return _delegated_comparison(case_id, category, previous, current)
+
+
+def _delegated_comparison(
+    case_id: str,
+    category: DelegatedMemoryDiffCategory,
+    previous: DelegatedMemoryEvalResult | None,
+    current: DelegatedMemoryEvalResult | None,
+) -> DelegatedMemoryScorecardComparison:
+    previous_utility = None if previous is None else previous.utility_recall
+    current_utility = None if current is None else current.utility_recall
+    delta = (
+        None
+        if previous_utility is None or current_utility is None
+        else round(current_utility - previous_utility, 6)
+    )
+    return DelegatedMemoryScorecardComparison(
+        case_id=case_id,
+        category=category,
+        previous_passed=None if previous is None else previous.passed,
+        current_passed=None if current is None else current.passed,
+        previous_utility_recall=previous_utility,
+        current_utility_recall=current_utility,
+        delta=delta,
+        critical_failures=() if current is None else current.critical_failures,
+    )
+
+
 __all__ = [
     "DELEGATED_MEMORY_FIXTURE_VERSION",
     "DELEGATED_MEMORY_SCORECARD_VERSION",
+    "DelegatedMemoryDiffCategory",
     "DelegatedMemoryEvalCase",
     "DelegatedMemoryEvalMode",
     "DelegatedMemoryEvalResult",
     "DelegatedMemoryEvalScorecard",
     "DelegatedMemoryEvalTrace",
+    "DelegatedMemoryScorecardComparison",
     "build_delegated_memory_scorecard",
+    "compare_delegated_memory_scorecards",
     "default_delegated_memory_cases_path",
     "load_delegated_memory_cases",
     "load_delegated_memory_scorecard",

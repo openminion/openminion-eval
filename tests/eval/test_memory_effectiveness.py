@@ -19,6 +19,8 @@ from openminion_eval import (
     load_memory_effectiveness_cases,
     load_memory_scorecard,
     score_memory_case,
+    render_memory_scorecard_html,
+    render_memory_scorecard_markdown,
     write_memory_scorecard,
 )
 from openminion_eval.cli import main
@@ -272,6 +274,44 @@ def test_scorecard_persistence_and_paired_comparison(tmp_path: Path) -> None:
     assert loaded.overall_score == pytest.approx(1.0)
     assert comparisons[0].delta > 0
     assert comparisons[0].improved is True
+
+
+def test_memory_scorecard_renders_human_readable_report() -> None:
+    case = _repo_convention_case()
+    scorecard = build_memory_scorecard(
+        suite_id="memory-report",
+        run_id="report",
+        case_results=[score_memory_case(case, _enabled_trace())],
+    )
+
+    markdown = render_memory_scorecard_markdown(scorecard)
+    html = render_memory_scorecard_html(scorecard)
+
+    assert "# OpenMinion Memory-Effectiveness Scorecard" in markdown
+    assert "| save | 1 | 1 | 1.000 |" in markdown
+    assert "| repo-convention-test | passed | 1.000 |" in markdown
+    assert "<!doctype html>" in html
+
+
+def test_report_cli_renders_memory_scorecard(tmp_path: Path, capsys) -> None:
+    case = _repo_convention_case()
+    scorecard = build_memory_scorecard(
+        suite_id="memory-report",
+        run_id="report",
+        case_results=[score_memory_case(case, _enabled_trace())],
+    )
+    artifact = write_memory_scorecard(tmp_path / "scorecard.json", scorecard)
+    report = tmp_path / "scorecard.md"
+
+    exit_code = main(
+        ["report", "memory-scorecard", str(artifact), "--out", str(report)]
+    )
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    assert "# OpenMinion Memory-Effectiveness Scorecard" in report.read_text(
+        encoding="utf-8"
+    )
 
 
 def test_scorecard_records_operation_location_and_retrieval_metrics() -> None:

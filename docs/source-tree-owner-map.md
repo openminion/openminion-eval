@@ -47,8 +47,9 @@ memory-effectiveness helpers, and memory/context scorecards.
     fixtures, typed metric validation, report IO, and the matching CLI
     subcommand owner.
 13. `reporting/` owns package-level certification signal helpers.
-14. `reports.py` owns Markdown and HTML rendering for suite artifacts and
-    baseline diffs.
+14. `reports.py` owns Markdown and HTML rendering for suite artifacts,
+    baseline diffs, memory scorecards, delegated-memory scorecards, and
+    memory/context scorecards.
 15. `subject_adapters.py` owns black-box HTTP, command, and replay subjects.
 16. `cli.py` and `__main__.py` own the public package command line dispatcher.
 17. `py.typed` marks the installed package as PEP 561 typed.

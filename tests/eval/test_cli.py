@@ -129,6 +129,42 @@ def test_module_and_cases_help_entrypoints() -> None:
     assert "openminion_eval.cases" in cases_help.stdout
 
 
+def test_nested_report_and_memory_help_are_discoverable() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(REPO_ROOT / "src")
+
+    report_help = subprocess.run(
+        [sys.executable, "-m", "openminion_eval", "report", "--help"],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    memory_help = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "openminion_eval",
+            "memory-effectiveness",
+            "--help",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert report_help.returncode == 0
+    assert "memory-scorecard" in report_help.stdout
+    assert "delegated-memory" in report_help.stdout
+    assert "memory-context" in report_help.stdout
+    assert memory_help.returncode == 0
+    assert "delegated-score" in memory_help.stdout
+    assert "delegated-diff" in memory_help.stdout
+
+
 def test_run_command_writes_suite_artifact_and_returns_zero_on_pass(
     tmp_path, capsys
 ) -> None:

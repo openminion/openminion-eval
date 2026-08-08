@@ -52,3 +52,12 @@ timestamp.
 Write suite results and trace artifacts to a relative path such as
 `artifacts/eval/`. Do not include provider secrets, environment dumps, absolute
 workspace paths, or host-local runtime state in public artifacts.
+
+For human review, render JSON artifacts before upload:
+
+```bash
+openminion-eval report suite artifacts/eval/suite-result.json --out artifacts/eval/suite-result.md
+openminion-eval report memory-scorecard artifacts/eval/memory-scorecard.json --out artifacts/eval/memory-scorecard.md
+openminion-eval report delegated-memory artifacts/eval/delegated-memory-scorecard.json --out artifacts/eval/delegated-memory-scorecard.md
+openminion-eval report memory-context artifacts/eval/memory-context-scorecard.json --out artifacts/eval/memory-context-scorecard.md
+```

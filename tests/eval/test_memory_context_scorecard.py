@@ -17,6 +17,10 @@ from openminion_eval.memory_context_scorecard import (
     load_memory_context_scorecard_fixtures,
     write_memory_context_scorecard,
 )
+from openminion_eval.reports import (
+    render_memory_context_scorecard_html,
+    render_memory_context_scorecard_markdown,
+)
 from openminion_eval.cli import main
 
 
@@ -152,6 +156,37 @@ def test_scorecard_round_trips_as_deterministic_json(tmp_path: Path) -> None:
 
     assert loaded == report
     assert json.loads(output.read_text(encoding="utf-8"))["run_id"] == "test-run"
+
+
+def test_memory_context_scorecard_renders_human_readable_report() -> None:
+    report = build_memory_context_scorecard(
+        load_memory_context_scorecard_fixtures(FIXTURE_PATH),
+        run_id="render-test",
+        generated_at="1970-01-01T00:00:00Z",
+    )
+
+    markdown = render_memory_context_scorecard_markdown(report)
+    html = render_memory_context_scorecard_html(report)
+
+    assert "# OpenMinion Memory/Context Scorecard" in markdown
+    assert "| memory_influence | pass | 1.000 | 0.500 | yes |" in markdown
+    assert "<!doctype html>" in html
+
+
+def test_report_cli_renders_memory_context_scorecard(tmp_path: Path, capsys) -> None:
+    scorecard = build_memory_context_scorecard(
+        load_memory_context_scorecard_fixtures(FIXTURE_PATH),
+        run_id="report-cli",
+        generated_at="1970-01-01T00:00:00Z",
+    )
+    artifact = write_memory_context_scorecard(tmp_path / "scorecard.json", scorecard)
+    report = tmp_path / "scorecard.md"
+
+    exit_code = main(["report", "memory-context", str(artifact), "--out", str(report)])
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    assert "# OpenMinion Memory/Context Scorecard" in report.read_text(encoding="utf-8")
 
 
 def test_packaged_known_bad_fixtures_load_and_flag_blocking_failures() -> None:

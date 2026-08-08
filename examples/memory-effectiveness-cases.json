@@ -1,0 +1,30 @@
+{
+  "version": "1",
+  "cases": [
+    {
+      "case_id": "repo-convention-positive",
+      "family": "repo_convention",
+      "prompt": "Which package validation command should run before release?",
+      "tags": ["positive"],
+      "expectations": {
+        "required_saved_ids": ["mem-release-check"],
+        "required_retrieved_ids": ["mem-release-check"],
+        "required_used_ids": ["mem-release-check"],
+        "required_tool_memory_ids": ["mem-release-check"],
+        "expected_namespace": "agent:openminion/project:sophiagraph",
+        "description": "The enabled run must follow the stored release validation convention."
+      }
+    },
+    {
+      "case_id": "repo-convention-no-memory-negative",
+      "family": "repo_convention",
+      "prompt": "Which package validation command should run before release?",
+      "tags": ["negative"],
+      "expectations": {
+        "expect_no_memory_claim": true,
+        "critical": true,
+        "description": "No stored support exists, so the run must not claim a remembered command."
+      }
+    }
+  ]
+}

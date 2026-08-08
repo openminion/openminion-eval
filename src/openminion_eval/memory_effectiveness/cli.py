@@ -5,13 +5,16 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Callable
 
 from openminion_eval.memory_effectiveness.delegated_memory import (
     DelegatedMemoryEvalTrace,
     build_delegated_memory_scorecard,
+    compare_delegated_memory_scorecards,
     load_delegated_memory_cases,
+    load_delegated_memory_scorecard,
     write_delegated_memory_scorecard,
 )
 from openminion_eval.memory_effectiveness.fixtures import (
@@ -96,6 +99,20 @@ def add_memory_effectiveness_parser(subparsers: Any) -> None:
     )
     delegated_parser.set_defaults(func=delegated_memory_score_command)
 
+    delegated_diff_parser = memory_subparsers.add_parser(
+        "delegated-diff",
+        help="compare delegated-memory scorecard artifacts",
+    )
+    delegated_diff_parser.add_argument("previous", type=Path)
+    delegated_diff_parser.add_argument("current", type=Path)
+    delegated_diff_parser.add_argument(
+        "--out",
+        type=Path,
+        default=None,
+        help="write delegated-memory diff JSON artifact to PATH",
+    )
+    delegated_diff_parser.set_defaults(func=delegated_memory_diff_command)
+
 
 def memory_score_command(args: argparse.Namespace) -> int:
     return _run_memory_command(lambda: _score_memory_trace(args))
@@ -103,6 +120,10 @@ def memory_score_command(args: argparse.Namespace) -> int:
 
 def delegated_memory_score_command(args: argparse.Namespace) -> int:
     return _run_memory_command(lambda: _score_delegated_memory_trace(args))
+
+
+def delegated_memory_diff_command(args: argparse.Namespace) -> int:
+    return _run_memory_command(lambda: _diff_delegated_memory_scorecards(args))
 
 
 def _run_memory_command(command: Callable[[], int]) -> int:
@@ -168,6 +189,36 @@ def _score_delegated_memory_trace(args: argparse.Namespace) -> int:
         }
     )
     return 0 if scorecard.passed else 1
+
+
+def _diff_delegated_memory_scorecards(args: argparse.Namespace) -> int:
+    previous = load_delegated_memory_scorecard(args.previous)
+    current = load_delegated_memory_scorecard(args.current)
+    comparisons = compare_delegated_memory_scorecards(previous, current)
+    categories = {
+        category: sum(1 for item in comparisons if item.category == category)
+        for category in sorted({item.category for item in comparisons})
+    }
+    payload = {
+        "previous_suite_id": previous.suite_id,
+        "current_suite_id": current.suite_id,
+        "categories": categories,
+        "entries": [asdict(item) for item in comparisons],
+    }
+    if args.out is None:
+        _write_json(payload)
+    else:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(
+            json.dumps(payload, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+    regressions = {"regressed", "missing_case"}
+    current_failures = any(
+        item.current_passed is False and item.category != "improved"
+        for item in comparisons
+    )
+    return 1 if regressions.intersection(categories) or current_failures else 0
 
 
 def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:

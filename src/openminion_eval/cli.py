@@ -22,12 +22,23 @@ from openminion_eval.integration_quarantine import (
 from openminion_eval.memory_context_scorecard.cli import (
     add_memory_context_scorecard_parser,
 )
+from openminion_eval.memory_context_scorecard import load_memory_context_scorecard
+from openminion_eval.memory_effectiveness import (
+    load_delegated_memory_scorecard,
+    load_memory_scorecard,
+)
 from openminion_eval.memory_effectiveness.cli import (
     add_memory_effectiveness_parser,
 )
 from openminion_eval.reports import (
     render_baseline_diff_html,
     render_baseline_diff_markdown,
+    render_delegated_memory_scorecard_html,
+    render_delegated_memory_scorecard_markdown,
+    render_memory_context_scorecard_html,
+    render_memory_context_scorecard_markdown,
+    render_memory_scorecard_html,
+    render_memory_scorecard_markdown,
     render_suite_result_html,
     render_suite_result_markdown,
 )
@@ -206,6 +217,30 @@ def _add_report_parser(subparsers: Any) -> None:
     _add_report_output_args(diff_parser)
     diff_parser.set_defaults(func=_report_diff_command)
 
+    memory_parser = report_subparsers.add_parser(
+        "memory-scorecard",
+        help="render a memory-effectiveness scorecard artifact",
+    )
+    memory_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(memory_parser)
+    memory_parser.set_defaults(func=_report_memory_scorecard_command)
+
+    delegated_parser = report_subparsers.add_parser(
+        "delegated-memory",
+        help="render a delegated-memory scorecard artifact",
+    )
+    delegated_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(delegated_parser)
+    delegated_parser.set_defaults(func=_report_delegated_memory_command)
+
+    context_parser = report_subparsers.add_parser(
+        "memory-context",
+        help="render a memory/context scorecard artifact",
+    )
+    context_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(context_parser)
+    context_parser.set_defaults(func=_report_memory_context_command)
+
 
 def _add_report_output_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
@@ -350,6 +385,39 @@ def _report_diff_command(args: argparse.Namespace) -> int:
         report = render_baseline_diff_html(diff)
     else:
         report = render_baseline_diff_markdown(diff)
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_memory_scorecard_command(args: argparse.Namespace) -> int:
+    scorecard = load_memory_scorecard(args.artifact)
+    report = (
+        render_memory_scorecard_html(scorecard)
+        if args.format == "html"
+        else render_memory_scorecard_markdown(scorecard)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_delegated_memory_command(args: argparse.Namespace) -> int:
+    scorecard = load_delegated_memory_scorecard(args.artifact)
+    report = (
+        render_delegated_memory_scorecard_html(scorecard)
+        if args.format == "html"
+        else render_delegated_memory_scorecard_markdown(scorecard)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_memory_context_command(args: argparse.Namespace) -> int:
+    scorecard = load_memory_context_scorecard(args.artifact)
+    report = (
+        render_memory_context_scorecard_html(scorecard)
+        if args.format == "html"
+        else render_memory_context_scorecard_markdown(scorecard)
+    )
     _write_text(report, args.out)
     return 0
 

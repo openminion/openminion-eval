@@ -10,10 +10,15 @@ from openminion_eval.memory_effectiveness import (
     DELEGATED_MEMORY_FIXTURE_VERSION,
     DelegatedMemoryEvalTrace,
     build_delegated_memory_scorecard,
+    compare_delegated_memory_scorecards,
     load_delegated_memory_cases,
     load_delegated_memory_scorecard,
     score_delegated_memory_case,
     write_delegated_memory_scorecard,
+)
+from openminion_eval.reports import (
+    render_delegated_memory_scorecard_html,
+    render_delegated_memory_scorecard_markdown,
 )
 
 
@@ -116,6 +121,67 @@ def test_scorecard_artifact_round_trips(tmp_path) -> None:
     )
 
 
+def test_report_cli_renders_delegated_memory_scorecard(tmp_path, capsys) -> None:
+    cases = load_delegated_memory_cases()
+    scorecard = build_delegated_memory_scorecard(
+        cases,
+        tuple(
+            DelegatedMemoryEvalTrace(
+                case_id=case.case_id,
+                retrieved_memory_ids=case.required_recall_ids,
+            )
+            for case in cases
+        ),
+    )
+    artifact = write_delegated_memory_scorecard(tmp_path / "scorecard.json", scorecard)
+    report = tmp_path / "scorecard.md"
+
+    exit_code = main(
+        ["report", "delegated-memory", str(artifact), "--out", str(report)]
+    )
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    assert "# OpenMinion Delegated-Memory Scorecard" in report.read_text(
+        encoding="utf-8"
+    )
+
+
+def test_delegated_scorecard_diff_and_report_rendering(tmp_path) -> None:
+    cases = load_delegated_memory_cases()
+    passing = build_delegated_memory_scorecard(
+        cases,
+        tuple(
+            DelegatedMemoryEvalTrace(
+                case_id=case.case_id,
+                retrieved_memory_ids=case.required_recall_ids,
+            )
+            for case in cases
+        ),
+    )
+    regressed = build_delegated_memory_scorecard(
+        cases,
+        tuple(DelegatedMemoryEvalTrace(case_id=case.case_id) for case in cases),
+    )
+
+    comparisons = compare_delegated_memory_scorecards(passing, regressed)
+    markdown = render_delegated_memory_scorecard_markdown(regressed)
+    html = render_delegated_memory_scorecard_html(regressed)
+
+    assert {item.category for item in comparisons} == {
+        "regressed",
+        "unchanged_pass",
+    }
+    assert sum(1 for item in comparisons if item.category == "regressed") == 3
+    assert "required_recall_missing" in comparisons[0].critical_failures[0]
+    assert "# OpenMinion Delegated-Memory Scorecard" in markdown
+    assert "| bounded-project-recall | delegated_shared | fail |" in markdown
+    assert "<!doctype html>" in html
+    assert openminion_eval.compare_delegated_memory_scorecards is (
+        compare_delegated_memory_scorecards
+    )
+
+
 def test_delegated_memory_cli_writes_scorecard_artifact(tmp_path, capsys) -> None:
     cases_path = tmp_path / "delegated-cases.json"
     trace_path = tmp_path / "delegated-trace.json"
@@ -170,6 +236,41 @@ def test_delegated_memory_cli_writes_scorecard_artifact(tmp_path, capsys) -> Non
     assert stdout["artifact"] == str(scorecard_path)
     assert stdout["utility_recall"] == 1.0
     assert load_delegated_memory_scorecard(scorecard_path).passed
+
+
+def test_delegated_memory_cli_compares_scorecards(tmp_path, capsys) -> None:
+    cases = load_delegated_memory_cases()
+    previous = build_delegated_memory_scorecard(
+        cases,
+        tuple(
+            DelegatedMemoryEvalTrace(
+                case_id=case.case_id,
+                retrieved_memory_ids=case.required_recall_ids,
+            )
+            for case in cases
+        ),
+    )
+    current = build_delegated_memory_scorecard(
+        cases,
+        tuple(DelegatedMemoryEvalTrace(case_id=case.case_id) for case in cases),
+    )
+    previous_path = write_delegated_memory_scorecard(
+        tmp_path / "previous.json", previous
+    )
+    current_path = write_delegated_memory_scorecard(tmp_path / "current.json", current)
+
+    exit_code = main(
+        [
+            "memory-effectiveness",
+            "delegated-diff",
+            str(previous_path),
+            str(current_path),
+        ]
+    )
+
+    stdout = json.loads(capsys.readouterr().out)
+    assert exit_code == 1
+    assert stdout["categories"] == {"regressed": 3, "unchanged_pass": 5}
 
 
 def test_fixture_version_and_trace_inputs_fail_closed(tmp_path) -> None:

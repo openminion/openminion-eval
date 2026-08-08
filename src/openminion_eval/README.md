@@ -44,8 +44,9 @@ adapters, and boundary artifact validators.
 12. `memory_context_scorecard/` owns deterministic memory/context scorecard
     fixtures, typed metric validation, report IO, and the matching CLI.
 13. `reporting/` owns package-level certification signal helpers.
-14. `reports.py` owns Markdown and HTML rendering for suite artifacts and
-    baseline diffs.
+14. `reports.py` owns Markdown and HTML rendering for suite artifacts,
+    baseline diffs, memory scorecards, delegated-memory scorecards, and
+    memory/context scorecards.
 15. `subject_adapters.py` owns black-box HTTP, command, and replay subjects.
 16. `cli.py` and `__main__.py` own the public package command line.
 17. `py.typed` marks the installed package as PEP 561 typed.

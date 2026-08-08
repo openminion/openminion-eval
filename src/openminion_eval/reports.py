@@ -4,6 +4,11 @@ from __future__ import annotations
 
 from html import escape
 
+from openminion_eval.memory_context_scorecard import MemoryContextScorecardV1
+from openminion_eval.memory_effectiveness import (
+    DelegatedMemoryEvalScorecard,
+    MemoryEffectivenessScorecard,
+)
 from openminion_eval.schemas import (
     EvalBaselineDiff,
     EvalRunManifest,
@@ -92,6 +97,130 @@ def render_suite_result_html(
 def render_baseline_diff_html(diff: EvalBaselineDiff) -> str:
     markdown = render_baseline_diff_markdown(diff)
     return _html_page("OpenMinion Eval Baseline Diff", markdown)
+
+
+def render_memory_scorecard_markdown(scorecard: MemoryEffectivenessScorecard) -> str:
+    lines = [
+        "# OpenMinion Memory-Effectiveness Scorecard",
+        "",
+        "## Summary",
+        "",
+        f"- Suite: `{scorecard.suite_id}`",
+        f"- Run ID: `{scorecard.run_id}`",
+        f"- Overall score: {scorecard.overall_score:.3f}",
+        f"- Critical failures: {len(scorecard.critical_failures)}",
+        "",
+        "## Components",
+        "",
+        "| Component | Passed | Total | Score | Failures |",
+        "| --- | ---: | ---: | ---: | --- |",
+    ]
+    for component in scorecard.component_scores:
+        lines.append(
+            "| "
+            f"{_cell(component.component)} | "
+            f"{component.passed} | "
+            f"{component.total} | "
+            f"{component.score:.3f} | "
+            f"{_cell(', '.join(component.failures))} |"
+        )
+    lines.extend(
+        [
+            "",
+            "## Cases",
+            "",
+            "| Case | Status | Overall | Critical Failures |",
+            "| --- | --- | ---: | --- |",
+        ]
+    )
+    for case in scorecard.cases:
+        lines.append(
+            "| "
+            f"{_cell(case.case_id)} | "
+            f"{case.status} | "
+            f"{case.overall_score:.3f} | "
+            f"{_cell(', '.join(case.critical_failures))} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def render_delegated_memory_scorecard_markdown(
+    scorecard: DelegatedMemoryEvalScorecard,
+) -> str:
+    lines = [
+        "# OpenMinion Delegated-Memory Scorecard",
+        "",
+        "## Summary",
+        "",
+        f"- Suite: `{scorecard.suite_id}`",
+        f"- Passed: {_yes_no(scorecard.passed)}",
+        f"- Utility recall: {scorecard.utility_recall:.3f}",
+        f"- Critical failures: {len(scorecard.critical_failures)}",
+        "",
+        "## Cases",
+        "",
+        "| Case | Mode | Status | Utility Recall | Critical Failures |",
+        "| --- | --- | --- | ---: | --- |",
+    ]
+    for result in scorecard.results:
+        lines.append(
+            "| "
+            f"{_cell(result.case_id)} | "
+            f"{result.mode} | "
+            f"{'pass' if result.passed else 'fail'} | "
+            f"{result.utility_recall:.3f} | "
+            f"{_cell(', '.join(result.critical_failures))} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def render_memory_context_scorecard_markdown(
+    scorecard: MemoryContextScorecardV1,
+) -> str:
+    lines = [
+        "# OpenMinion Memory/Context Scorecard",
+        "",
+        "## Summary",
+        "",
+        f"- Report version: `{scorecard.report_version}`",
+        f"- Run ID: `{scorecard.run_id}`",
+        f"- Generated at: `{scorecard.generated_at}`",
+        f"- All blocking passed: {_yes_no(bool(scorecard.summary.get('all_blocking_passed', False)))}",
+        f"- Blocking failures: {scorecard.summary.get('blocking_fail_count', 0)}",
+        "",
+        "## Metrics",
+        "",
+        "| Metric | Status | Value | Threshold | Blocking | Evidence |",
+        "| --- | --- | ---: | ---: | --- | --- |",
+    ]
+    for metric in scorecard.metrics:
+        lines.append(
+            "| "
+            f"{_cell(metric.metric_name)} | "
+            f"{metric.status} | "
+            f"{metric.value:.3f} | "
+            f"{metric.threshold:.3f} | "
+            f"{_yes_no(metric.blocking)} | "
+            f"{_cell(', '.join(metric.evidence_refs))} |"
+        )
+    return "\n".join(lines) + "\n"
+
+
+def render_memory_scorecard_html(scorecard: MemoryEffectivenessScorecard) -> str:
+    markdown = render_memory_scorecard_markdown(scorecard)
+    return _html_page("OpenMinion Memory-Effectiveness Scorecard", markdown)
+
+
+def render_delegated_memory_scorecard_html(
+    scorecard: DelegatedMemoryEvalScorecard,
+) -> str:
+    markdown = render_delegated_memory_scorecard_markdown(scorecard)
+    return _html_page("OpenMinion Delegated-Memory Scorecard", markdown)
+
+
+def render_memory_context_scorecard_html(scorecard: MemoryContextScorecardV1) -> str:
+    markdown = render_memory_context_scorecard_markdown(scorecard)
+    return _html_page("OpenMinion Memory/Context Scorecard", markdown)
 
 
 def _summary_row(summary: EvalSummary) -> str:

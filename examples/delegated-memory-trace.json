@@ -1,0 +1,45 @@
+{
+  "traces": [
+    {
+      "case_id": "bounded-project-recall",
+      "retrieved_memory_ids": ["project-approved"],
+      "sibling_scratch_ids": [],
+      "direct_id_bypass_ids": [],
+      "revoked_future_operation_ids": [],
+      "forbidden_reshare_ids": [],
+      "accepted_poisoning_ids": [],
+      "provenance_failures": [],
+      "forgetting_failures": [],
+      "latency_ms": 3.5,
+      "token_count": 42
+    },
+    {
+      "case_id": "private-direct-id",
+      "retrieved_memory_ids": []
+    },
+    {
+      "case_id": "graph-federation-boundary",
+      "retrieved_memory_ids": ["allowed-node"]
+    },
+    {
+      "case_id": "reviewed-child-learning",
+      "retrieved_memory_ids": ["promoted-candidate"]
+    },
+    {
+      "case_id": "revocation-retry",
+      "retrieved_memory_ids": []
+    },
+    {
+      "case_id": "nested-no-reshare",
+      "retrieved_memory_ids": []
+    },
+    {
+      "case_id": "transport-mismatch",
+      "retrieved_memory_ids": []
+    },
+    {
+      "case_id": "utility-isolation-certification",
+      "retrieved_memory_ids": []
+    }
+  ]
+}

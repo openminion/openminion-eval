@@ -36,6 +36,12 @@ Use a custom fixture file:
 openminion-eval memory-effectiveness score memory-trace.json --cases cases.json --out memory-scorecard.json
 ```
 
+Render the scorecard for review:
+
+```bash
+openminion-eval report memory-scorecard memory-scorecard.json --out memory-scorecard.md
+```
+
 The command prints a compact JSON summary to stdout. A successful clean
 scorecard exits `0`. A valid scorecard with critical failures or unmatched
 cases exits `1`. Malformed input exits `2`, writes a concise error to stderr,
@@ -204,13 +210,20 @@ The same scorer is available from the CLI:
 openminion-eval memory-effectiveness delegated-score delegated-trace.json --out delegated-memory-scorecard.json
 ```
 
+Render or compare delegated-memory artifacts:
+
+```bash
+openminion-eval report delegated-memory delegated-memory-scorecard.json --out delegated-memory-scorecard.md
+openminion-eval memory-effectiveness delegated-diff previous-delegated.json current-delegated.json --out delegated-diff.json
+```
+
 Delegated trace JSON accepts either a list or an object with a `traces` list:
 
 ```json
 {
   "traces": [
     {
-      "case_id": "bounded-shared-recall",
+      "case_id": "bounded-project-recall",
       "retrieved_memory_ids": ["project-approved"],
       "sibling_scratch_ids": [],
       "direct_id_bypass_ids": [],
@@ -229,3 +242,10 @@ Delegated trace JSON accepts either a list or an object with a `traces` list:
 `write_delegated_memory_scorecard(...)` and
 `load_delegated_memory_scorecard(...)` persist the deterministic scorecard JSON
 used by release checks and downstream CI jobs.
+
+Runnable example traces live under `examples/`:
+
+```bash
+openminion-eval memory-effectiveness score examples/memory-effectiveness-trace.json --cases examples/memory-effectiveness-cases.json --out artifacts/memory-scorecard.json
+openminion-eval memory-effectiveness delegated-score examples/delegated-memory-trace.json --out artifacts/delegated-memory-scorecard.json
+```

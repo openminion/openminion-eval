@@ -85,6 +85,12 @@ The default output path is:
 Use `--fixtures` to run a specific deterministic fixture file and `--out` to
 choose an explicit artifact path.
 
+Render a Markdown review report from the JSON artifact:
+
+```bash
+openminion-eval report memory-context artifacts/memory-context-scorecard.json --out artifacts/memory-context-scorecard.md
+```
+
 ## Operational Canary
 
 The operational canary reuses the scorecard report and writes a smaller
