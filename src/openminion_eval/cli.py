@@ -700,7 +700,7 @@ def _case_result_payload(result: Any) -> dict[str, object]:
     }
 
 
-def _scorers_list_command(args: argparse.Namespace) -> int:
+def _scorers_list_command(_args: argparse.Namespace) -> int:
     _write_json({"scorers": [asdict(item) for item in EvalScorer().list_scorers()]})
     return 0
 
