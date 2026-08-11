@@ -1,5 +1,6 @@
 REPO_ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 WORKSPACE_ROOT := $(abspath $(REPO_ROOT)/..)
+SOPHIAGRAPH_SRC := $(WORKSPACE_ROOT)/sophiagraph/src
 VENV := $(REPO_ROOT)/.venv
 DEV_STAMP := $(VENV)/.baseline-tools-installed
 PYTHON := $(VENV)/bin/python3.11
@@ -73,7 +74,7 @@ test: $(DEV_STAMP)
 		--ignore="$(REPO_ROOT)/tests/eval/integration/test_trace_flywheel.py"
 
 test-all: $(DEV_STAMP)
-	$(PYTHON_ENV) PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src" $(PYTEST) -q "$(REPO_ROOT)/tests"
+	$(PYTHON_ENV) PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src:$(SOPHIAGRAPH_SRC)" $(PYTEST) -q "$(REPO_ROOT)/tests"
 
 release-check: $(DEV_STAMP)
 	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"

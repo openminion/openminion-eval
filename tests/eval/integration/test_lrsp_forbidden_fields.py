@@ -153,7 +153,9 @@ def test_forbidden_field_roster_matches_nine_lane_cross_roster_guard() -> None:
     mtrr = _load_forbidden_fields_roster("tests/brain/test_mtrr_forbidden_fields.py")
     asrr = _load_forbidden_fields_roster("tests/brain/test_asrr_forbidden_fields.py")
     aatr = _load_forbidden_fields_roster("tests/brain/test_aatr_forbidden_fields.py")
-    sprr = _load_forbidden_fields_roster("tests/brain/test_sprr_forbidden_fields.py")
+    sprr = _load_forbidden_fields_roster(
+        "tests/brain/test_promotion_forbidden_fields.py"
+    )
     alvb = _load_forbidden_fields_roster(
         "tests/services/runtime/test_alvb_forbidden_fields.py"
     )
