@@ -20,6 +20,10 @@ def configure_repo_paths() -> None:
 
 
 def generated_output_root(name: str) -> Path:
+    configured = os.getenv("OPENMINION_GENERATED_ROOT", "").strip()
+    if configured:
+        return (Path(configured).expanduser() / name).resolve()
+
     from openminion.base.generated_paths import resolve_generated_root
 
     return resolve_generated_root(home_root=FRAMEWORK_ROOT) / name
