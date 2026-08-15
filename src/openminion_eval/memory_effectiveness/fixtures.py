@@ -15,6 +15,7 @@ from openminion_eval.memory_effectiveness.resource_io import (
     load_json_mapping,
     packaged_resource,
 )
+from openminion_eval.memory_effectiveness.artifact_payloads import string_tuple
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessCase,
     MemoryExpectation,
@@ -76,12 +77,12 @@ def case_from_mapping(data: Mapping[str, Any]) -> MemoryEffectivenessCase:
 
 def _expectation_from_mapping(data: Mapping[str, Any]) -> MemoryExpectation:
     return MemoryExpectation(
-        required_saved_ids=_strings(data, "required_saved_ids"),
-        required_retrieved_ids=_strings(data, "required_retrieved_ids"),
-        required_used_ids=_strings(data, "required_used_ids"),
-        required_claim_memory_ids=_strings(data, "required_claim_memory_ids"),
-        required_tool_memory_ids=_strings(data, "required_tool_memory_ids"),
-        forbidden_memory_ids=_strings(data, "forbidden_memory_ids"),
+        required_saved_ids=string_tuple(data, "required_saved_ids"),
+        required_retrieved_ids=string_tuple(data, "required_retrieved_ids"),
+        required_used_ids=string_tuple(data, "required_used_ids"),
+        required_claim_memory_ids=string_tuple(data, "required_claim_memory_ids"),
+        required_tool_memory_ids=string_tuple(data, "required_tool_memory_ids"),
+        forbidden_memory_ids=string_tuple(data, "forbidden_memory_ids"),
         expected_namespace=str(data.get("expected_namespace", "") or "").strip(),
         expect_no_memory_claim=bool(data.get("expect_no_memory_claim", False)),
         requires_longitudinal_improvement=bool(
@@ -93,27 +94,29 @@ def _expectation_from_mapping(data: Mapping[str, Any]) -> MemoryExpectation:
         expected_memory_location=str(
             data.get("expected_memory_location", "") or ""
         ).strip(),
-        expected_retrieved_order=_strings(data, "expected_retrieved_order"),
-        required_context_memory_ids=_strings(data, "required_context_memory_ids"),
-        required_cited_memory_ids=_strings(data, "required_cited_memory_ids"),
+        expected_retrieved_order=string_tuple(data, "expected_retrieved_order"),
+        required_context_memory_ids=string_tuple(data, "required_context_memory_ids"),
+        required_cited_memory_ids=string_tuple(data, "required_cited_memory_ids"),
         max_unnecessary_memory_calls=_optional_int(
             data, "max_unnecessary_memory_calls"
         ),
-        required_entity_proposal_ids=_strings(data, "required_entity_proposal_ids"),
-        required_fact_proposal_ids=_strings(data, "required_fact_proposal_ids"),
-        required_lifecycle_event_ids=_strings(data, "required_lifecycle_event_ids"),
-        required_artifact_ids=_strings(data, "required_artifact_ids"),
-        required_citation_spans=_strings(data, "required_citation_spans"),
-        expected_trajectory_steps=_strings(data, "expected_trajectory_steps"),
+        required_entity_proposal_ids=string_tuple(data, "required_entity_proposal_ids"),
+        required_fact_proposal_ids=string_tuple(data, "required_fact_proposal_ids"),
+        required_lifecycle_event_ids=string_tuple(
+            data,
+            "required_lifecycle_event_ids",
+        ),
+        required_artifact_ids=string_tuple(data, "required_artifact_ids"),
+        required_citation_spans=string_tuple(data, "required_citation_spans"),
+        expected_trajectory_steps=string_tuple(data, "expected_trajectory_steps"),
         trajectory_match_mode=str(data.get("trajectory_match_mode", "strict")),
-        required_graph_path_ids=_strings(data, "required_graph_path_ids"),
-        required_valid_time_refs=_strings(data, "required_valid_time_refs"),
-        required_transaction_time_refs=_strings(data, "required_transaction_time_refs"),
+        required_graph_path_ids=string_tuple(data, "required_graph_path_ids"),
+        required_valid_time_refs=string_tuple(data, "required_valid_time_refs"),
+        required_transaction_time_refs=string_tuple(
+            data,
+            "required_transaction_time_refs",
+        ),
     )
-
-
-def _strings(data: Mapping[str, Any], key: str) -> tuple[str, ...]:
-    return tuple(str(item) for item in data.get(key, ()))
 
 
 def _optional_int(data: Mapping[str, Any], key: str) -> int | None:

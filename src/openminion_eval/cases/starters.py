@@ -57,7 +57,7 @@ def _grade_research_to_code_drift(case: EvalCase) -> GradeFnReturn:
     return GradeOutcome.FAIL, "workspace missing expected API"
 
 
-def _grade_recovery_after_tool_failure(case: EvalCase) -> GradeOutcome:
+def _grade_recovery_after_tool_failure(_case: EvalCase) -> GradeOutcome:
     root = _resolve_repo_root()
     target = (
         root
@@ -76,7 +76,7 @@ def _grade_recovery_after_tool_failure(case: EvalCase) -> GradeOutcome:
     return GradeOutcome.PASS if "empty_provider_response" in text else GradeOutcome.FAIL
 
 
-def _grade_multi_tool_complex_task(case: EvalCase) -> GradeOutcome:
+def _grade_multi_tool_complex_task(_case: EvalCase) -> GradeOutcome:
     root = _resolve_repo_root()
     catalog = (
         root
@@ -99,7 +99,7 @@ def _grade_multi_tool_complex_task(case: EvalCase) -> GradeOutcome:
     )
 
 
-def _grade_memory_recall_across_session(case: EvalCase) -> GradeOutcome:
+def _grade_memory_recall_across_session(_case: EvalCase) -> GradeOutcome:
     root = _resolve_repo_root()
     portability = (
         root

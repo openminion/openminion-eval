@@ -1,0 +1,45 @@
+{
+  "cases": [
+    {
+      "case_id": "public-memory-context-smoke",
+      "model_config_ref": "config://offline-smoke",
+      "metrics": [
+        {
+          "blocking": true,
+          "context_trace_ids": [
+            "trace-public-context-1"
+          ],
+          "disabled_outcome": {
+            "oracle_passed": false,
+            "output_ref": "output://without-memory",
+            "score": 0.0
+          },
+          "enabled_outcome": {
+            "oracle_passed": true,
+            "output_ref": "output://with-memory",
+            "score": 1.0
+          },
+          "evidence_refs": [
+            "evidence-public-context-1"
+          ],
+          "metric_name": "memory_influence",
+          "oracle": {
+            "expected_value": "uses the approved memory",
+            "kind": "exact_text",
+            "oracle_id": "oracle-public-context-1"
+          },
+          "provenance_trace_ids": [
+            "provenance-public-context-1"
+          ],
+          "status": "pass",
+          "threshold": 0.5,
+          "value": 1.0
+        }
+      ],
+      "seed": "public-smoke-seed",
+      "task_input_ref": "task://public-memory-context-smoke",
+      "tool_fixture_ref": "fixture://public-memory-context-smoke"
+    }
+  ],
+  "version": "memory-context-scorecard-fixtures.v1"
+}

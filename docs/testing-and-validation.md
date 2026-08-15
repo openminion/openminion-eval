@@ -68,3 +68,29 @@ make release-check
 
 That target builds the artifacts, verifies packaged files, installs the wheel
 into a clean target, and smoke-checks the documented public boundary.
+Package-owned validation targets run Python with bytecode generation disabled
+so routine checks do not leave `__pycache__` files in the source tree. Use
+`make clean` to remove older local cache or build artifacts.
+
+## Repo-local integration probes
+
+The default package gate intentionally skips integration probes that require a
+host OpenMinion checkout, live credentials, or external runtime state. These
+probes remain useful for owners who have that environment, but they are not
+required for ordinary standalone package users.
+
+| Probe | Owner boundary | Run when |
+| --- | --- | --- |
+| `tests/eval/test_memory_eval.py` | repo-local memory harness | validating host memory-eval fixtures |
+| `tests/eval/integration/test_trace_flywheel.py` | host runtime trace flywheel | validating OpenMinion trace capture |
+| `tests/eval/integration/test_lrsp_live_probes.py` | live runtime session probes | validating opt-in live provider state |
+| `tests/eval/integration/test_lrpb_live_session.py` | live provider baseline probes | validating opt-in provider sessions |
+
+List the current probe tiers with:
+
+```bash
+openminion-eval integration list --root .
+```
+
+Keep integration artifacts under relative paths such as `artifacts/integration/`
+and publish only sanitized trace ids in public reports.

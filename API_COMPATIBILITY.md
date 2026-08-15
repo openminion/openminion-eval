@@ -97,6 +97,12 @@ The following top-level exports are part of the current public contract:
   `load_memory_effectiveness_cases(...)`,
   `default_memory_effectiveness_cases_path(...)`, and
   `write_memory_scorecard(...)`
+- delegated memory exports such as `DelegatedMemoryEvalCase`,
+  `DelegatedMemoryEvalTrace`, `build_delegated_memory_scorecard(...)`,
+  `compare_delegated_memory_scorecards(...)`,
+  `load_delegated_memory_cases(...)`,
+  `write_delegated_memory_scorecard(...)`, and
+  `load_delegated_memory_scorecard(...)`
 - benchmark adapter exports for memory-effectiveness samples:
   `BENCHMARK_ADAPTER_VERSION`, `MemoryBenchmarkSource`,
   `default_memory_benchmark_manifest_path(...)`,
@@ -113,6 +119,11 @@ The following top-level exports are part of the current public contract:
   `load_memory_context_scorecard(...)`
 - certification helpers such as `FamilyCertificationSignal` and
   `apply_family_signals_to_certification_cells(...)`
+- report renderers such as `render_suite_result_markdown(...)`,
+  `render_baseline_diff_markdown(...)`,
+  `render_memory_scorecard_markdown(...)`,
+  `render_delegated_memory_scorecard_markdown(...)`, and
+  `render_memory_context_scorecard_markdown(...)`
 - type/version contract: `openminion_eval.__version__` and packaged
   `openminion_eval/py.typed`
 - scorer trace helpers: `build_case_traces(...)` and
@@ -204,6 +215,8 @@ Public-contract confidence should be enforced by tests that cover:
 18. dataset validate/hash/init CLI behavior.
 19. scorer registry listing and human-readable suite/diff reports.
 20. integration quarantine tiers and requirement metadata.
+21. delegated multi-agent memory cases, traces, scorecards, packaged fixtures,
+    and deterministic critical-failure scoring.
 
 ## Non-goals
 

@@ -4,9 +4,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from runner_support import configure_repo_paths, generated_output_root
+from runner_support import (
+    configure_repo_paths,
+    generated_output_root,
+    isolate_runtime_roots,
+)
 
-configure_repo_paths(include_tests=True)
+configure_repo_paths()
 
 from tests.eval.provider_certification_matrix import (  # noqa: E402
     build_provider_certification_report,
@@ -21,6 +25,7 @@ def _default_output_root() -> Path:
 
 
 def main() -> int:
+    isolate_runtime_roots(prefix="openminion-eval-provider-matrix-")
     inventory_version, targets = load_provider_certification_targets()
     manual_version, manual_cells = load_provider_certification_manual_cells()
     report = build_provider_certification_report(

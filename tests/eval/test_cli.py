@@ -129,6 +129,56 @@ def test_module_and_cases_help_entrypoints() -> None:
     assert "openminion_eval.cases" in cases_help.stdout
 
 
+def test_nested_report_and_memory_help_are_discoverable() -> None:
+    env = os.environ.copy()
+    env["PYTHONPATH"] = str(REPO_ROOT / "src")
+
+    report_help = subprocess.run(
+        [sys.executable, "-m", "openminion_eval", "report", "--help"],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    memory_help = subprocess.run(
+        [
+            sys.executable,
+            "-m",
+            "openminion_eval",
+            "memory-effectiveness",
+            "--help",
+        ],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    artifact_help = subprocess.run(
+        [sys.executable, "-m", "openminion_eval", "artifact", "--help"],
+        cwd=REPO_ROOT,
+        env=env,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+
+    assert report_help.returncode == 0
+    assert "memory-scorecard" in report_help.stdout
+    assert "delegated-memory" in report_help.stdout
+    assert "delegated-diff" in report_help.stdout
+    assert "memory-context" in report_help.stdout
+    assert "suite-diff" in report_help.stdout
+    assert "bundle" in report_help.stdout
+    assert memory_help.returncode == 0
+    assert "delegated-score" in memory_help.stdout
+    assert "delegated-diff" in memory_help.stdout
+    assert artifact_help.returncode == 0
+    assert "validate" in artifact_help.stdout
+    assert "inspect" in artifact_help.stdout
+
+
 def test_run_command_writes_suite_artifact_and_returns_zero_on_pass(
     tmp_path, capsys
 ) -> None:
@@ -249,9 +299,9 @@ def test_diff_command_writes_output_and_returns_zero_for_non_regression(
 
     assert exit_code == 0
     assert capsys.readouterr().out == ""
-    assert json.loads(output_path.read_text(encoding="utf-8"))["categories"] == {
-        "fixed": 1
-    }
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["version"] == "suite-diff.v1"
+    assert payload["categories"] == {"fixed": 1}
 
 
 def test_dataset_validate_hash_and_init_commands(tmp_path, capsys) -> None:
@@ -291,6 +341,145 @@ def test_report_suite_command_writes_markdown(tmp_path, capsys) -> None:
     assert exit_code == 0
     assert capsys.readouterr().out == ""
     assert "# OpenMinion Eval Suite Report" in report.read_text(encoding="utf-8")
+
+
+def test_report_suite_diff_command_writes_markdown(tmp_path, capsys) -> None:
+    previous_path = tmp_path / "previous.json"
+    current_path = tmp_path / "current.json"
+    diff_path = tmp_path / "diff.json"
+    report = tmp_path / "diff.md"
+    write_suite_result(
+        previous_path,
+        _suite("suite", [_summary("fixed", passed=False, score=0.0)]),
+        _manifest(),
+    )
+    write_suite_result(
+        current_path,
+        _suite("suite", [_summary("fixed", passed=True, score=1.0)]),
+        _manifest(),
+    )
+
+    assert (
+        main(["diff", str(previous_path), str(current_path), "--out", str(diff_path)])
+        == 0
+    )
+    exit_code = main(["report", "suite-diff", str(diff_path), "--out", str(report)])
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    assert "# OpenMinion Eval Suite Diff" in report.read_text(encoding="utf-8")
+
+
+def test_artifact_validate_reports_known_suite_artifact(tmp_path, capsys) -> None:
+    artifact = tmp_path / "suite.json"
+    write_suite_result(
+        artifact,
+        _suite("suite", [_summary("hello", passed=True, score=1.0)]),
+        _manifest(),
+    )
+
+    exit_code = main(["artifact", "validate", str(artifact)])
+
+    stdout = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert stdout["valid"] is True
+    assert stdout["artifact_kind"] == "suite-result"
+
+
+def test_artifact_inspect_reports_suite_diff_summary(tmp_path, capsys) -> None:
+    previous_path = tmp_path / "previous.json"
+    current_path = tmp_path / "current.json"
+    diff_path = tmp_path / "diff.json"
+    write_suite_result(
+        previous_path,
+        _suite("suite", [_summary("regressed", passed=True, score=1.0)]),
+        _manifest(),
+    )
+    write_suite_result(
+        current_path,
+        _suite("suite", [_summary("regressed", passed=False, score=0.0)]),
+        _manifest(),
+    )
+    assert (
+        main(["diff", str(previous_path), str(current_path), "--out", str(diff_path)])
+        == 1
+    )
+    capsys.readouterr()
+
+    exit_code = main(["artifact", "inspect", str(diff_path)])
+
+    stdout = json.loads(capsys.readouterr().out)
+    assert exit_code == 0
+    assert stdout["artifact_kind"] == "suite-diff"
+    assert stdout["summary"] == "regressed=1"
+
+
+def test_report_bundle_writes_html_index(tmp_path, capsys) -> None:
+    artifact = tmp_path / "suite.json"
+    index = tmp_path / "index.html"
+    write_suite_result(
+        artifact,
+        _suite("suite", [_summary("hello", passed=True, score=1.0)]),
+        _manifest(),
+    )
+
+    exit_code = main(["report", "bundle", str(artifact), "--out", str(index)])
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    html = index.read_text(encoding="utf-8")
+    assert "OpenMinion Eval Artifact Index" in html
+    assert "suite-result" in html
+
+
+def test_manual_queue_and_apply_commands(tmp_path, capsys) -> None:
+    queue = tmp_path / "manual-queue.json"
+    adjudications = tmp_path / "adjudications.json"
+    results = tmp_path / "manual-results.json"
+    adjudications.write_text(
+        json.dumps(
+            {
+                "artifact_version": "1",
+                "adjudications": [
+                    {
+                        "case_id": "coding_minimax_markdown_table",
+                        "outcome": "pass",
+                        "detail": "reviewed",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert main(["manual", "queue", "--out", str(queue)]) == 0
+    queue_stdout = json.loads(capsys.readouterr().out)
+    assert queue_stdout["item_count"] == 0
+    assert queue.exists()
+
+    exit_code = main(["manual", "apply", str(adjudications), "--out", str(results)])
+
+    apply_stdout = json.loads(capsys.readouterr().out)
+    payload = json.loads(results.read_text(encoding="utf-8"))
+    assert exit_code == 0
+    assert apply_stdout["pass"] >= 1
+    assert payload["artifact_version"] == "1"
+    assert any(
+        item["case_id"] == "coding_minimax_markdown_table"
+        for item in payload["results"]
+    )
+
+
+def test_artifact_validate_rejects_unknown_json(tmp_path, capsys) -> None:
+    artifact = tmp_path / "unknown.json"
+    artifact.write_text('{"hello": "world"}', encoding="utf-8")
+
+    exit_code = main(["artifact", "validate", str(artifact)])
+
+    captured = capsys.readouterr()
+    assert exit_code == 2
+    assert captured.out == ""
+    assert "unsupported artifact shape" in captured.err
 
 
 def test_scorers_list_command_reports_builtin_scorers(capsys) -> None:

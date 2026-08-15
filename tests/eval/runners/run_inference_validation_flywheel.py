@@ -5,7 +5,7 @@ import argparse
 import json
 from pathlib import Path
 
-from runner_support import FRAMEWORK_ROOT, configure_repo_paths
+from runner_support import FRAMEWORK_ROOT, configure_repo_paths, isolate_runtime_roots
 
 configure_repo_paths()
 
@@ -17,6 +17,7 @@ from tests.eval.integration.trace_flywheel import (  # noqa: E402
 
 
 def main() -> int:
+    isolate_runtime_roots(prefix="openminion-eval-inference-")
     parser = argparse.ArgumentParser(
         description="Run the bounded TEFC inference-validation flywheel."
     )

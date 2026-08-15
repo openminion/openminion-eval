@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/suite-result.v1.schema.json",
+  "additionalProperties": true,
+  "properties": {
+    "artifact_version": {
+      "const": "1"
+    },
+    "manifest": {
+      "additionalProperties": true,
+      "properties": {
+        "generated_at": {
+          "type": "string"
+        },
+        "input_hash": {
+          "type": "string"
+        },
+        "package_version": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "scorer_name": {
+          "type": "string"
+        },
+        "threshold": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "generated_at",
+        "input_hash",
+        "package_version",
+        "run_id",
+        "scorer_name",
+        "threshold"
+      ],
+      "type": "object"
+    },
+    "result": {
+      "additionalProperties": true,
+      "properties": {
+        "all_passed": {
+          "type": "boolean"
+        },
+        "failed_transcripts": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "passed_transcripts": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "summaries": {
+          "type": "array"
+        },
+        "suite_name": {
+          "type": "string"
+        },
+        "total_transcripts": {
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "all_passed",
+        "failed_transcripts",
+        "passed_transcripts",
+        "summaries",
+        "suite_name",
+        "total_transcripts"
+      ],
+      "type": "object"
+    }
+  },
+  "required": [
+    "artifact_version",
+    "manifest",
+    "result"
+  ],
+  "title": "OpenMinion Eval Suite Result v1",
+  "type": "object"
+}

@@ -129,7 +129,7 @@ class ReplaySubject:
             responses[user_input] = output
         return cls(responses)
 
-    def run(self, user_input: str, context: EvalRunContext) -> str:
+    def run(self, user_input: str, _context: EvalRunContext) -> str:
         if user_input not in self._responses:
             raise KeyError(f"no replay output for input: {user_input!r}")
         return self._responses[user_input]

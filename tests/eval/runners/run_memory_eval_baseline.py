@@ -8,7 +8,10 @@ import json
 from pathlib import Path
 import tempfile
 
-from runner_support import configure_repo_paths
+if __package__:
+    from .runner_support import configure_repo_paths, isolate_runtime_roots
+else:
+    from runner_support import configure_repo_paths, isolate_runtime_roots
 
 configure_repo_paths()
 
@@ -102,6 +105,7 @@ def _build_snapshot(
 
 
 def main() -> int:
+    isolate_runtime_roots(prefix="openminion-eval-memory-")
     parser = argparse.ArgumentParser(
         description="Generate or verify the memory eval baseline snapshot."
     )

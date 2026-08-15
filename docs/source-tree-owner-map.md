@@ -40,14 +40,16 @@ memory-effectiveness helpers, and memory/context scorecards.
    builders.
 10. `goal_trajectory/` owns objective-drift fixtures, metrics, runner, and
    aggregate reports.
-11. `memory_effectiveness/` owns structured memory trace scoring, packaged
-    benchmark samples, and memory-effectiveness scorecards.
+11. `memory_effectiveness/` owns structured memory trace scoring, delegated
+    multi-agent memory scoring, packaged benchmark samples, scorecard IO, and
+    the matching CLI subcommand owner.
 12. `memory_context_scorecard/` owns deterministic memory/context scorecard
     fixtures, typed metric validation, report IO, and the matching CLI
     subcommand owner.
 13. `reporting/` owns package-level certification signal helpers.
-14. `reports.py` owns Markdown and HTML rendering for suite artifacts and
-    baseline diffs.
+14. `reports.py` owns Markdown and HTML rendering for suite artifacts,
+    baseline diffs, memory scorecards, delegated-memory scorecards, and
+    memory/context scorecards.
 15. `subject_adapters.py` owns black-box HTTP, command, and replay subjects.
 16. `cli.py` and `__main__.py` own the public package command line dispatcher.
 17. `py.typed` marks the installed package as PEP 561 typed.

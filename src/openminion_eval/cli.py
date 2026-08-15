@@ -19,21 +19,52 @@ from openminion_eval.integration_quarantine import (
     build_integration_quarantine_map,
     integration_probe_tiers,
 )
+from openminion_eval.cases import (
+    GradeOutcome,
+    grade_case,
+    registered_cases,
+)
+from openminion_eval.manual import (
+    apply_manual_adjudications,
+    build_manual_review_queue,
+    load_manual_adjudications,
+    write_manual_review_queue,
+)
 from openminion_eval.memory_context_scorecard.cli import (
     add_memory_context_scorecard_parser,
 )
+from openminion_eval.memory_context_scorecard import (
+    CONTEXT_BUDGET_CALIBRATION_VERSION,
+    MEMORY_CONTEXT_OPERATIONAL_CANARY_VERSION,
+    MEMORY_CONTEXT_SCORECARD_VERSION,
+    load_context_budget_calibration,
+    load_memory_context_scorecard,
+    load_operational_canary,
+)
 from openminion_eval.memory_effectiveness import (
-    MemoryEffectivenessTrace,
-    MemoryTraceClaim,
-    MemoryTraceToolCall,
-    build_memory_scorecard,
-    load_memory_effectiveness_cases,
-    score_memory_case,
-    write_memory_scorecard,
+    DELEGATED_MEMORY_DIFF_VERSION,
+    DELEGATED_MEMORY_SCORECARD_VERSION,
+    load_delegated_memory_scorecard,
+    load_delegated_memory_scorecard_diff,
+    load_memory_scorecard,
+)
+from openminion_eval.memory_effectiveness.cli import (
+    add_memory_effectiveness_parser,
 )
 from openminion_eval.reports import (
+    render_artifact_index_html,
     render_baseline_diff_html,
     render_baseline_diff_markdown,
+    render_delegated_memory_diff_html,
+    render_delegated_memory_diff_markdown,
+    render_delegated_memory_scorecard_html,
+    render_delegated_memory_scorecard_markdown,
+    render_memory_context_scorecard_html,
+    render_memory_context_scorecard_markdown,
+    render_memory_scorecard_html,
+    render_memory_scorecard_markdown,
+    render_suite_diff_artifact_html,
+    render_suite_diff_artifact_markdown,
     render_suite_result_html,
     render_suite_result_markdown,
 )
@@ -46,9 +77,13 @@ from openminion_eval.subject_adapters import (
 )
 from openminion_eval.suite import EvalSuite
 from openminion_eval.suite_artifacts import (
+    SUITE_DIFF_VERSION,
+    build_suite_diff_artifact,
     build_run_manifest,
     compare_suite_results,
+    load_suite_diff,
     load_suite_result,
+    write_suite_diff,
     write_suite_result,
 )
 
@@ -69,10 +104,12 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_run_parser(subparsers)
     _add_diff_parser(subparsers)
     _add_dataset_parser(subparsers)
+    _add_artifact_parser(subparsers)
+    _add_manual_parser(subparsers)
     _add_report_parser(subparsers)
     _add_scorers_parser(subparsers)
     _add_integration_parser(subparsers)
-    _add_memory_effectiveness_parser(subparsers)
+    add_memory_effectiveness_parser(subparsers)
     add_memory_context_scorecard_parser(subparsers)
     return parser
 
@@ -212,6 +249,54 @@ def _add_report_parser(subparsers: Any) -> None:
     _add_report_output_args(diff_parser)
     diff_parser.set_defaults(func=_report_diff_command)
 
+    suite_diff_parser = report_subparsers.add_parser(
+        "suite-diff",
+        help="render a suite-diff artifact",
+    )
+    suite_diff_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(suite_diff_parser)
+    suite_diff_parser.set_defaults(func=_report_suite_diff_command)
+
+    memory_parser = report_subparsers.add_parser(
+        "memory-scorecard",
+        help="render a memory-effectiveness scorecard artifact",
+    )
+    memory_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(memory_parser)
+    memory_parser.set_defaults(func=_report_memory_scorecard_command)
+
+    delegated_parser = report_subparsers.add_parser(
+        "delegated-memory",
+        help="render a delegated-memory scorecard artifact",
+    )
+    delegated_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(delegated_parser)
+    delegated_parser.set_defaults(func=_report_delegated_memory_command)
+
+    delegated_diff_parser = report_subparsers.add_parser(
+        "delegated-diff",
+        help="render a delegated-memory diff artifact",
+    )
+    delegated_diff_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(delegated_diff_parser)
+    delegated_diff_parser.set_defaults(func=_report_delegated_memory_diff_command)
+
+    context_parser = report_subparsers.add_parser(
+        "memory-context",
+        help="render a memory/context scorecard artifact",
+    )
+    context_parser.add_argument("artifact", type=Path)
+    _add_report_output_args(context_parser)
+    context_parser.set_defaults(func=_report_memory_context_command)
+
+    bundle_parser = report_subparsers.add_parser(
+        "bundle",
+        help="write an HTML index for one or more artifact files",
+    )
+    bundle_parser.add_argument("artifacts", nargs="+", type=Path)
+    bundle_parser.add_argument("--out", type=Path, required=True)
+    bundle_parser.set_defaults(func=_report_bundle_command)
+
 
 def _add_report_output_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
@@ -221,6 +306,53 @@ def _add_report_output_args(parser: argparse.ArgumentParser) -> None:
         help="report format (default: markdown)",
     )
     parser.add_argument("--out", type=Path, default=None)
+
+
+def _add_artifact_parser(subparsers: Any) -> None:
+    artifact_parser = subparsers.add_parser(
+        "artifact",
+        help="validate package JSON artifacts",
+    )
+    artifact_subparsers = artifact_parser.add_subparsers(
+        dest="artifact_command", required=True
+    )
+    validate_parser = artifact_subparsers.add_parser(
+        "validate",
+        help="validate a known openminion-eval artifact",
+    )
+    validate_parser.add_argument("artifact", type=Path)
+    validate_parser.set_defaults(func=_artifact_validate_command)
+
+    inspect_parser = artifact_subparsers.add_parser(
+        "inspect",
+        help="summarize a known openminion-eval artifact",
+    )
+    inspect_parser.add_argument("artifact", type=Path)
+    inspect_parser.set_defaults(func=_artifact_inspect_command)
+
+
+def _add_manual_parser(subparsers: Any) -> None:
+    manual_parser = subparsers.add_parser(
+        "manual",
+        help="create and apply local manual-review artifacts",
+    )
+    manual_subparsers = manual_parser.add_subparsers(
+        dest="manual_command", required=True
+    )
+    queue_parser = manual_subparsers.add_parser(
+        "queue",
+        help="write the current manual-review queue",
+    )
+    queue_parser.add_argument("--out", type=Path, required=True)
+    queue_parser.set_defaults(func=_manual_queue_command)
+
+    apply_parser = manual_subparsers.add_parser(
+        "apply",
+        help="apply manual adjudications to the current starter-case results",
+    )
+    apply_parser.add_argument("adjudications", type=Path)
+    apply_parser.add_argument("--out", type=Path, required=True)
+    apply_parser.set_defaults(func=_manual_apply_command)
 
 
 def _add_scorers_parser(subparsers: Any) -> None:
@@ -249,44 +381,6 @@ def _add_integration_parser(subparsers: Any) -> None:
     list_parser.add_argument("--root", type=Path, default=Path.cwd())
     list_parser.add_argument("--tier", choices=integration_probe_tiers(), default=None)
     list_parser.set_defaults(func=_integration_list_command)
-
-
-def _add_memory_effectiveness_parser(subparsers: Any) -> None:
-    memory_parser = subparsers.add_parser(
-        "memory-effectiveness",
-        help="score structured memory-effectiveness trace artifacts",
-    )
-    memory_subparsers = memory_parser.add_subparsers(
-        dest="memory_command", required=True
-    )
-    score_parser = memory_subparsers.add_parser(
-        "score",
-        help="score a trace JSON artifact against packaged memory cases",
-    )
-    score_parser.add_argument("trace", type=Path, help="trace JSON file")
-    score_parser.add_argument(
-        "--cases",
-        type=Path,
-        default=None,
-        help="optional case fixture JSON; defaults to packaged cases",
-    )
-    score_parser.add_argument(
-        "--suite-id",
-        default="openminion-sophiagraph-memory-effectiveness",
-        help="suite id for scorecard artifacts",
-    )
-    score_parser.add_argument(
-        "--run-id",
-        default="memory-effectiveness-local",
-        help="run id for scorecard artifacts",
-    )
-    score_parser.add_argument(
-        "--out",
-        type=Path,
-        default=None,
-        help="write scorecard JSON artifact to PATH",
-    )
-    score_parser.set_defaults(func=_memory_score_command)
 
 
 def _run_command(args: argparse.Namespace) -> int:
@@ -327,24 +421,15 @@ def _run_command(args: argparse.Namespace) -> int:
 def _diff_command(args: argparse.Namespace) -> int:
     previous, _previous_manifest = load_suite_result(args.previous)
     current, _current_manifest = load_suite_result(args.current)
-    diff = compare_suite_results(previous, current)
-    payload = {
-        "previous_suite_name": diff.previous_suite_name,
-        "current_suite_name": diff.current_suite_name,
-        "categories": diff.categories,
-        "entries": [asdict(entry) for entry in diff.entries],
-    }
+    artifact = build_suite_diff_artifact(previous, current)
+    payload = asdict(artifact)
     if args.out is not None:
-        args.out.parent.mkdir(parents=True, exist_ok=True)
-        args.out.write_text(
-            json.dumps(payload, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        write_suite_diff(args.out, artifact)
     else:
         _write_json(payload)
 
     failing_categories = {"new_fail", "regressed", "missing_transcript"}
-    return 1 if failing_categories.intersection(diff.categories) else 0
+    return 1 if failing_categories.intersection(artifact.categories) else 0
 
 
 def _dataset_validate_command(args: argparse.Namespace) -> int:
@@ -398,7 +483,224 @@ def _report_diff_command(args: argparse.Namespace) -> int:
     return 0
 
 
-def _scorers_list_command(args: argparse.Namespace) -> int:
+def _report_suite_diff_command(args: argparse.Namespace) -> int:
+    diff = load_suite_diff(args.artifact)
+    report = (
+        render_suite_diff_artifact_html(diff)
+        if args.format == "html"
+        else render_suite_diff_artifact_markdown(diff)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_memory_scorecard_command(args: argparse.Namespace) -> int:
+    scorecard = load_memory_scorecard(args.artifact)
+    report = (
+        render_memory_scorecard_html(scorecard)
+        if args.format == "html"
+        else render_memory_scorecard_markdown(scorecard)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_delegated_memory_command(args: argparse.Namespace) -> int:
+    scorecard = load_delegated_memory_scorecard(args.artifact)
+    report = (
+        render_delegated_memory_scorecard_html(scorecard)
+        if args.format == "html"
+        else render_delegated_memory_scorecard_markdown(scorecard)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_delegated_memory_diff_command(args: argparse.Namespace) -> int:
+    diff = load_delegated_memory_scorecard_diff(args.artifact)
+    report = (
+        render_delegated_memory_diff_html(diff)
+        if args.format == "html"
+        else render_delegated_memory_diff_markdown(diff)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_memory_context_command(args: argparse.Namespace) -> int:
+    scorecard = load_memory_context_scorecard(args.artifact)
+    report = (
+        render_memory_context_scorecard_html(scorecard)
+        if args.format == "html"
+        else render_memory_context_scorecard_markdown(scorecard)
+    )
+    _write_text(report, args.out)
+    return 0
+
+
+def _report_bundle_command(args: argparse.Namespace) -> int:
+    items = [_inspect_artifact(path) for path in args.artifacts]
+    _write_text(render_artifact_index_html(items), args.out)
+    return 0
+
+
+def _artifact_validate_command(args: argparse.Namespace) -> int:
+    try:
+        info = _inspect_artifact(args.artifact)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        sys.stderr.write(f"artifact validation error: {exc}\n")
+        return 2
+    _write_json({"valid": True, **info})
+    return 0
+
+
+def _artifact_inspect_command(args: argparse.Namespace) -> int:
+    try:
+        info = _inspect_artifact(args.artifact)
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as exc:
+        sys.stderr.write(f"artifact inspection error: {exc}\n")
+        return 2
+    _write_json(info)
+    return 0
+
+
+def _inspect_artifact(path: Path) -> dict[str, str]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("artifact must be a JSON object")
+    version = str(payload.get("version") or payload.get("report_version") or "")
+    artifact_version = str(payload.get("artifact_version") or "")
+    if artifact_version and "manifest" in payload and "result" in payload:
+        result, manifest = load_suite_result(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "suite-result",
+            "version": artifact_version,
+            "run_id": manifest.run_id,
+            "summary": (
+                f"{result.passed_transcripts}/{result.total_transcripts} passed"
+            ),
+        }
+    if version == SUITE_DIFF_VERSION:
+        diff = load_suite_diff(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "suite-diff",
+            "version": version,
+            "summary": _category_summary(diff.categories),
+        }
+    if artifact_version and "scorecard" in payload:
+        scorecard = load_memory_scorecard(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "memory-effectiveness-scorecard",
+            "version": artifact_version,
+            "run_id": scorecard.run_id,
+            "summary": (
+                f"score {scorecard.overall_score:.3f}; "
+                f"{len(scorecard.critical_failures)} critical failures"
+            ),
+        }
+    if version == DELEGATED_MEMORY_SCORECARD_VERSION:
+        scorecard = load_delegated_memory_scorecard(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "delegated-memory-scorecard",
+            "version": version,
+            "summary": (
+                f"passed={scorecard.passed}; utility {scorecard.utility_recall:.3f}"
+            ),
+        }
+    if version == DELEGATED_MEMORY_DIFF_VERSION:
+        diff = load_delegated_memory_scorecard_diff(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "delegated-memory-diff",
+            "version": version,
+            "summary": _category_summary(diff.categories),
+        }
+    if version == MEMORY_CONTEXT_SCORECARD_VERSION:
+        scorecard = load_memory_context_scorecard(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "memory-context-scorecard",
+            "version": version,
+            "run_id": scorecard.run_id,
+            "summary": (
+                f"{scorecard.summary.get('blocking_fail_count', 0)} blocking failures"
+            ),
+        }
+    if version == MEMORY_CONTEXT_OPERATIONAL_CANARY_VERSION:
+        canary = load_operational_canary(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "memory-context-operational-canary",
+            "version": version,
+            "run_id": canary.run_id,
+            "summary": f"{canary.summary.get('fail_count', 0)} failures",
+        }
+    if version == CONTEXT_BUDGET_CALIBRATION_VERSION:
+        calibration = load_context_budget_calibration(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "context-budget-calibration",
+            "version": version,
+            "run_id": calibration.run_id,
+            "summary": f"{calibration.summary.get('change_count', 0)} changes",
+        }
+    raise ValueError("unsupported artifact shape")
+
+
+def _category_summary(categories: dict[str, int]) -> str:
+    return ", ".join(
+        f"{category}={count}" for category, count in sorted(categories.items())
+    )
+
+
+def _manual_queue_command(args: argparse.Namespace) -> int:
+    queue = build_manual_review_queue(registered_cases())
+    output = write_manual_review_queue(args.out, queue)
+    _write_json({"artifact": str(output), "item_count": len(queue.items)})
+    return 0
+
+
+def _manual_apply_command(args: argparse.Namespace) -> int:
+    adjudications = load_manual_adjudications(args.adjudications)
+    results = tuple(grade_case(case) for case in registered_cases())
+    updated = apply_manual_adjudications(results, adjudications)
+    payload = {
+        "artifact_version": "1",
+        "summary": _manual_result_counts(updated),
+        "results": [_case_result_payload(result) for result in updated],
+    }
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(
+        json.dumps(payload, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    _write_json({"artifact": str(args.out), **payload["summary"]})
+    return 1 if payload["summary"].get("fail", 0) else 0
+
+
+def _manual_result_counts(results: tuple[Any, ...]) -> dict[str, int]:
+    return {
+        outcome.value: sum(1 for result in results if result.outcome is outcome)
+        for outcome in GradeOutcome
+    }
+
+
+def _case_result_payload(result: Any) -> dict[str, object]:
+    return {
+        "case_id": result.case_id,
+        "category": result.category,
+        "grade_mode": result.grade_mode.value,
+        "outcome": result.outcome.value,
+        "detail": result.detail,
+        "metadata": dict(result.metadata),
+    }
+
+
+def _scorers_list_command(_args: argparse.Namespace) -> int:
     _write_json({"scorers": [asdict(item) for item in EvalScorer().list_scorers()]})
     return 0
 
@@ -414,122 +716,6 @@ def _integration_list_command(args: argparse.Namespace) -> int:
         }
     )
     return 0
-
-
-def _memory_score_command(args: argparse.Namespace) -> int:
-    cases = load_memory_effectiveness_cases(args.cases)
-    traces = _load_memory_traces(args.trace)
-    traces_by_case = {trace.case_id: trace for trace in traces}
-    results = [
-        score_memory_case(case, traces_by_case[case.case_id])
-        for case in cases
-        if case.case_id in traces_by_case
-    ]
-    unmatched_cases = tuple(
-        case.case_id for case in cases if case.case_id not in traces_by_case
-    )
-    scorecard = build_memory_scorecard(
-        suite_id=args.suite_id,
-        run_id=args.run_id,
-        case_results=results,
-        metadata={"trace": str(args.trace), "unmatched_cases": unmatched_cases},
-    )
-    if args.out is not None:
-        write_memory_scorecard(args.out, scorecard)
-    _write_json(
-        {
-            "suite_id": scorecard.suite_id,
-            "run_id": scorecard.run_id,
-            "case_count": len(scorecard.cases),
-            "unmatched_case_count": len(unmatched_cases),
-            "overall_score": scorecard.overall_score,
-            "critical_failure_count": len(scorecard.critical_failures),
-            "artifact": None if args.out is None else str(args.out),
-        }
-    )
-    return 1 if scorecard.critical_failures or unmatched_cases else 0
-
-
-def _load_memory_traces(path: Path) -> tuple[MemoryEffectivenessTrace, ...]:
-    payload = json.loads(path.read_text(encoding="utf-8"))
-    if isinstance(payload, dict) and "traces" in payload:
-        items = payload["traces"]
-    elif isinstance(payload, list):
-        items = payload
-    else:
-        raise ValueError("trace artifact must be a list or contain a 'traces' list")
-    if not isinstance(items, list):
-        raise TypeError("trace artifact 'traces' value must be a list")
-    traces: list[MemoryEffectivenessTrace] = []
-    for index, item in enumerate(items):
-        if not isinstance(item, dict):
-            raise TypeError(f"trace item {index} must be an object")
-        traces.append(_memory_trace_from_dict(item))
-    return tuple(traces)
-
-
-def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
-    supporting_claims = data.get("supporting_claims", ())
-    tool_calls = data.get("tool_calls", ())
-    if not isinstance(supporting_claims, list | tuple):
-        raise TypeError("supporting_claims must be a list")
-    if not isinstance(tool_calls, list | tuple):
-        raise TypeError("tool_calls must be a list")
-    return MemoryEffectivenessTrace(
-        case_id=str(data.get("case_id", "")),
-        run_id=str(data.get("run_id", "")),
-        memory_mode=data.get("memory_mode"),  # type: ignore[arg-type]
-        saved_memory_ids=tuple(data.get("saved_memory_ids", ())),
-        retrieved_memory_ids=tuple(data.get("retrieved_memory_ids", ())),
-        used_memory_ids=tuple(data.get("used_memory_ids", ())),
-        supporting_claims=tuple(
-            MemoryTraceClaim(
-                claim=str(item.get("claim", "")),
-                memory_id=str(item.get("memory_id", "")),
-            )
-            for item in _objects(supporting_claims, "supporting_claims")
-        ),
-        tool_calls=tuple(
-            MemoryTraceToolCall(
-                tool=str(item.get("tool", "")),
-                arguments_ref=str(item.get("arguments_ref", "")),
-                memory_ids=tuple(item.get("memory_ids", ())),
-                operation=str(item.get("operation", "") or ""),
-                memory_location=str(item.get("memory_location", "") or ""),
-            )
-            for item in _objects(tool_calls, "tool_calls")
-        ),
-        diagnostics=tuple(data.get("diagnostics", ())),
-        namespace=str(data.get("namespace", "")),
-        timestamp=str(data.get("timestamp", "")),
-        context_memory_ids=tuple(data.get("context_memory_ids", ())),
-        cited_memory_ids=tuple(data.get("cited_memory_ids", ())),
-        provider_id=str(data.get("provider_id", "") or ""),
-        model_id=str(data.get("model_id", "") or ""),
-        token_count=data.get("token_count"),
-        cost_usd=data.get("cost_usd"),
-        latency_ms=data.get("latency_ms"),
-        entity_proposal_ids=tuple(data.get("entity_proposal_ids", ())),
-        fact_proposal_ids=tuple(data.get("fact_proposal_ids", ())),
-        lifecycle_event_ids=tuple(data.get("lifecycle_event_ids", ())),
-        artifact_ids=tuple(data.get("artifact_ids", ())),
-        citation_spans=tuple(data.get("citation_spans", ())),
-        trajectory_steps=tuple(data.get("trajectory_steps", ())),
-        graph_path_ids=tuple(data.get("graph_path_ids", ())),
-        valid_time_refs=tuple(data.get("valid_time_refs", ())),
-        transaction_time_refs=tuple(data.get("transaction_time_refs", ())),
-        redaction_status=data.get("redaction_status", "sanitized"),  # type: ignore[arg-type]
-        private_trace_refs=tuple(data.get("private_trace_refs", ())),
-    )
-
-
-def _objects(items: list | tuple, label: str) -> tuple[dict[str, Any], ...]:
-    objects: list[dict[str, Any]] = []
-    for index, item in enumerate(items):
-        if not isinstance(item, dict):
-            raise TypeError(f"{label} item {index} must be an object")
-        objects.append(item)
-    return tuple(objects)
 
 
 def _write_json(payload: dict[str, Any]) -> None:

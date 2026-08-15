@@ -27,6 +27,12 @@ queue = build_manual_review_queue(registered_cases())
 Only `GradeMode.MANUAL` cases enter the queue. Starter structural cases remain
 unchanged.
 
+CLI form:
+
+```bash
+openminion-eval manual queue --out artifacts/manual-review-queue.json
+```
+
 ## Adjudication import
 
 Reviewer decisions use a local JSON artifact:
@@ -43,6 +49,12 @@ Reviewer decisions use a local JSON artifact:
 `load_manual_adjudications()` validates the artifact, and
 `apply_manual_adjudications()` updates matching `EvalCaseResult` rows.
 Malformed imports fail deterministically.
+
+CLI form:
+
+```bash
+openminion-eval manual apply artifacts/manual-adjudications.json --out artifacts/manual-results.json
+```
 
 ## Boundary artifact contracts
 

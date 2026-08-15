@@ -1,0 +1,35 @@
+{
+  "traces": [
+    {
+      "case_id": "repo-convention-positive",
+      "run_id": "example-enabled",
+      "memory_mode": "enabled",
+      "saved_memory_ids": ["mem-release-check"],
+      "retrieved_memory_ids": ["mem-release-check"],
+      "used_memory_ids": ["mem-release-check"],
+      "redaction_status": "sanitized",
+      "supporting_claims": [
+        {
+          "claim": "Run make check before package release.",
+          "memory_id": "mem-release-check"
+        }
+      ],
+      "tool_calls": [
+        {
+          "tool": "shell",
+          "arguments_ref": "sha256:make-check",
+          "memory_ids": ["mem-release-check"],
+          "operation": "validate",
+          "memory_location": "workspace"
+        }
+      ],
+      "namespace": "agent:openminion/project:sophiagraph"
+    },
+    {
+      "case_id": "repo-convention-no-memory-negative",
+      "run_id": "example-disabled",
+      "memory_mode": "disabled",
+      "redaction_status": "sanitized"
+    }
+  ]
+}

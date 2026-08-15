@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -47,6 +48,7 @@ def _remove_build_residue() -> None:
 def _assert_package_docs_shape() -> None:
     required_paths = [
         REPO_ROOT / "docs" / "README.md",
+        REPO_ROOT / "docs" / "artifact-schemas.md",
         REPO_ROOT / "docs" / "certification-readiness-matrix.md",
         REPO_ROOT / "docs" / "eval-cases.md",
         REPO_ROOT / "docs" / "eval-families.md",
@@ -108,6 +110,9 @@ from openminion_eval import (
     EvalDatasetValidationError,
     BOUNDARY_ARTIFACT_VERSION,
     BoundaryArtifactValidationError,
+    DELEGATED_MEMORY_DIFF_VERSION,
+    DelegatedMemoryEvalTrace,
+    EvalSuiteDiffArtifact,
     IntegrationProbeDisposition,
     RedTeamSecurityArtifact,
     SyntheticGoldenArtifact,
@@ -119,19 +124,29 @@ from openminion_eval import (
     MemoryExpectation,
     MEMORY_CONTEXT_SCORECARD_VERSION,
     MemoryContextScorecardV1,
+    SUITE_DIFF_VERSION,
     build_eval_dataset_template,
+    build_delegated_memory_scorecard_diff,
+    build_delegated_memory_scorecard,
     build_case_traces,
     build_integration_quarantine_map,
+    build_suite_diff_artifact,
     build_memory_context_scorecard,
     build_memory_scorecard,
     build_run_manifest,
     build_manual_review_queue,
     default_memory_context_scorecard_cases_path,
+    default_delegated_memory_cases_path,
     default_memory_benchmark_manifest_path,
     default_memory_effectiveness_cases_path,
     compare_suite_results,
+    compare_delegated_memory_scorecards,
     hash_transcripts,
     load_packaged_memory_benchmark_sample,
+    load_delegated_memory_cases,
+    load_delegated_memory_scorecard_diff,
+    load_delegated_memory_scorecard,
+    load_suite_diff,
     load_replay_subject,
     load_memory_context_scorecard_fixtures,
     load_memory_effectiveness_cases,
@@ -142,10 +157,18 @@ from openminion_eval import (
     parse_http_headers,
     render_suite_result_markdown,
     render_baseline_diff_markdown,
+    render_memory_scorecard_markdown,
+    render_delegated_memory_diff_markdown,
+    render_delegated_memory_scorecard_markdown,
+    render_memory_context_scorecard_markdown,
+    render_suite_diff_artifact_markdown,
     registered_cases,
     score_memory_case,
     select_transcripts,
     write_eval_dataset_template,
+    write_delegated_memory_scorecard_diff,
+    write_delegated_memory_scorecard,
+    write_suite_diff,
     write_red_team_security_artifact,
     write_synthetic_golden_artifact,
 )
@@ -213,6 +236,22 @@ if not callable(score_memory_case):
     raise SystemExit("score_memory_case root export missing")
 if not callable(build_memory_scorecard):
     raise SystemExit("build_memory_scorecard root export missing")
+if not callable(build_delegated_memory_scorecard):
+    raise SystemExit("build_delegated_memory_scorecard root export missing")
+if not callable(build_delegated_memory_scorecard_diff):
+    raise SystemExit("build_delegated_memory_scorecard_diff root export missing")
+if not callable(compare_delegated_memory_scorecards):
+    raise SystemExit("compare_delegated_memory_scorecards root export missing")
+if DELEGATED_MEMORY_DIFF_VERSION != "delegated-memory-diff.v1":
+    raise SystemExit("delegated memory diff version drifted")
+if not callable(load_delegated_memory_scorecard):
+    raise SystemExit("load_delegated_memory_scorecard root export missing")
+if not callable(load_delegated_memory_scorecard_diff):
+    raise SystemExit("load_delegated_memory_scorecard_diff root export missing")
+if not callable(write_delegated_memory_scorecard):
+    raise SystemExit("write_delegated_memory_scorecard root export missing")
+if not callable(write_delegated_memory_scorecard_diff):
+    raise SystemExit("write_delegated_memory_scorecard_diff root export missing")
 if MEMORY_CONTEXT_SCORECARD_VERSION != "memory-context-scorecard.v1":
     raise SystemExit("memory context scorecard version drifted")
 if MemoryContextScorecardV1.__name__ != "MemoryContextScorecardV1":
@@ -227,6 +266,16 @@ if not callable(build_case_traces):
     raise SystemExit("build_case_traces root export missing")
 if not callable(compare_suite_results):
     raise SystemExit("compare_suite_results root export missing")
+if not callable(build_suite_diff_artifact):
+    raise SystemExit("build_suite_diff_artifact root export missing")
+if SUITE_DIFF_VERSION != "suite-diff.v1":
+    raise SystemExit("suite diff version drifted")
+if EvalSuiteDiffArtifact.__name__ != "EvalSuiteDiffArtifact":
+    raise SystemExit("EvalSuiteDiffArtifact root export missing")
+if not callable(load_suite_diff):
+    raise SystemExit("load_suite_diff root export missing")
+if not callable(write_suite_diff):
+    raise SystemExit("write_suite_diff root export missing")
 if not callable(hash_transcripts):
     raise SystemExit("hash_transcripts root export missing")
 if not callable(select_transcripts):
@@ -247,6 +296,16 @@ if not callable(render_suite_result_markdown):
     raise SystemExit("render_suite_result_markdown root export missing")
 if not callable(render_baseline_diff_markdown):
     raise SystemExit("render_baseline_diff_markdown root export missing")
+if not callable(render_suite_diff_artifact_markdown):
+    raise SystemExit("render_suite_diff_artifact_markdown root export missing")
+if not callable(render_memory_scorecard_markdown):
+    raise SystemExit("render_memory_scorecard_markdown root export missing")
+if not callable(render_delegated_memory_scorecard_markdown):
+    raise SystemExit("render_delegated_memory_scorecard_markdown root export missing")
+if not callable(render_delegated_memory_diff_markdown):
+    raise SystemExit("render_delegated_memory_diff_markdown root export missing")
+if not callable(render_memory_context_scorecard_markdown):
+    raise SystemExit("render_memory_context_scorecard_markdown root export missing")
 if BOUNDARY_ARTIFACT_VERSION != "1":
     raise SystemExit("boundary artifact version drifted")
 if BoundaryArtifactValidationError.__name__ != "BoundaryArtifactValidationError":
@@ -334,6 +393,95 @@ if len(load_nl_named_skill_manifest()[1]) != 10:
 memory_cases = load_memory_effectiveness_cases()
 if len(memory_cases) != 16:
     raise SystemExit("memory effectiveness fixture count drifted")
+delegated_cases = load_delegated_memory_cases()
+if len(delegated_cases) != 8 or not default_delegated_memory_cases_path().is_file():
+    raise SystemExit("delegated memory packaged fixture drifted")
+delegated_scorecard = build_delegated_memory_scorecard(
+    delegated_cases,
+    tuple(
+        DelegatedMemoryEvalTrace(
+            case_id=case.case_id,
+            retrieved_memory_ids=case.required_recall_ids,
+        )
+        for case in delegated_cases
+    ),
+)
+if not delegated_scorecard.passed:
+    raise SystemExit("delegated memory scoring smoke failed")
+if not compare_delegated_memory_scorecards(delegated_scorecard, delegated_scorecard):
+    raise SystemExit("delegated memory scorecard diff smoke failed")
+delegated_diff = build_delegated_memory_scorecard_diff(
+    delegated_scorecard,
+    delegated_scorecard,
+)
+delegated_diff_path = (
+    Path(os.environ["OPENMINION_EVAL_RELEASE_TMP"])
+    / "delegated-memory-python-diff.json"
+)
+write_delegated_memory_scorecard_diff(delegated_diff_path, delegated_diff)
+if load_delegated_memory_scorecard_diff(delegated_diff_path) != delegated_diff:
+    raise SystemExit("delegated memory diff IO smoke failed")
+if "Delegated-Memory Diff" not in render_delegated_memory_diff_markdown(
+    delegated_diff
+):
+    raise SystemExit("delegated memory diff report renderer smoke failed")
+suite_diff = openminion_eval.build_suite_diff_artifact(
+    openminion_eval.EvalSuiteResult(
+        suite_name="previous",
+        total_transcripts=1,
+        passed_transcripts=0,
+        failed_transcripts=1,
+        summaries=[
+            openminion_eval.EvalSummary(
+                transcript_name="fixed",
+                total_turns=1,
+                average_score=0.0,
+                min_score=0.0,
+                max_score=0.0,
+                results=[],
+                passed=False,
+            )
+        ],
+        all_passed=False,
+    ),
+    openminion_eval.EvalSuiteResult(
+        suite_name="current",
+        total_transcripts=1,
+        passed_transcripts=1,
+        failed_transcripts=0,
+        summaries=[
+            openminion_eval.EvalSummary(
+                transcript_name="fixed",
+                total_turns=1,
+                average_score=1.0,
+                min_score=1.0,
+                max_score=1.0,
+                results=[],
+                passed=True,
+            )
+        ],
+        all_passed=True,
+    ),
+)
+suite_diff_path = (
+    Path(os.environ["OPENMINION_EVAL_RELEASE_TMP"]) / "suite-diff-python.json"
+)
+write_suite_diff(suite_diff_path, suite_diff)
+if load_suite_diff(suite_diff_path) != suite_diff:
+    raise SystemExit("suite diff IO smoke failed")
+if "Eval Suite Diff" not in render_suite_diff_artifact_markdown(suite_diff):
+    raise SystemExit("suite diff report renderer smoke failed")
+delegated_scorecard_path = (
+    Path(os.environ["OPENMINION_EVAL_RELEASE_TMP"])
+    / "delegated-memory-python-scorecard.json"
+)
+write_delegated_memory_scorecard(delegated_scorecard_path, delegated_scorecard)
+if load_delegated_memory_scorecard(delegated_scorecard_path) != delegated_scorecard:
+    raise SystemExit("delegated memory scorecard IO smoke failed")
+if "Delegated-Memory Scorecard" not in render_delegated_memory_scorecard_markdown(
+    delegated_scorecard
+):
+    raise SystemExit("delegated memory report renderer smoke failed")
 scorecard_fixtures = load_memory_context_scorecard_fixtures()
 if len(scorecard_fixtures) != 6:
     raise SystemExit("memory context scorecard fixture count drifted")
@@ -349,6 +497,10 @@ if (
     or scorecard.summary["blocking_fail_count"] != 11
 ):
     raise SystemExit("memory context scorecard smoke failed")
+if "Memory/Context Scorecard" not in render_memory_context_scorecard_markdown(
+    scorecard
+):
+    raise SystemExit("memory context scorecard report renderer smoke failed")
 if not default_memory_effectiveness_cases_path().is_file():
     raise SystemExit("memory effectiveness packaged fixture missing")
 if not default_memory_benchmark_manifest_path("beam").is_file():
@@ -377,6 +529,15 @@ if build_memory_scorecard(
     case_results=(memory_result,),
 ).overall_score <= 0:
     raise SystemExit("memory effectiveness scoring smoke failed")
+memory_smoke_scorecard = build_memory_scorecard(
+    suite_id="memory",
+    run_id="smoke-render",
+    case_results=(memory_result,),
+)
+if "Memory-Effectiveness Scorecard" not in render_memory_scorecard_markdown(
+    memory_smoke_scorecard
+):
+    raise SystemExit("memory effectiveness report renderer smoke failed")
 
 try:
     importlib.import_module("openminion_eval.memory_eval")
@@ -432,6 +593,7 @@ def main() -> int:
             env = os.environ.copy()
             env["PYTHONPATH"] = str(install_dir)
             env["OPENMINION_EVAL_RELEASE_TARGET"] = str(install_dir)
+            env["OPENMINION_EVAL_RELEASE_TMP"] = str(tmp_root)
             _run([sys.executable, "-c", _smoke_script()], cwd=tmp_root, env=env)
             _run(
                 [
@@ -462,7 +624,194 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
+            previous_suite_dataset_path = tmp_root / "previous-suite-dataset.json"
+            current_suite_dataset_path = tmp_root / "current-suite-dataset.json"
+            previous_suite_path = tmp_root / "previous-suite.json"
+            current_suite_path = tmp_root / "current-suite.json"
+            suite_diff_path = tmp_root / "suite-diff.json"
+            suite_diff_report_path = tmp_root / "suite-diff.md"
+            artifact_index_path = tmp_root / "artifact-index.html"
+            previous_suite_dataset_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "1",
+                        "name": "previous-suite",
+                        "cases": [
+                            {
+                                "id": "fixed",
+                                "turns": [
+                                    {
+                                        "user": "hello",
+                                        "expected": "not present",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            current_suite_dataset_path.write_text(
+                json.dumps(
+                    {
+                        "dataset_version": "1",
+                        "name": "current-suite",
+                        "cases": [
+                            {
+                                "id": "fixed",
+                                "turns": [
+                                    {
+                                        "user": "hello",
+                                        "expected": "Mock response",
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "run",
+                    str(previous_suite_dataset_path),
+                    "--out",
+                    str(previous_suite_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+                expected_returncode=1,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "run",
+                    str(current_suite_dataset_path),
+                    "--out",
+                    str(current_suite_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "diff",
+                    str(previous_suite_path),
+                    str(current_suite_path),
+                    "--out",
+                    str(suite_diff_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not suite_diff_path.is_file():
+                raise RuntimeError("suite-diff CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "artifact",
+                    "inspect",
+                    str(suite_diff_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "suite-diff",
+                    str(suite_diff_path),
+                    "--out",
+                    str(suite_diff_report_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not suite_diff_report_path.is_file():
+                raise RuntimeError("suite-diff report CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "bundle",
+                    str(current_suite_path),
+                    str(suite_diff_path),
+                    "--out",
+                    str(artifact_index_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not artifact_index_path.is_file():
+                raise RuntimeError("artifact bundle CLI index missing")
+
+            manual_queue_path = tmp_root / "manual-review-queue.json"
+            manual_adjudications_path = tmp_root / "manual-adjudications.json"
+            manual_results_path = tmp_root / "manual-results.json"
+            manual_adjudications_path.write_text(
+                json.dumps(
+                    {
+                        "artifact_version": "1",
+                        "adjudications": [
+                            {
+                                "case_id": "coding_minimax_markdown_table",
+                                "outcome": "pass",
+                                "detail": "release smoke review",
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "manual",
+                    "queue",
+                    "--out",
+                    str(manual_queue_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not manual_queue_path.is_file():
+                raise RuntimeError("manual queue CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "manual",
+                    "apply",
+                    str(manual_adjudications_path),
+                    "--out",
+                    str(manual_results_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not manual_results_path.is_file():
+                raise RuntimeError("manual apply CLI artifact missing")
+
             scorecard_path = tmp_root / "memory-context-scorecard.json"
+            scorecard_report_path = tmp_root / "memory-context-scorecard.md"
             _run(
                 [
                     sys.executable,
@@ -480,6 +829,261 @@ def main() -> int:
             )
             if not scorecard_path.is_file():
                 raise RuntimeError("memory-context-scorecard CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "artifact",
+                    "validate",
+                    str(scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "memory-context",
+                    str(scorecard_path),
+                    "--out",
+                    str(scorecard_report_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not scorecard_report_path.is_file():
+                raise RuntimeError("memory-context report CLI artifact missing")
+
+            memory_cases_path = tmp_root / "memory-effectiveness-cases.json"
+            memory_trace_path = tmp_root / "memory-effectiveness-trace.json"
+            memory_scorecard_path = tmp_root / "memory-effectiveness-scorecard.json"
+            memory_report_path = tmp_root / "memory-effectiveness-scorecard.md"
+            memory_cases_path.write_text(
+                json.dumps(
+                    {
+                        "version": "1",
+                        "cases": [
+                            {
+                                "case_id": "release-memory-smoke",
+                                "family": "repo_convention",
+                                "prompt": "Which release check should run?",
+                                "tags": ["positive", "negative"],
+                                "expectations": {
+                                    "required_saved_ids": ["mem-release-check"],
+                                    "required_retrieved_ids": ["mem-release-check"],
+                                    "required_used_ids": ["mem-release-check"],
+                                    "required_claim_memory_ids": ["mem-release-check"],
+                                    "required_tool_memory_ids": ["mem-release-check"],
+                                    "critical": True,
+                                },
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            memory_trace_path.write_text(
+                json.dumps(
+                    {
+                        "traces": [
+                            {
+                                "case_id": "release-memory-smoke",
+                                "run_id": "release-smoke",
+                                "memory_mode": "enabled",
+                                "saved_memory_ids": ["mem-release-check"],
+                                "retrieved_memory_ids": ["mem-release-check"],
+                                "used_memory_ids": ["mem-release-check"],
+                                "supporting_claims": [
+                                    {
+                                        "claim": "Run make release-check before publishing.",
+                                        "memory_id": "mem-release-check",
+                                    }
+                                ],
+                                "tool_calls": [
+                                    {
+                                        "tool": "shell",
+                                        "arguments_ref": "sha256:release-check",
+                                        "memory_ids": ["mem-release-check"],
+                                    }
+                                ],
+                            }
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "memory-effectiveness",
+                    "score",
+                    str(memory_trace_path),
+                    "--cases",
+                    str(memory_cases_path),
+                    "--out",
+                    str(memory_scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not memory_scorecard_path.is_file():
+                raise RuntimeError("memory-effectiveness CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "artifact",
+                    "validate",
+                    str(memory_scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "memory-scorecard",
+                    str(memory_scorecard_path),
+                    "--out",
+                    str(memory_report_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not memory_report_path.is_file():
+                raise RuntimeError("memory-effectiveness report CLI artifact missing")
+
+            delegated_cases_payload = json.loads(
+                (
+                    REPO_ROOT
+                    / "src"
+                    / "openminion_eval"
+                    / "memory_effectiveness"
+                    / "resources"
+                    / "delegated_multi_agent_memory_cases.json"
+                ).read_text(encoding="utf-8")
+            )
+            delegated_trace_path = tmp_root / "delegated-memory-trace.json"
+            delegated_scorecard_path = tmp_root / "delegated-memory-scorecard.json"
+            delegated_report_path = tmp_root / "delegated-memory-scorecard.md"
+            delegated_diff_path = tmp_root / "delegated-memory-diff.json"
+            delegated_diff_report_path = tmp_root / "delegated-memory-diff.md"
+            delegated_trace_path.write_text(
+                json.dumps(
+                    {
+                        "traces": [
+                            {
+                                "case_id": case["case_id"],
+                                "retrieved_memory_ids": case.get(
+                                    "required_recall_ids",
+                                    [],
+                                ),
+                            }
+                            for case in delegated_cases_payload["cases"]
+                        ]
+                    }
+                ),
+                encoding="utf-8",
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "memory-effectiveness",
+                    "delegated-score",
+                    str(delegated_trace_path),
+                    "--out",
+                    str(delegated_scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not delegated_scorecard_path.is_file():
+                raise RuntimeError("delegated-memory CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "artifact",
+                    "validate",
+                    str(delegated_scorecard_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "delegated-memory",
+                    str(delegated_scorecard_path),
+                    "--out",
+                    str(delegated_report_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not delegated_report_path.is_file():
+                raise RuntimeError("delegated-memory report CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "memory-effectiveness",
+                    "delegated-diff",
+                    str(delegated_scorecard_path),
+                    str(delegated_scorecard_path),
+                    "--out",
+                    str(delegated_diff_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not delegated_diff_path.is_file():
+                raise RuntimeError("delegated-memory diff CLI artifact missing")
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "artifact",
+                    "validate",
+                    str(delegated_diff_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            _run(
+                [
+                    sys.executable,
+                    "-m",
+                    "openminion_eval",
+                    "report",
+                    "delegated-diff",
+                    str(delegated_diff_path),
+                    "--out",
+                    str(delegated_diff_report_path),
+                ],
+                cwd=tmp_root,
+                env=env,
+            )
+            if not delegated_diff_report_path.is_file():
+                raise RuntimeError("delegated-memory diff report CLI artifact missing")
 
             print(f"release-check ok: {sdist.name}, {wheel.name}")
     finally:

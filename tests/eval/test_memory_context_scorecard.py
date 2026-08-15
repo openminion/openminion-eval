@@ -17,11 +17,20 @@ from openminion_eval.memory_context_scorecard import (
     load_memory_context_scorecard_fixtures,
     write_memory_context_scorecard,
 )
+from openminion_eval.reports import (
+    render_memory_context_scorecard_html,
+    render_memory_context_scorecard_markdown,
+)
 from openminion_eval.cli import main
 
 
 FIXTURE_PATH = (
     Path(__file__).parent / "fixtures" / "memory_context_scorecard" / "cases.json"
+)
+EXAMPLE_FIXTURE_PATH = (
+    Path(__file__).resolve().parents[2]
+    / "examples"
+    / "memory-context-scorecard-cases.json"
 )
 
 
@@ -123,6 +132,18 @@ def test_fixture_loader_accepts_controlled_pair() -> None:
     assert fixtures[0].task_input_ref == "fixture://task"
 
 
+def test_public_example_fixture_builds_passing_scorecard() -> None:
+    report = build_memory_context_scorecard(
+        load_memory_context_scorecard_fixtures(EXAMPLE_FIXTURE_PATH),
+        run_id="example",
+        generated_at="1970-01-01T00:00:00Z",
+    )
+
+    assert report.summary["all_blocking_passed"] is True
+    assert report.metrics[0].metric_name == "memory_influence"
+    assert report.metrics[0].delta == 1.0
+
+
 def test_scorecard_report_contains_delta_and_trace_refs() -> None:
     fixtures = load_memory_context_scorecard_fixtures(FIXTURE_PATH)
 
@@ -152,6 +173,38 @@ def test_scorecard_round_trips_as_deterministic_json(tmp_path: Path) -> None:
 
     assert loaded == report
     assert json.loads(output.read_text(encoding="utf-8"))["run_id"] == "test-run"
+
+
+def test_memory_context_scorecard_renders_human_readable_report() -> None:
+    report = build_memory_context_scorecard(
+        load_memory_context_scorecard_fixtures(FIXTURE_PATH),
+        run_id="render-test",
+        generated_at="1970-01-01T00:00:00Z",
+    )
+
+    markdown = render_memory_context_scorecard_markdown(report)
+    html = render_memory_context_scorecard_html(report)
+
+    assert "# OpenMinion Memory/Context Scorecard" in markdown
+    assert "| memory_influence | pass | 1.000 | 0.500 | yes |" in markdown
+    assert "<table>" in html
+    assert "<pre>" not in html
+
+
+def test_report_cli_renders_memory_context_scorecard(tmp_path: Path, capsys) -> None:
+    scorecard = build_memory_context_scorecard(
+        load_memory_context_scorecard_fixtures(FIXTURE_PATH),
+        run_id="report-cli",
+        generated_at="1970-01-01T00:00:00Z",
+    )
+    artifact = write_memory_context_scorecard(tmp_path / "scorecard.json", scorecard)
+    report = tmp_path / "scorecard.md"
+
+    exit_code = main(["report", "memory-context", str(artifact), "--out", str(report)])
+
+    assert exit_code == 0
+    assert capsys.readouterr().out == ""
+    assert "# OpenMinion Memory/Context Scorecard" in report.read_text(encoding="utf-8")
 
 
 def test_packaged_known_bad_fixtures_load_and_flag_blocking_failures() -> None:

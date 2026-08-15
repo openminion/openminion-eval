@@ -9,6 +9,7 @@ from runner_support import (
     FRAMEWORK_ROOT,
     configure_repo_paths,
     generated_output_root,
+    isolate_runtime_roots,
 )
 
 configure_repo_paths()
@@ -78,6 +79,7 @@ def _report_display_path(path: Path) -> str:
 
 
 def main() -> int:
+    isolate_runtime_roots(prefix="openminion-eval-memory-quality-")
     args = parse_args()
     manifest_version, scenarios = load_memory_quality_manifest()
     rubric_version, rubric_dimensions = load_memory_quality_rubric()

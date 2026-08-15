@@ -56,11 +56,11 @@ from openminion.modules.brain.runtime.verification.policy import (
 )
 from openminion.modules.brain.schemas import (
     ActionResult,
+    ArtifactRef,
     VerificationMode,
     WorkingState,
 )
 from openminion.modules.brain.schemas.commands import ToolCommand
-from openminion.modules.brain.schemas.state import ArtifactRef
 from openminion.modules.storage.runtime.migrations import migrate_database
 from openminion.modules.storage.runtime.session_store import SessionStore
 from openminion.modules.storage.runtime.sqlite import connect_database
@@ -329,17 +329,14 @@ class AmebPhase2AlvbRetriggerTests(unittest.TestCase):
         caller in ``openminion/src/``.
 
         The AMEB Phase 2 closure artifact recorded that these functions
-        had zero callers in ``src/``. After ALVB,
-        ``services/runtime/verifier_binding.py`` calls
-        ``is_run_completion_confirmed`` directly — closing that gap.
+        had zero callers in ``src/``. The current brain adapter calls
+        ``is_run_completion_confirmed`` directly, closing that gap.
         """
-        from openminion.services.runtime import verifier_binding
+        from openminion.services.brain.adapters import run_verification
 
-        source = Path(verifier_binding.__file__).read_text()
+        source = Path(run_verification.__file__).read_text()
         self.assertIn("is_run_completion_confirmed", source)
-        # The bind is a production-surface module under
-        # ``openminion/src/openminion/services/runtime/``.
-        self.assertIn("openminion/services/runtime/", verifier_binding.__file__)
+        self.assertIn("openminion/services/brain/adapters/", run_verification.__file__)
 
 
 if __name__ == "__main__":
