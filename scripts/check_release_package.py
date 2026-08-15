@@ -48,6 +48,7 @@ def _remove_build_residue() -> None:
 def _assert_package_docs_shape() -> None:
     required_paths = [
         REPO_ROOT / "docs" / "README.md",
+        REPO_ROOT / "docs" / "artifact-workflows.md",
         REPO_ROOT / "docs" / "artifact-schemas.md",
         REPO_ROOT / "docs" / "certification-readiness-matrix.md",
         REPO_ROOT / "docs" / "eval-cases.md",

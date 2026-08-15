@@ -10,6 +10,7 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     release_check = release_check_path.read_text()
 
     assert "_assert_package_docs_shape" in release_check
+    assert 'REPO_ROOT / "docs" / "artifact-workflows.md"' in release_check
     assert 'REPO_ROOT / "docs" / "artifact-schemas.md"' in release_check
     assert 'REPO_ROOT / "docs" / "certification-readiness-matrix.md"' in release_check
     assert 'REPO_ROOT / "docs" / "eval-cases.md"' in release_check

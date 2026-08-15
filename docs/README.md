@@ -13,6 +13,7 @@ This directory holds the public package documentation for standalone
 | Understand the eval-family contract | [`eval-families.md`](eval-families.md) |
 | Author or run starter eval cases | [`eval-cases.md`](eval-cases.md) |
 | Add reports to CI | [`ci-recipes.md`](ci-recipes.md) |
+| Run the artifact workflow loop | [`artifact-workflows.md`](artifact-workflows.md) |
 | Store or render JSON artifacts | [`artifact-schemas.md`](artifact-schemas.md) |
 | Review manual grading and boundary artifacts | [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md) |
 | Check public claims and proof coverage | [`standalone-claim-alignment.md`](standalone-claim-alignment.md) and [`certification-readiness-matrix.md`](certification-readiness-matrix.md) |
@@ -51,8 +52,9 @@ This directory holds the public package documentation for standalone
    `openminion-eval report`, and `openminion-eval integration` expose the
    package-owned dataset authoring, scorer discovery, report rendering, and
    optional integration-tier inspection surfaces.
-10. `docs/artifact-schemas.md` records the public JSON artifact shapes and
-    render commands for downstream CI users.
+10. `docs/artifact-workflows.md` records the package-local artifact workflow
+    loop, and `docs/artifact-schemas.md` records the public JSON artifact
+    shapes and render commands for downstream CI users.
 
 ## Repository-local but not wheel-shipped
 
