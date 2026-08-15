@@ -7,6 +7,9 @@ store, diff, and render. The package keeps these artifacts provider-free: they
 contain explicit eval facts, not secrets, environment dumps, or host-local
 paths.
 
+For the full run, validate, render, compare, and upload loop, see
+[`artifact-workflows.md`](artifact-workflows.md).
+
 ## Suite Result
 
 Produced by:
