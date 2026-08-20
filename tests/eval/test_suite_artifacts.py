@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import json
 
+import pytest
+
 from openminion_eval import (
     EvalBaselineDiff,
     EvalSuiteDiffArtifact,
@@ -122,6 +124,25 @@ def test_suite_result_artifact_round_trips_with_sorted_json(tmp_path) -> None:
     payload = json.loads(path.read_text())
     assert list(payload) == ["artifact_version", "manifest", "result"]
     assert load_suite_result(path) == (result, manifest)
+
+
+def test_suite_result_rejects_inconsistent_counts(tmp_path) -> None:
+    result = _suite([])
+    manifest = build_run_manifest(
+        [],
+        scorer_name="exact_match",
+        threshold=1.0,
+        run_id="run-1",
+        generated_at="1970-01-01T00:00:00Z",
+        package_version="0.0.1",
+    )
+    path = write_suite_result(tmp_path / "suite.json", result, manifest)
+    payload = json.loads(path.read_text())
+    payload["result"]["total_transcripts"] = 1
+    path.write_text(json.dumps(payload), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="transcript count"):
+        load_suite_result(path)
 
 
 def test_compare_suite_results_reports_every_category() -> None:

@@ -2,7 +2,8 @@
 
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
-from typing import Any, Callable, Optional, Sequence
+from dataclasses import replace
+from typing import Any, Callable, Literal, Optional, Sequence
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
 from openminion_eval.schemas import (
     EvalResult,
@@ -111,6 +112,7 @@ class EvalSuite:
                         transcript,
                         scorer_name=scorer_name,
                         error=exc,
+                        error_field="executor_error",
                         on_case=None,
                     )
                 if on_case is not None:
@@ -126,18 +128,23 @@ class EvalSuite:
         scorer_name: str,
         on_case: Callable[[EvalResult], None] | None,
     ) -> EvalSummary:
+        error_field: Literal["executor_error", "scorer_error"] = "executor_error"
+        results: list[EvalResult] = []
         try:
             results = self._runner.replay_sync(transcript)
+            error_field = "scorer_error"
             results = self._scorer.score_results(
                 results,
                 scorer_name,
                 threshold=self._threshold,
             )
         except Exception as exc:  # noqa: BLE001
-            return self._error_summary(
+            return self._caught_error_summary(
                 transcript,
+                results,
                 scorer_name=scorer_name,
                 error=exc,
+                error_field=error_field,
                 on_case=on_case,
             )
         return self._summary_from_results(
@@ -216,18 +223,23 @@ class EvalSuite:
         scorer_name: str,
         on_case: Callable[[EvalResult], None] | None,
     ) -> EvalSummary:
+        error_field: Literal["executor_error", "scorer_error"] = "executor_error"
+        results: list[EvalResult] = []
         try:
             results = await self._runner.replay(transcript)
+            error_field = "scorer_error"
             results = self._scorer.score_results(
                 results,
                 scorer_name,
                 threshold=self._threshold,
             )
         except Exception as exc:  # noqa: BLE001
-            return self._error_summary(
+            return self._caught_error_summary(
                 transcript,
+                results,
                 scorer_name=scorer_name,
                 error=exc,
+                error_field=error_field,
                 on_case=on_case,
             )
         return self._summary_from_results(
@@ -249,8 +261,11 @@ class EvalSuite:
 
         scores = [r.score for r in results]
         avg_score = sum(scores) / len(scores) if scores else 0.0
-        scorer_error_count = sum(
+        executor_error_count = sum(
             1 for result in results if result.metadata.get("executor_error") is not None
+        )
+        scorer_error_count = sum(
+            1 for result in results if result.metadata.get("scorer_error") is not None
         )
         return EvalSummary(
             transcript_name=transcript_name,
@@ -261,6 +276,7 @@ class EvalSuite:
             results=results,
             passed=avg_score >= self._threshold,
             threshold=self._threshold,
+            executor_error_count=executor_error_count,
             scorer_error_count=scorer_error_count,
         )
 
@@ -270,6 +286,7 @@ class EvalSuite:
         *,
         scorer_name: str,
         error: Exception,
+        error_field: Literal["executor_error", "scorer_error"],
         on_case: Callable[[EvalResult], None] | None,
     ) -> EvalSummary:
         first_turn = transcript.turns[0] if transcript.turns else {}
@@ -284,12 +301,74 @@ class EvalSuite:
             scorer_threshold=self._threshold,
             metadata={
                 "duration_ms": 0.001,
-                "executor_error": str(error),
+                "executor_error": None,
+                "scorer_error": None,
+                error_field: str(error),
             },
         )
         return self._summary_from_results(
             transcript_name=transcript.name,
             results=[result],
+            on_case=on_case,
+        )
+
+    def _caught_error_summary(
+        self,
+        transcript: EvalTranscript,
+        results: list[EvalResult],
+        *,
+        scorer_name: str,
+        error: Exception,
+        error_field: Literal["executor_error", "scorer_error"],
+        on_case: Callable[[EvalResult], None] | None,
+    ) -> EvalSummary:
+        if error_field == "scorer_error":
+            return self._scorer_error_summary(
+                transcript,
+                results,
+                scorer_name=scorer_name,
+                error=error,
+                on_case=on_case,
+            )
+        return self._error_summary(
+            transcript,
+            scorer_name=scorer_name,
+            error=error,
+            error_field=error_field,
+            on_case=on_case,
+        )
+
+    def _scorer_error_summary(
+        self,
+        transcript: EvalTranscript,
+        results: list[EvalResult],
+        *,
+        scorer_name: str,
+        error: Exception,
+        on_case: Callable[[EvalResult], None] | None,
+    ) -> EvalSummary:
+        if not results:
+            return self._error_summary(
+                transcript,
+                scorer_name=scorer_name,
+                error=error,
+                error_field="scorer_error",
+                on_case=on_case,
+            )
+        failed = [
+            replace(
+                result,
+                score=0.0,
+                scorer_name=scorer_name,
+                scorer_reason="failed",
+                scorer_threshold=self._threshold,
+                metadata={**result.metadata, "scorer_error": str(error)},
+            )
+            for result in results
+        ]
+        return self._summary_from_results(
+            transcript_name=transcript.name,
+            results=failed,
             on_case=on_case,
         )
 

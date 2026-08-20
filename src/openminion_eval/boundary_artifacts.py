@@ -193,6 +193,7 @@ def _artifact_payload(
 ) -> dict[str, Any]:
     if isinstance(artifact, RedTeamSecurityArtifact):
         return {
+            "artifact_kind": "red-team-security",
             "artifact_version": artifact.artifact_version,
             "name": artifact.name,
             "fixtures": [
@@ -219,6 +220,7 @@ def _artifact_payload(
             "metadata": artifact.metadata,
         }
     return {
+        "artifact_kind": "synthetic-golden",
         "artifact_version": artifact.artifact_version,
         "name": artifact.name,
         "goldens": [

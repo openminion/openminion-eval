@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import sys
 from dataclasses import asdict
 from pathlib import Path
@@ -15,10 +16,15 @@ from openminion_eval.datasets import (
     load_eval_dataset,
     write_eval_dataset_template,
 )
+from openminion_eval.boundary_artifacts import (
+    load_red_team_security_artifact,
+    load_synthetic_golden_artifact,
+)
 from openminion_eval.integration_quarantine import (
     build_integration_quarantine_map,
     integration_probe_tiers,
 )
+from openminion_eval.family_registry import list_builtin_families
 from openminion_eval.cases import (
     GradeOutcome,
     grade_case,
@@ -28,6 +34,9 @@ from openminion_eval.manual import (
     apply_manual_adjudications,
     build_manual_review_queue,
     load_manual_adjudications,
+    load_manual_results,
+    load_manual_review_queue,
+    write_manual_results,
     write_manual_review_queue,
 )
 from openminion_eval.memory_context_scorecard.cli import (
@@ -108,6 +117,7 @@ def _build_parser() -> argparse.ArgumentParser:
     _add_manual_parser(subparsers)
     _add_report_parser(subparsers)
     _add_scorers_parser(subparsers)
+    _add_families_parser(subparsers)
     _add_integration_parser(subparsers)
     add_memory_effectiveness_parser(subparsers)
     add_memory_context_scorecard_parser(subparsers)
@@ -351,6 +361,12 @@ def _add_manual_parser(subparsers: Any) -> None:
         help="apply manual adjudications to the current starter-case results",
     )
     apply_parser.add_argument("adjudications", type=Path)
+    apply_parser.add_argument(
+        "--results",
+        type=Path,
+        default=None,
+        help="existing manual-results artifact to adjudicate",
+    )
     apply_parser.add_argument("--out", type=Path, required=True)
     apply_parser.set_defaults(func=_manual_apply_command)
 
@@ -365,6 +381,20 @@ def _add_scorers_parser(subparsers: Any) -> None:
     )
     list_parser = scorer_subparsers.add_parser("list", help="list available scorers")
     list_parser.set_defaults(func=_scorers_list_command)
+
+
+def _add_families_parser(subparsers: Any) -> None:
+    families_parser = subparsers.add_parser(
+        "families",
+        help="inspect built-in eval family metadata",
+    )
+    families_subparsers = families_parser.add_subparsers(
+        dest="families_command", required=True
+    )
+    list_parser = families_subparsers.add_parser(
+        "list", help="list built-in eval families"
+    )
+    list_parser.set_defaults(func=_families_list_command)
 
 
 def _add_integration_parser(subparsers: Any) -> None:
@@ -539,7 +569,21 @@ def _report_memory_context_command(args: argparse.Namespace) -> int:
 
 
 def _report_bundle_command(args: argparse.Namespace) -> int:
-    items = [_inspect_artifact(path) for path in args.artifacts]
+    bundle_dir = args.out.parent / f"{args.out.stem}-files"
+    bundle_dir.mkdir(parents=True, exist_ok=True)
+    items = []
+    for index, source in enumerate(args.artifacts, start=1):
+        artifact_name = f"{index:02d}-{source.name}"
+        artifact_path = bundle_dir / artifact_name
+        shutil.copy2(source, artifact_path)
+        item = _inspect_artifact(artifact_path)
+        item["artifact"] = f"{bundle_dir.name}/{artifact_name}"
+        report = _render_artifact_html(artifact_path, item["artifact_kind"])
+        if report is not None:
+            report_name = f"{index:02d}-{source.stem}.html"
+            (bundle_dir / report_name).write_text(report, encoding="utf-8")
+            item["report"] = f"{bundle_dir.name}/{report_name}"
+        items.append(item)
     _write_text(render_artifact_index_html(items), args.out)
     return 0
 
@@ -648,7 +692,79 @@ def _inspect_artifact(path: Path) -> dict[str, str]:
             "run_id": calibration.run_id,
             "summary": f"{calibration.summary.get('change_count', 0)} changes",
         }
+    review_artifact = _inspect_review_artifact(path, payload)
+    if review_artifact is not None:
+        return review_artifact
     raise ValueError("unsupported artifact shape")
+
+
+def _inspect_review_artifact(
+    path: Path, payload: dict[str, Any]
+) -> dict[str, str] | None:
+    artifact_kind = str(payload.get("artifact_kind") or "")
+    artifact_version = str(payload.get("artifact_version") or "")
+    if artifact_kind == "red-team-security":
+        artifact = load_red_team_security_artifact(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "red-team-security",
+            "version": artifact.artifact_version,
+            "summary": f"{len(artifact.fixtures)} fixtures; {len(artifact.results)} results",
+        }
+    if artifact_kind == "synthetic-golden":
+        artifact = load_synthetic_golden_artifact(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "synthetic-golden",
+            "version": artifact.artifact_version,
+            "summary": f"{len(artifact.goldens)} goldens",
+        }
+    if artifact_kind == "manual-review-queue":
+        queue = load_manual_review_queue(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "manual-review-queue",
+            "version": queue.artifact_version,
+            "summary": f"{len(queue.items)} review items",
+        }
+    if artifact_kind == "manual-results":
+        results = load_manual_results(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "manual-results",
+            "version": artifact_version,
+            "summary": f"{len(results)} results",
+        }
+    if "adjudications" in payload:
+        adjudications = load_manual_adjudications(path)
+        return {
+            "artifact": str(path),
+            "artifact_kind": "manual-adjudications",
+            "version": artifact_version,
+            "summary": f"{len(adjudications)} adjudications",
+        }
+    return None
+
+
+def _render_artifact_html(path: Path, artifact_kind: str) -> str | None:
+    if artifact_kind == "suite-result":
+        result, manifest = load_suite_result(path)
+        return render_suite_result_html(result, manifest)
+    if artifact_kind == "suite-diff":
+        return render_suite_diff_artifact_html(load_suite_diff(path))
+    if artifact_kind == "memory-effectiveness-scorecard":
+        return render_memory_scorecard_html(load_memory_scorecard(path))
+    if artifact_kind == "delegated-memory-scorecard":
+        return render_delegated_memory_scorecard_html(
+            load_delegated_memory_scorecard(path)
+        )
+    if artifact_kind == "delegated-memory-diff":
+        return render_delegated_memory_diff_html(
+            load_delegated_memory_scorecard_diff(path)
+        )
+    if artifact_kind == "memory-context-scorecard":
+        return render_memory_context_scorecard_html(load_memory_context_scorecard(path))
+    return None
 
 
 def _category_summary(categories: dict[str, int]) -> str:
@@ -666,20 +782,16 @@ def _manual_queue_command(args: argparse.Namespace) -> int:
 
 def _manual_apply_command(args: argparse.Namespace) -> int:
     adjudications = load_manual_adjudications(args.adjudications)
-    results = tuple(grade_case(case) for case in registered_cases())
-    updated = apply_manual_adjudications(results, adjudications)
-    payload = {
-        "artifact_version": "1",
-        "summary": _manual_result_counts(updated),
-        "results": [_case_result_payload(result) for result in updated],
-    }
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(
-        json.dumps(payload, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
+    results = (
+        load_manual_results(args.results)
+        if args.results is not None
+        else tuple(grade_case(case) for case in registered_cases())
     )
-    _write_json({"artifact": str(args.out), **payload["summary"]})
-    return 1 if payload["summary"].get("fail", 0) else 0
+    updated = apply_manual_adjudications(results, adjudications)
+    write_manual_results(args.out, updated)
+    summary = _manual_result_counts(updated)
+    _write_json({"artifact": str(args.out), **summary})
+    return 1 if summary.get("fail", 0) else 0
 
 
 def _manual_result_counts(results: tuple[Any, ...]) -> dict[str, int]:
@@ -689,19 +801,13 @@ def _manual_result_counts(results: tuple[Any, ...]) -> dict[str, int]:
     }
 
 
-def _case_result_payload(result: Any) -> dict[str, object]:
-    return {
-        "case_id": result.case_id,
-        "category": result.category,
-        "grade_mode": result.grade_mode.value,
-        "outcome": result.outcome.value,
-        "detail": result.detail,
-        "metadata": dict(result.metadata),
-    }
-
-
 def _scorers_list_command(_args: argparse.Namespace) -> int:
     _write_json({"scorers": [asdict(item) for item in EvalScorer().list_scorers()]})
+    return 0
+
+
+def _families_list_command(_args: argparse.Namespace) -> int:
+    _write_json({"families": [item.to_dict() for item in list_builtin_families()]})
     return 0
 
 

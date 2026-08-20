@@ -16,6 +16,11 @@ def test_builtin_family_registry_has_complete_static_metadata() -> None:
         "closure",
         "policy",
         "skills",
+        "runtime_reliability",
+        "goal_trajectory",
+        "memory_effectiveness",
+        "memory_context",
+        "delegated_memory",
     }
     for family in families:
         assert family.fixture_name

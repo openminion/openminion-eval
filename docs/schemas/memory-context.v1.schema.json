@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/memory-context.v1.schema.json",
+  "type": "object",
+  "required": ["report_version", "run_id", "summary"],
+  "properties": {
+    "report_version": {
+      "enum": [
+        "memory-context-scorecard.v1",
+        "memory-context-operational-canary.v1",
+        "context-budget-calibration.v1"
+      ]
+    },
+    "run_id": {"type": "string", "minLength": 1},
+    "summary": {"type": "object"},
+    "metrics": {"type": "array"},
+    "cases": {"type": "array"},
+    "recommendations": {"type": "array"}
+  },
+  "additionalProperties": true
+}

@@ -36,6 +36,15 @@ Use a custom fixture file:
 openminion-eval memory-effectiveness score memory-trace.json --cases cases.json --out memory-scorecard.json
 ```
 
+Score every case in a benchmark adapter manifest:
+
+```bash
+openminion-eval memory-effectiveness score memory-trace.json --benchmark benchmark-manifest.json --out memory-scorecard.json
+```
+
+`--cases` and `--benchmark` are mutually exclusive. Benchmark mode preserves
+the declared family, source revision, and fixture hash in scorecard metadata.
+
 Render the scorecard for review:
 
 ```bash

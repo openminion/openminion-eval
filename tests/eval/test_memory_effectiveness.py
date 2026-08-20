@@ -18,6 +18,7 @@ from openminion_eval import (
     hash_memory_effectiveness_cases,
     load_memory_effectiveness_cases,
     load_memory_scorecard,
+    default_memory_benchmark_manifest_path,
     score_memory_case,
     render_memory_scorecard_html,
     render_memory_scorecard_markdown,
@@ -564,6 +565,49 @@ def test_memory_effectiveness_cli_scores_trace_artifact(tmp_path: Path, capsys) 
     assert exit_code == 0
     assert payload["overall_score"] == 1.0
     assert out_path.exists()
+
+
+def test_memory_effectiveness_cli_scores_benchmark_manifest(
+    tmp_path: Path, capsys
+) -> None:
+    trace_path = tmp_path / "trace.json"
+    trace_path.write_text(
+        json.dumps(
+            {
+                "traces": [
+                    {
+                        "case_id": "locomo-sample-temporal-001",
+                        "run_id": "benchmark",
+                        "memory_mode": "enabled",
+                        "saved_memory_ids": ["locomo-mira-current-city"],
+                        "retrieved_memory_ids": ["locomo-mira-current-city"],
+                        "used_memory_ids": ["locomo-mira-current-city"],
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+    out_path = tmp_path / "benchmark-scorecard.json"
+
+    exit_code = main(
+        [
+            "memory-effectiveness",
+            "score",
+            str(trace_path),
+            "--benchmark",
+            str(default_memory_benchmark_manifest_path("locomo")),
+            "--out",
+            str(out_path),
+        ]
+    )
+
+    payload = json.loads(capsys.readouterr().out)
+    scorecard = load_memory_scorecard(out_path)
+    assert exit_code == 0
+    assert payload["case_count"] == 1
+    assert scorecard.metadata["benchmark_family"] == "locomo"
+    assert scorecard.metadata["benchmark_fixture_hash"]
 
 
 def test_memory_effectiveness_cli_preserves_structured_trace_fields(

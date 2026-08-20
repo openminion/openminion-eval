@@ -92,6 +92,22 @@ def test_load_eval_dataset_jsonl_preserves_file_order(tmp_path) -> None:
             {"dataset_version": DATASET_VERSION, "name": "bad", "cases": [{"id": "x"}]},
             "turns",
         ),
+        (
+            {
+                "dataset_version": DATASET_VERSION,
+                "name": "bad",
+                "cases": [{"id": "x", "turns": [{"user": "hello"}]}],
+            },
+            "expected",
+        ),
+        (
+            {
+                "dataset_version": DATASET_VERSION,
+                "name": "bad",
+                "cases": [{"id": "x", "turns": ["hello"]}],
+            },
+            "turn 0 must be an object",
+        ),
     ],
 )
 def test_load_eval_dataset_json_rejects_invalid_inputs(

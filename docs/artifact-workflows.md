@@ -46,6 +46,18 @@ openminion-eval artifact validate artifacts/delegated-memory-scorecard.json
 openminion-eval report delegated-memory artifacts/delegated-memory-scorecard.json --out artifacts/delegated-memory-scorecard.md
 ```
 
+Create a portable review bundle after validation:
+
+```bash
+openminion-eval report bundle \
+  artifacts/current-suite.json \
+  artifacts/suite-diff.json \
+  --out artifacts/index.html
+```
+
+Keep the generated `index-files/` directory with `index.html`; it contains the
+copied source artifacts and any supported rendered reports.
+
 ## Upload Policy
 
 Upload JSON artifacts, Markdown reports, and bundle indexes that contain typed

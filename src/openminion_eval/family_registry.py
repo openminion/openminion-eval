@@ -70,6 +70,41 @@ BUILTIN_FAMILIES: tuple[EvalFamilyMetadata, ...] = (
         report_writer="write_skill_quality_report",
         capabilities=("skills", "quality"),
     ),
+    EvalFamilyMetadata(
+        family_id="runtime_reliability",
+        fixture_name="runtime_reliability_cases.json",
+        observation_schema="RuntimeReliabilityObservation",
+        report_writer="build_runtime_reliability_report",
+        capabilities=("projects", "dependencies", "invocations", "transports"),
+    ),
+    EvalFamilyMetadata(
+        family_id="goal_trajectory",
+        fixture_name="goal_trajectory_benchmark.json",
+        observation_schema="GoalTrajectoryStep",
+        report_writer="run_benchmark",
+        capabilities=("goals", "drift", "long_horizon"),
+    ),
+    EvalFamilyMetadata(
+        family_id="memory_effectiveness",
+        fixture_name="memory_effectiveness_cases.json",
+        observation_schema="MemoryEffectivenessTrace",
+        report_writer="build_memory_scorecard",
+        capabilities=("memory", "retrieval", "citation"),
+    ),
+    EvalFamilyMetadata(
+        family_id="memory_context",
+        fixture_name="memory_context_scorecard_cases.json",
+        observation_schema="AblationOutcome",
+        report_writer="build_memory_context_scorecard",
+        capabilities=("memory", "context", "ablation", "governance"),
+    ),
+    EvalFamilyMetadata(
+        family_id="delegated_memory",
+        fixture_name="delegated_multi_agent_memory_cases.json",
+        observation_schema="DelegatedMemoryEvalTrace",
+        report_writer="build_delegated_memory_scorecard",
+        capabilities=("memory", "delegation", "isolation", "revocation"),
+    ),
 )
 
 

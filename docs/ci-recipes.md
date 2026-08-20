@@ -71,6 +71,10 @@ openminion-eval report memory-context artifacts/eval/memory-context-scorecard.js
 openminion-eval report bundle artifacts/eval/suite-result.json artifacts/eval/diff.json artifacts/eval/memory-context-scorecard.json --out artifacts/eval/index.html
 ```
 
+Upload both `index.html` and its sibling `index-files/` directory when using a
+bundle. The copied JSON and generated HTML links do not depend on the original
+input locations.
+
 For a minimal offline memory/context CI case, start from
 `examples/memory-context-scorecard-cases.json` and write outputs under a
 relative artifact directory:

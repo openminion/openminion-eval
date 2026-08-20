@@ -137,6 +137,7 @@ def build_case_traces(result: EvalSuiteResult) -> list[EvalCaseTrace]:
                     expected=case_result.expected,
                     duration_ms=float(case_result.metadata.get("duration_ms", 0.0)),
                     executor_error=case_result.metadata.get("executor_error"),
+                    scorer_error=case_result.metadata.get("scorer_error"),
                     scorer_name=case_result.scorer_name,
                     score=case_result.score,
                     scorer_reason=case_result.scorer_reason,
@@ -159,6 +160,8 @@ def write_case_traces_jsonl(path: str | Path, result: EvalSuiteResult) -> Path:
 
 def load_suite_result(path: str | Path) -> tuple[EvalSuiteResult, EvalRunManifest]:
     payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise TypeError("suite artifact must be a JSON object")
     artifact_version = payload.get("artifact_version")
     if artifact_version != SUITE_ARTIFACT_VERSION:
         raise ValueError(f"Unsupported suite artifact version: {artifact_version!r}")
@@ -287,13 +290,20 @@ def _optional_float(value: object) -> float | None:
     return None if value is None else float(value)
 
 
-def _manifest_from_dict(data: dict[str, Any]) -> EvalRunManifest:
+def _manifest_from_dict(data: Any) -> EvalRunManifest:
+    if not isinstance(data, dict):
+        raise TypeError("suite artifact manifest must be an object")
     return EvalRunManifest(**data)
 
 
-def _suite_result_from_dict(data: dict[str, Any]) -> EvalSuiteResult:
-    summaries = [_summary_from_dict(summary) for summary in data["summaries"]]
-    return EvalSuiteResult(
+def _suite_result_from_dict(data: Any) -> EvalSuiteResult:
+    if not isinstance(data, dict):
+        raise TypeError("suite artifact result must be an object")
+    summaries_data = data.get("summaries")
+    if not isinstance(summaries_data, list):
+        raise TypeError("suite artifact summaries must be a list")
+    summaries = [_summary_from_dict(summary) for summary in summaries_data]
+    result = EvalSuiteResult(
         suite_name=data["suite_name"],
         total_transcripts=data["total_transcripts"],
         passed_transcripts=data["passed_transcripts"],
@@ -301,11 +311,30 @@ def _suite_result_from_dict(data: dict[str, Any]) -> EvalSuiteResult:
         summaries=summaries,
         all_passed=data["all_passed"],
     )
+    if result.total_transcripts != len(result.summaries):
+        raise ValueError("suite artifact transcript count does not match summaries")
+    if (
+        result.passed_transcripts + result.failed_transcripts
+        != result.total_transcripts
+    ):
+        raise ValueError("suite artifact pass/fail counts do not match total")
+    if result.all_passed != (result.failed_transcripts == 0):
+        raise ValueError("suite artifact all_passed does not match failure count")
+    return result
 
 
-def _summary_from_dict(data: dict[str, Any]) -> EvalSummary:
-    results = [EvalResult(**result) for result in data["results"]]
-    return EvalSummary(
+def _summary_from_dict(data: Any) -> EvalSummary:
+    if not isinstance(data, dict):
+        raise TypeError("suite artifact summaries must be objects")
+    results_data = data.get("results")
+    if not isinstance(results_data, list):
+        raise TypeError("suite artifact summary results must be a list")
+    results = []
+    for result in results_data:
+        if not isinstance(result, dict):
+            raise TypeError("suite artifact turn results must be objects")
+        results.append(EvalResult(**result))
+    summary = EvalSummary(
         transcript_name=data["transcript_name"],
         total_turns=data["total_turns"],
         average_score=data["average_score"],
@@ -314,5 +343,9 @@ def _summary_from_dict(data: dict[str, Any]) -> EvalSummary:
         results=results,
         passed=data["passed"],
         threshold=data.get("threshold", 0.80),
+        executor_error_count=data.get("executor_error_count", 0),
         scorer_error_count=data.get("scorer_error_count", 0),
     )
+    if summary.total_turns != len(summary.results):
+        raise ValueError("suite artifact turn count does not match results")
+    return summary

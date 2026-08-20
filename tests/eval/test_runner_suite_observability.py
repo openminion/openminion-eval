@@ -44,6 +44,7 @@ def test_suite_on_case_callback_and_error_count() -> None:
 
     assert len(seen) == 1
     assert seen[0].score == 1.0
+    assert result.summaries[0].executor_error_count == 0
     assert result.summaries[0].scorer_error_count == 0
 
 
@@ -56,4 +57,20 @@ def test_suite_counts_executor_errors_in_summary() -> None:
 
     result = suite.run([transcript])
 
-    assert result.summaries[0].scorer_error_count == 1
+    assert result.summaries[0].executor_error_count == 1
+    assert result.summaries[0].scorer_error_count == 0
+
+
+def test_suite_reports_scorer_errors_separately() -> None:
+    suite = EvalSuite()
+
+    result = suite.run(
+        [EvalTranscript(name="demo", turns=[{"user": "hi", "expected": "ok"}])],
+        scorer_name="missing",
+    )
+
+    summary = result.summaries[0]
+    assert summary.executor_error_count == 0
+    assert summary.scorer_error_count == 1
+    assert summary.results[0].metadata["executor_error"] is None
+    assert summary.results[0].metadata["scorer_error"] == "Unknown scorer: missing"

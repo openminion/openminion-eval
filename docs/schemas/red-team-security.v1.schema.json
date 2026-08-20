@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/red-team-security.v1.schema.json",
+  "type": "object",
+  "required": ["artifact_kind", "artifact_version", "name", "fixtures"],
+  "properties": {
+    "artifact_kind": {"const": "red-team-security"},
+    "artifact_version": {"const": "1"},
+    "name": {"type": "string", "minLength": 1},
+    "metadata": {"type": "object"},
+    "fixtures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "category", "prompt", "expected_behavior"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "category": {"type": "string", "minLength": 1},
+          "prompt": {"type": "string", "minLength": 1},
+          "expected_behavior": {"type": "string", "minLength": 1},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "metadata": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    },
+    "results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["fixture_id", "outcome", "observed_behavior"],
+        "properties": {
+          "fixture_id": {"type": "string", "minLength": 1},
+          "outcome": {"enum": ["passed", "failed", "inconclusive"]},
+          "observed_behavior": {"type": "string", "minLength": 1},
+          "score": {"type": ["number", "null"]},
+          "metadata": {"type": "object"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}

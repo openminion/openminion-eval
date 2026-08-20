@@ -12,6 +12,9 @@ from openminion_eval import (
     apply_manual_adjudications,
     build_manual_review_queue,
     load_manual_adjudications,
+    load_manual_results,
+    load_manual_review_queue,
+    write_manual_results,
     write_manual_review_queue,
 )
 
@@ -40,8 +43,10 @@ def test_manual_review_queue_is_optional_for_non_manual_cases(tmp_path) -> None:
     assert [item.case_id for item in queue.items] == ["manual"]
     output = write_manual_review_queue(tmp_path / "queue.json", queue)
     payload = json.loads(output.read_text())
+    assert payload["artifact_kind"] == "manual-review-queue"
     assert payload["artifact_version"] == "1"
     assert payload["items"][0]["tags"] == ["review"]
+    assert load_manual_review_queue(output) == queue
 
 
 def test_manual_adjudication_import_updates_results(tmp_path) -> None:
@@ -49,6 +54,7 @@ def test_manual_adjudication_import_updates_results(tmp_path) -> None:
     artifact.write_text(
         json.dumps(
             {
+                "artifact_kind": "manual-adjudications",
                 "artifact_version": "1",
                 "adjudications": [
                     {
@@ -84,3 +90,21 @@ def test_manual_adjudication_rejects_malformed_import(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="requires case_id"):
         load_manual_adjudications(artifact)
+
+
+def test_manual_results_round_trip(tmp_path) -> None:
+    results = (
+        EvalCaseResult(
+            case_id="manual",
+            category="quality",
+            grade_mode=GradeMode.MANUAL,
+            outcome=GradeOutcome.UNGRADED,
+            metadata={"trace_id": "trace-1"},
+        ),
+    )
+
+    path = write_manual_results(tmp_path / "results.json", results)
+
+    assert load_manual_results(path) == results
+    payload = json.loads(path.read_text())
+    assert payload["artifact_kind"] == "manual-results"

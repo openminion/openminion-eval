@@ -107,6 +107,8 @@ openminion-eval dataset validate artifacts/dataset.json
 openminion-eval dataset hash artifacts/dataset.json
 ```
 
+Schema: `docs/schemas/eval-dataset.v1.schema.json`
+
 ## Memory-Effectiveness Scorecard
 
 Produced by:
@@ -135,6 +137,8 @@ Render with:
 openminion-eval report memory-scorecard artifacts/memory-scorecard.json --out artifacts/memory-scorecard.md
 ```
 
+Schema: `docs/schemas/memory-scorecard.v1.schema.json`
+
 ## Delegated-Memory Scorecard
 
 Produced by:
@@ -162,6 +166,8 @@ openminion-eval report delegated-memory artifacts/delegated-memory-scorecard.jso
 openminion-eval memory-effectiveness delegated-diff artifacts/previous-delegated.json artifacts/current-delegated.json --out artifacts/delegated-diff.json
 openminion-eval report delegated-diff artifacts/delegated-diff.json --out artifacts/delegated-diff.md
 ```
+
+Schema: `docs/schemas/delegated-memory.v1.schema.json`
 
 The delegated diff artifact is versioned for upload and review:
 
@@ -208,6 +214,8 @@ Render with:
 openminion-eval report memory-context artifacts/memory-context-scorecard.json --out artifacts/memory-context-scorecard.md
 ```
 
+Schema: `docs/schemas/memory-context.v1.schema.json`
+
 ## Artifact Validation
 
 Validate known artifacts before uploading them from CI:
@@ -219,6 +227,10 @@ openminion-eval artifact validate artifacts/memory-scorecard.json
 openminion-eval artifact validate artifacts/delegated-memory-scorecard.json
 openminion-eval artifact validate artifacts/delegated-diff.json
 openminion-eval artifact validate artifacts/memory-context-scorecard.json
+openminion-eval artifact validate artifacts/manual-review-queue.json
+openminion-eval artifact validate artifacts/manual-results.json
+openminion-eval artifact validate artifacts/red-team-security.json
+openminion-eval artifact validate artifacts/synthetic-golden.json
 ```
 
 Summarize artifacts for logs or review:
@@ -228,11 +240,21 @@ openminion-eval artifact inspect artifacts/suite-result.json
 openminion-eval report bundle artifacts/suite-result.json artifacts/diff.json --out artifacts/index.html
 ```
 
+The bundle command copies each JSON artifact into an `index-files/` directory
+beside the index and adds rendered HTML for supported report types. The index
+therefore remains usable after the original input files move.
+
 ## Boundary And Manual Review Artifacts
 
 Manual review and red-team boundary artifacts are versioned JSON contracts
 exposed through Python helpers and the `manual` CLI commands. They are
 documented in [`artifacts-and-manual-grading.md`](artifacts-and-manual-grading.md).
+
+Schemas:
+
+- `docs/schemas/manual-review.v1.schema.json`
+- `docs/schemas/red-team-security.v1.schema.json`
+- `docs/schemas/synthetic-golden.v1.schema.json`
 
 ## Portability Rules
 

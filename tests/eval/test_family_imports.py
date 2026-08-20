@@ -12,6 +12,7 @@ from openminion_eval import (
     NLNamedSkillScenario,
     PolicyCase,
     RoutingCase,
+    RuntimeReliabilityCase,
     SkillQualityScenario,
     ToolResultUsageCase,
     ToolSelectionCase,
@@ -27,6 +28,7 @@ def test_root_eval_exports_new_family_types() -> None:
     assert ToolResultUsageCase.__name__ == "ToolResultUsageCase"
     assert FreshnessCase.__name__ == "FreshnessCase"
     assert RoutingCase.__name__ == "RoutingCase"
+    assert RuntimeReliabilityCase.__name__ == "RuntimeReliabilityCase"
     assert ClosureCase.__name__ == "ClosureCase"
     assert PolicyCase.__name__ == "PolicyCase"
     assert SkillQualityScenario.__name__ == "SkillQualityScenario"

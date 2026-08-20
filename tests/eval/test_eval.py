@@ -183,7 +183,8 @@ def test_eval_suite_parallel_preserves_input_order_and_error_metadata() -> None:
     assert result.summaries[1].passed is True
     error_result = result.summaries[2].results[0]
     assert error_result.metadata["executor_error"] == "subject failed"
-    assert result.summaries[2].scorer_error_count == 1
+    assert result.summaries[2].executor_error_count == 1
+    assert result.summaries[2].scorer_error_count == 0
 
 
 def test_select_transcripts_failed_only_preserves_order() -> None:

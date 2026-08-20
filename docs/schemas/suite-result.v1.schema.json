@@ -53,6 +53,47 @@
           "type": "integer"
         },
         "summaries": {
+          "items": {
+            "additionalProperties": true,
+            "properties": {
+              "executor_error_count": {
+                "minimum": 0,
+                "type": "integer"
+              },
+              "results": {
+                "items": {
+                  "additionalProperties": true,
+                  "properties": {
+                    "metadata": {
+                      "additionalProperties": true,
+                      "properties": {
+                        "executor_error": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "scorer_error": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        }
+                      },
+                      "type": "object"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "scorer_error_count": {
+                "minimum": 0,
+                "type": "integer"
+              }
+            },
+            "type": "object"
+          },
           "type": "array"
         },
         "suite_name": {

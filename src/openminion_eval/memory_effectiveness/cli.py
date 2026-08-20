@@ -18,6 +18,9 @@ from openminion_eval.memory_effectiveness.delegated_memory import (
     write_delegated_memory_scorecard_diff,
     write_delegated_memory_scorecard,
 )
+from openminion_eval.memory_effectiveness.benchmark_adapters import (
+    load_memory_benchmark_cases,
+)
 from openminion_eval.memory_effectiveness.fixtures import (
     load_memory_effectiveness_cases,
 )
@@ -52,11 +55,18 @@ def add_memory_effectiveness_parser(subparsers: Any) -> None:
         help="score a trace JSON artifact against packaged memory cases",
     )
     score_parser.add_argument("trace", type=Path, help="trace JSON file")
-    score_parser.add_argument(
+    case_group = score_parser.add_mutually_exclusive_group()
+    case_group.add_argument(
         "--cases",
         type=Path,
         default=None,
         help="optional case fixture JSON; defaults to packaged cases",
+    )
+    case_group.add_argument(
+        "--benchmark",
+        type=Path,
+        default=None,
+        help="benchmark adapter manifest containing memory-effectiveness cases",
     )
     score_parser.add_argument(
         "--suite-id",
@@ -136,7 +146,16 @@ def _run_memory_command(command: Callable[[], int]) -> int:
 
 
 def _score_memory_trace(args: argparse.Namespace) -> int:
-    cases = load_memory_effectiveness_cases(args.cases)
+    benchmark = (
+        load_memory_benchmark_cases(args.benchmark)
+        if args.benchmark is not None
+        else None
+    )
+    cases = (
+        benchmark.cases
+        if benchmark is not None
+        else load_memory_effectiveness_cases(args.cases)
+    )
     traces = _load_memory_traces(args.trace)
     traces_by_case = {trace.case_id: trace for trace in traces}
     results = [
@@ -151,7 +170,19 @@ def _score_memory_trace(args: argparse.Namespace) -> int:
         suite_id=args.suite_id,
         run_id=args.run_id,
         case_results=results,
-        metadata={"trace": str(args.trace), "unmatched_cases": unmatched_cases},
+        metadata={
+            "trace": str(args.trace),
+            "unmatched_cases": unmatched_cases,
+            **(
+                {
+                    "benchmark_family": benchmark.source.benchmark_family,
+                    "benchmark_source": benchmark.source.source_url,
+                    "benchmark_fixture_hash": benchmark.source.fixture_hash,
+                }
+                if benchmark is not None
+                else {}
+            ),
+        },
     )
     if args.out is not None:
         write_memory_scorecard(args.out, scorecard)

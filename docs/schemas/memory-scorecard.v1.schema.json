@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/memory-scorecard.v1.schema.json",
+  "type": "object",
+  "required": ["artifact_version", "scorecard"],
+  "properties": {
+    "artifact_version": {"const": "1"},
+    "scorecard": {
+      "type": "object",
+      "required": ["suite_id", "run_id", "overall_score", "cases"],
+      "properties": {
+        "suite_id": {"type": "string", "minLength": 1},
+        "run_id": {"type": "string", "minLength": 1},
+        "overall_score": {"type": "number", "minimum": 0, "maximum": 1},
+        "cases": {"type": "array"},
+        "metadata": {"type": "object"}
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false
+}

@@ -430,6 +430,10 @@ def test_report_bundle_writes_html_index(tmp_path, capsys) -> None:
     html = index.read_text(encoding="utf-8")
     assert "OpenMinion Eval Artifact Index" in html
     assert "suite-result" in html
+    assert 'href="index-files/01-suite.json"' in html
+    assert 'href="index-files/01-suite.html"' in html
+    assert (tmp_path / "index-files" / "01-suite.json").exists()
+    assert (tmp_path / "index-files" / "01-suite.html").exists()
 
 
 def test_manual_queue_and_apply_commands(tmp_path, capsys) -> None:
@@ -469,6 +473,60 @@ def test_manual_queue_and_apply_commands(tmp_path, capsys) -> None:
         for item in payload["results"]
     )
 
+    second_adjudications = tmp_path / "second-adjudications.json"
+    second_results = tmp_path / "second-results.json"
+    second_adjudications.write_text(
+        json.dumps(
+            {
+                "artifact_version": "1",
+                "adjudications": [
+                    {
+                        "case_id": "coding_minimax_markdown_table",
+                        "outcome": "fail",
+                        "detail": "review changed",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert (
+        main(
+            [
+                "manual",
+                "apply",
+                str(second_adjudications),
+                "--results",
+                str(results),
+                "--out",
+                str(second_results),
+            ]
+        )
+        == 1
+    )
+    capsys.readouterr()
+    second_payload = json.loads(second_results.read_text(encoding="utf-8"))
+    changed = next(
+        item
+        for item in second_payload["results"]
+        if item["case_id"] == "coding_minimax_markdown_table"
+    )
+    assert changed["outcome"] == "fail"
+    assert changed["detail"] == "review changed"
+
+
+def test_artifact_validate_accepts_manual_queue(tmp_path, capsys) -> None:
+    queue = tmp_path / "manual-queue.json"
+    assert main(["manual", "queue", "--out", str(queue)]) == 0
+    capsys.readouterr()
+
+    assert main(["artifact", "validate", str(queue)]) == 0
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["valid"] is True
+    assert payload["artifact_kind"] == "manual-review-queue"
+
 
 def test_artifact_validate_rejects_unknown_json(tmp_path, capsys) -> None:
     artifact = tmp_path / "unknown.json"
@@ -489,6 +547,21 @@ def test_scorers_list_command_reports_builtin_scorers(capsys) -> None:
     names = {item["name"] for item in stdout["scorers"]}
     assert exit_code == 0
     assert {"exact_match", "substring_match"}.issubset(names)
+
+
+def test_families_list_command_reports_public_families(capsys) -> None:
+    exit_code = main(["families", "list"])
+
+    stdout = json.loads(capsys.readouterr().out)
+    family_ids = {item["family_id"] for item in stdout["families"]}
+    assert exit_code == 0
+    assert {
+        "runtime_reliability",
+        "goal_trajectory",
+        "memory_effectiveness",
+        "memory_context",
+        "delegated_memory",
+    }.issubset(family_ids)
 
 
 def test_integration_list_command_reports_tiers(capsys) -> None:

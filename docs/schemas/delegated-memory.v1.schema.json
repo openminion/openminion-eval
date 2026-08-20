@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/delegated-memory.v1.schema.json",
+  "type": "object",
+  "required": ["version"],
+  "properties": {
+    "version": {
+      "enum": ["delegated-memory-scorecard.v1", "delegated-memory-diff.v1"]
+    },
+    "suite_id": {"type": "string"},
+    "previous_suite_id": {"type": "string"},
+    "current_suite_id": {"type": "string"},
+    "passed": {"type": "boolean"},
+    "utility_recall": {"type": "number"},
+    "results": {"type": "array"},
+    "categories": {"type": "object"},
+    "entries": {"type": "array"}
+  },
+  "anyOf": [
+    {"required": ["suite_id", "passed", "utility_recall", "results"]},
+    {"required": ["previous_suite_id", "current_suite_id", "categories", "entries"]}
+  ],
+  "additionalProperties": true
+}
