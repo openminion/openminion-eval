@@ -15,6 +15,7 @@ from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessCaseResult,
     MemoryEffectivenessScorecard,
     MemoryEffectivenessTrace,
+    MemoryExpectation,
     MemoryPairedRunComparison,
 )
 
@@ -105,8 +106,12 @@ def build_memory_scorecard(
         overall_score=round(overall, 6),
         critical_failures=critical,
         metadata=metadata_payload,
-        operation_scores=_aggregate_case_scores(cases, "operation"),
-        memory_location_scores=_aggregate_case_scores(cases, "memory_location"),
+        operation_scores=_aggregate_named_scores(
+            (case.operation, case.overall_score) for case in cases
+        ),
+        memory_location_scores=_aggregate_named_scores(
+            (case.memory_location, case.overall_score) for case in cases
+        ),
         retrieval_metrics=retrieval_metrics,
         overuse_penalties={
             case.case_id: case.overuse_penalty for case in cases if case.overuse_penalty
@@ -210,12 +215,12 @@ def _score_components(
     )
 
 
-def _usage_expected_ids(expectation: object) -> tuple[str, ...]:
+def _usage_expected_ids(expectation: MemoryExpectation) -> tuple[str, ...]:
     return tuple(
         sorted(
-            set(getattr(expectation, "required_used_ids", ()) or ())
-            | set(getattr(expectation, "required_claim_memory_ids", ()) or ())
-            | set(getattr(expectation, "required_tool_memory_ids", ()) or ())
+            set(expectation.required_used_ids)
+            | set(expectation.required_claim_memory_ids)
+            | set(expectation.required_tool_memory_ids)
         )
     )
 
@@ -285,7 +290,7 @@ def _critical_failures(
 
 def _critical_dimension_failures(
     *,
-    expectation: object,
+    expectation: MemoryExpectation,
     operation: str,
     memory_location: str,
     overuse_penalty: float,
@@ -293,13 +298,13 @@ def _critical_dimension_failures(
 ) -> tuple[str, ...]:
     failures: list[str] = []
     if (
-        getattr(expectation, "expected_operation", "")
+        expectation.expected_operation
         and operation
         and operation != expectation.expected_operation
     ):
         failures.append(f"operation_mismatch:{operation}")
     if (
-        getattr(expectation, "expected_memory_location", "")
+        expectation.expected_memory_location
         and memory_location
         and memory_location != expectation.expected_memory_location
     ):
@@ -367,10 +372,10 @@ def _seen_forbidden_ids(
 
 
 def _expected_or_observed_operation(
-    expectation: object,
+    expectation: MemoryExpectation,
     trace: MemoryEffectivenessTrace,
 ) -> str:
-    expected = str(getattr(expectation, "expected_operation", "") or "").strip()
+    expected = expectation.expected_operation.strip()
     if expected:
         return expected
     for tool_call in trace.tool_calls:
@@ -380,10 +385,10 @@ def _expected_or_observed_operation(
 
 
 def _expected_or_observed_memory_location(
-    expectation: object,
+    expectation: MemoryExpectation,
     trace: MemoryEffectivenessTrace,
 ) -> str:
-    expected = str(getattr(expectation, "expected_memory_location", "") or "").strip()
+    expected = expectation.expected_memory_location.strip()
     if expected:
         return expected
     for tool_call in trace.tool_calls:
@@ -393,12 +398,12 @@ def _expected_or_observed_memory_location(
 
 
 def _retrieval_metrics(
-    expectation: object,
+    expectation: MemoryExpectation,
     trace: MemoryEffectivenessTrace,
 ) -> dict[str, float | int | None]:
-    expected = tuple(getattr(expectation, "expected_retrieved_order", ()) or ())
+    expected = expectation.expected_retrieved_order
     if not expected:
-        expected = tuple(getattr(expectation, "required_retrieved_ids", ()) or ())
+        expected = expectation.required_retrieved_ids
     observed = tuple(trace.retrieved_memory_ids)
     expected_set = set(expected)
     observed_set = set(observed)
@@ -408,7 +413,7 @@ def _retrieval_metrics(
     first_rank = _first_expected_rank(expected, observed)
     context_order_score = _order_score(expected, trace.context_memory_ids or observed)
     cited = tuple(trace.cited_memory_ids)
-    required_cited = set(getattr(expectation, "required_cited_memory_ids", ()) or ())
+    required_cited = set(expectation.required_cited_memory_ids)
     cited_hits = len(required_cited.intersection(cited))
     citation_precision = (
         round(cited_hits / len(cited), 6)
@@ -464,12 +469,15 @@ def _order_score(
     return round(matches / len(expected), 6)
 
 
-def _overuse_penalty(expectation: object, trace: MemoryEffectivenessTrace) -> float:
-    max_unnecessary = getattr(expectation, "max_unnecessary_memory_calls", None)
+def _overuse_penalty(
+    expectation: MemoryExpectation,
+    trace: MemoryEffectivenessTrace,
+) -> float:
+    max_unnecessary = expectation.max_unnecessary_memory_calls
     if max_unnecessary is None:
         return 0.0
-    expected_ids = set(getattr(expectation, "required_retrieved_ids", ()) or ())
-    expected_ids.update(getattr(expectation, "expected_retrieved_order", ()) or ())
+    expected_ids = set(expectation.required_retrieved_ids)
+    expected_ids.update(expectation.expected_retrieved_order)
     unnecessary = tuple(
         memory_id
         for memory_id in trace.retrieved_memory_ids
@@ -481,10 +489,13 @@ def _overuse_penalty(expectation: object, trace: MemoryEffectivenessTrace) -> fl
     return round(excess / len(trace.retrieved_memory_ids), 6)
 
 
-def _underuse_penalty(expectation: object, trace: MemoryEffectivenessTrace) -> float:
-    expected_ids = set(getattr(expectation, "required_used_ids", ()) or ())
-    expected_ids.update(getattr(expectation, "required_claim_memory_ids", ()) or ())
-    expected_ids.update(getattr(expectation, "required_tool_memory_ids", ()) or ())
+def _underuse_penalty(
+    expectation: MemoryExpectation,
+    trace: MemoryEffectivenessTrace,
+) -> float:
+    expected_ids = set(expectation.required_used_ids)
+    expected_ids.update(expectation.required_claim_memory_ids)
+    expected_ids.update(expectation.required_tool_memory_ids)
     if not expected_ids:
         return 0.0
     usage_seen = (
@@ -501,63 +512,63 @@ def _underuse_penalty(expectation: object, trace: MemoryEffectivenessTrace) -> f
 
 
 def _structured_expectation_failures(
-    expectation: object,
+    expectation: MemoryExpectation,
     trace: MemoryEffectivenessTrace,
 ) -> tuple[str, ...]:
     failures: list[str] = []
     failures.extend(
         _missing_failures(
             "context_memory_missing",
-            tuple(getattr(expectation, "required_context_memory_ids", ()) or ()),
+            expectation.required_context_memory_ids,
             trace.context_memory_ids,
         )
     )
     failures.extend(
         _missing_failures(
             "cited_memory_missing",
-            tuple(getattr(expectation, "required_cited_memory_ids", ()) or ()),
+            expectation.required_cited_memory_ids,
             trace.cited_memory_ids,
         )
     )
     for label, expected, observed in (
         (
             "entity_proposal_missing",
-            getattr(expectation, "required_entity_proposal_ids", ()) or (),
+            expectation.required_entity_proposal_ids,
             trace.entity_proposal_ids,
         ),
         (
             "fact_proposal_missing",
-            getattr(expectation, "required_fact_proposal_ids", ()) or (),
+            expectation.required_fact_proposal_ids,
             trace.fact_proposal_ids,
         ),
         (
             "lifecycle_event_missing",
-            getattr(expectation, "required_lifecycle_event_ids", ()) or (),
+            expectation.required_lifecycle_event_ids,
             trace.lifecycle_event_ids,
         ),
         (
             "artifact_missing",
-            getattr(expectation, "required_artifact_ids", ()) or (),
+            expectation.required_artifact_ids,
             trace.artifact_ids,
         ),
         (
             "citation_span_missing",
-            getattr(expectation, "required_citation_spans", ()) or (),
+            expectation.required_citation_spans,
             trace.citation_spans,
         ),
         (
             "graph_path_missing",
-            getattr(expectation, "required_graph_path_ids", ()) or (),
+            expectation.required_graph_path_ids,
             trace.graph_path_ids,
         ),
         (
             "valid_time_missing",
-            getattr(expectation, "required_valid_time_refs", ()) or (),
+            expectation.required_valid_time_refs,
             trace.valid_time_refs,
         ),
         (
             "transaction_time_missing",
-            getattr(expectation, "required_transaction_time_refs", ()) or (),
+            expectation.required_transaction_time_refs,
             trace.transaction_time_refs,
         ),
     ):
@@ -578,14 +589,14 @@ def _missing_failures(
 
 
 def _trajectory_failure(
-    expectation: object,
+    expectation: MemoryExpectation,
     trace: MemoryEffectivenessTrace,
 ) -> str:
-    expected = tuple(getattr(expectation, "expected_trajectory_steps", ()) or ())
+    expected = expectation.expected_trajectory_steps
     if not expected:
         return ""
     observed = trace.trajectory_steps
-    mode = str(getattr(expectation, "trajectory_match_mode", "strict"))
+    mode = expectation.trajectory_match_mode
     if mode == "strict" and observed == expected:
         return ""
     if mode == "unordered" and set(observed) == set(expected):
@@ -619,15 +630,14 @@ def _aggregate_component(
     )
 
 
-def _aggregate_case_scores(
-    cases: tuple[MemoryEffectivenessCaseResult, ...],
-    field_name: str,
+def _aggregate_named_scores(
+    values: Iterable[tuple[str, float]],
 ) -> dict[str, float]:
     grouped: dict[str, list[float]] = {}
-    for case in cases:
-        key = str(getattr(case, field_name, "") or "").strip()
+    for name, score in values:
+        key = name.strip()
         if key:
-            grouped.setdefault(key, []).append(case.overall_score)
+            grouped.setdefault(key, []).append(score)
     return {
         key: round(sum(scores) / len(scores), 6)
         for key, scores in sorted(grouped.items())

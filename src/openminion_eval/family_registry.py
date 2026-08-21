@@ -5,13 +5,12 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from typing import Any
 
-FAMILY_REGISTRY_VERSION = "1"
+FAMILY_REGISTRY_VERSION = "2"
 
 
 @dataclass(frozen=True)
 class EvalFamilyMetadata:
     family_id: str
-    fixture_name: str
     observation_schema: str
     report_writer: str
     capabilities: tuple[str, ...]
@@ -23,84 +22,78 @@ class EvalFamilyMetadata:
 BUILTIN_FAMILIES: tuple[EvalFamilyMetadata, ...] = (
     EvalFamilyMetadata(
         family_id="tool_selection",
-        fixture_name="tool_selection_cases.json",
         observation_schema="ToolSelectionObservation",
         report_writer="build_tool_selection_report",
         capabilities=("selection", "routing"),
     ),
     EvalFamilyMetadata(
         family_id="tool_result_usage",
-        fixture_name="tool_result_usage_cases.json",
         observation_schema="ToolResultUsageObservation",
         report_writer="build_tool_result_usage_report",
         capabilities=("tool_output", "grounding"),
     ),
     EvalFamilyMetadata(
         family_id="freshness",
-        fixture_name="cases.json",
         observation_schema="FreshnessObservation",
         report_writer="build_freshness_report",
         capabilities=("freshness",),
     ),
     EvalFamilyMetadata(
         family_id="routing",
-        fixture_name="cases.json",
         observation_schema="RoutingObservation",
         report_writer="build_routing_report",
         capabilities=("routing",),
     ),
     EvalFamilyMetadata(
         family_id="closure",
-        fixture_name="cases.json",
         observation_schema="ClosureObservation",
         report_writer="build_closure_report",
         capabilities=("closure",),
     ),
     EvalFamilyMetadata(
         family_id="policy",
-        fixture_name="cases.json",
         observation_schema="PolicyObservation",
         report_writer="build_policy_report",
         capabilities=("policy",),
     ),
     EvalFamilyMetadata(
         family_id="skills",
-        fixture_name="manifest.json",
         observation_schema="SkillQualityScenarioReport",
         report_writer="write_skill_quality_report",
         capabilities=("skills", "quality"),
     ),
     EvalFamilyMetadata(
         family_id="runtime_reliability",
-        fixture_name="runtime_reliability_cases.json",
         observation_schema="RuntimeReliabilityObservation",
         report_writer="build_runtime_reliability_report",
-        capabilities=("projects", "dependencies", "invocations", "transports"),
+        capabilities=(
+            "project_lifecycle",
+            "dependency_readiness",
+            "invocation_lifecycle",
+            "remote_transport",
+            "infrastructure_monitoring",
+        ),
     ),
     EvalFamilyMetadata(
         family_id="goal_trajectory",
-        fixture_name="goal_trajectory_benchmark.json",
         observation_schema="GoalTrajectoryStep",
         report_writer="run_benchmark",
         capabilities=("goals", "drift", "long_horizon"),
     ),
     EvalFamilyMetadata(
         family_id="memory_effectiveness",
-        fixture_name="memory_effectiveness_cases.json",
         observation_schema="MemoryEffectivenessTrace",
         report_writer="build_memory_scorecard",
         capabilities=("memory", "retrieval", "citation"),
     ),
     EvalFamilyMetadata(
         family_id="memory_context",
-        fixture_name="memory_context_scorecard_cases.json",
         observation_schema="AblationOutcome",
         report_writer="build_memory_context_scorecard",
         capabilities=("memory", "context", "ablation", "governance"),
     ),
     EvalFamilyMetadata(
         family_id="delegated_memory",
-        fixture_name="delegated_multi_agent_memory_cases.json",
         observation_schema="DelegatedMemoryEvalTrace",
         report_writer="build_delegated_memory_scorecard",
         capabilities=("memory", "delegation", "isolation", "revocation"),

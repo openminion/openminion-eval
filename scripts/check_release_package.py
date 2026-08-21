@@ -28,6 +28,21 @@ def _run(
         )
 
 
+def _run_eval_cli(
+    args: list[str],
+    *,
+    cwd: Path,
+    env: dict[str, str],
+    expected_returncode: int = 0,
+) -> None:
+    _run(
+        [sys.executable, "-m", "openminion_eval", *args],
+        cwd=cwd,
+        env=env,
+        expected_returncode=expected_returncode,
+    )
+
+
 def _single_artifact(dist_dir: Path, suffix: str) -> Path:
     matches = sorted(dist_dir.glob(f"*{suffix}"))
     if len(matches) != 1:
@@ -640,16 +655,7 @@ def main() -> int:
             env["OPENMINION_EVAL_RELEASE_TARGET"] = str(install_dir)
             env["OPENMINION_EVAL_RELEASE_TMP"] = str(tmp_root)
             _run([sys.executable, "-c", _smoke_script()], cwd=tmp_root, env=env)
-            _run(
-                [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
-                    "--help",
-                ],
-                cwd=tmp_root,
-                env=env,
-            )
+            _run_eval_cli(["--help"], cwd=tmp_root, env=env)
             _run(
                 [
                     str(install_dir / "bin" / "openminion-eval"),
@@ -658,17 +664,7 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
-                [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
-                    "families",
-                    "list",
-                ],
-                cwd=tmp_root,
-                env=env,
-            )
+            _run_eval_cli(["families", "list"], cwd=tmp_root, env=env)
             _run(
                 [
                     sys.executable,
@@ -727,11 +723,8 @@ def main() -> int:
                 ),
                 encoding="utf-8",
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "run",
                     str(previous_suite_dataset_path),
                     "--out",
@@ -741,11 +734,8 @@ def main() -> int:
                 env=env,
                 expected_returncode=1,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "run",
                     str(current_suite_dataset_path),
                     "--out",
@@ -754,11 +744,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "diff",
                     str(previous_suite_path),
                     str(current_suite_path),
@@ -770,11 +757,8 @@ def main() -> int:
             )
             if not suite_diff_path.is_file():
                 raise RuntimeError("suite-diff CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "inspect",
                     str(suite_diff_path),
@@ -782,11 +766,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "report",
                     "suite-diff",
                     str(suite_diff_path),
@@ -798,11 +779,8 @@ def main() -> int:
             )
             if not suite_diff_report_path.is_file():
                 raise RuntimeError("suite-diff report CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "report",
                     "bundle",
                     str(current_suite_path),
@@ -840,11 +818,8 @@ def main() -> int:
                 ),
                 encoding="utf-8",
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "manual",
                     "queue",
                     "--out",
@@ -855,11 +830,8 @@ def main() -> int:
             )
             if not manual_queue_path.is_file():
                 raise RuntimeError("manual queue CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "validate",
                     str(manual_queue_path),
@@ -867,11 +839,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "manual",
                     "apply",
                     str(manual_adjudications_path),
@@ -883,11 +852,8 @@ def main() -> int:
             )
             if not manual_results_path.is_file():
                 raise RuntimeError("manual apply CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "validate",
                     str(manual_results_path),
@@ -898,11 +864,8 @@ def main() -> int:
 
             scorecard_path = tmp_root / "memory-context-scorecard.json"
             scorecard_report_path = tmp_root / "memory-context-scorecard.md"
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "memory-context-scorecard",
                     "--run-id",
                     "release-smoke",
@@ -915,11 +878,8 @@ def main() -> int:
             )
             if not scorecard_path.is_file():
                 raise RuntimeError("memory-context-scorecard CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "validate",
                     str(scorecard_path),
@@ -927,11 +887,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "report",
                     "memory-context",
                     str(scorecard_path),
@@ -1002,11 +959,8 @@ def main() -> int:
                 ),
                 encoding="utf-8",
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "memory-effectiveness",
                     "score",
                     str(memory_trace_path),
@@ -1020,11 +974,8 @@ def main() -> int:
             )
             if not memory_scorecard_path.is_file():
                 raise RuntimeError("memory-effectiveness CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "validate",
                     str(memory_scorecard_path),
@@ -1032,11 +983,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "report",
                     "memory-scorecard",
                     str(memory_scorecard_path),
@@ -1075,11 +1023,8 @@ def main() -> int:
                 ),
                 encoding="utf-8",
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "memory-effectiveness",
                     "score",
                     str(benchmark_trace_path),
@@ -1126,11 +1071,8 @@ def main() -> int:
                 ),
                 encoding="utf-8",
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "memory-effectiveness",
                     "delegated-score",
                     str(delegated_trace_path),
@@ -1142,11 +1084,8 @@ def main() -> int:
             )
             if not delegated_scorecard_path.is_file():
                 raise RuntimeError("delegated-memory CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "validate",
                     str(delegated_scorecard_path),
@@ -1154,11 +1093,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "report",
                     "delegated-memory",
                     str(delegated_scorecard_path),
@@ -1170,11 +1106,8 @@ def main() -> int:
             )
             if not delegated_report_path.is_file():
                 raise RuntimeError("delegated-memory report CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "memory-effectiveness",
                     "delegated-diff",
                     str(delegated_scorecard_path),
@@ -1187,11 +1120,8 @@ def main() -> int:
             )
             if not delegated_diff_path.is_file():
                 raise RuntimeError("delegated-memory diff CLI artifact missing")
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "artifact",
                     "validate",
                     str(delegated_diff_path),
@@ -1199,11 +1129,8 @@ def main() -> int:
                 cwd=tmp_root,
                 env=env,
             )
-            _run(
+            _run_eval_cli(
                 [
-                    sys.executable,
-                    "-m",
-                    "openminion_eval",
                     "report",
                     "delegated-diff",
                     str(delegated_diff_path),

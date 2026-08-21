@@ -9,6 +9,7 @@ from openminion_eval import (
     EvalCaseResult,
     GradeMode,
     GradeOutcome,
+    ManualAdjudication,
     apply_manual_adjudications,
     build_manual_review_queue,
     load_manual_adjudications,
@@ -90,6 +91,29 @@ def test_manual_adjudication_rejects_malformed_import(tmp_path) -> None:
 
     with pytest.raises(ValueError, match="requires case_id"):
         load_manual_adjudications(artifact)
+
+
+def test_manual_adjudications_reject_duplicate_and_unknown_case_ids(tmp_path) -> None:
+    artifact = tmp_path / "duplicates.json"
+    artifact.write_text(
+        json.dumps(
+            {
+                "artifact_version": "1",
+                "adjudications": [
+                    {"case_id": "manual", "outcome": "pass"},
+                    {"case_id": "manual", "outcome": "fail"},
+                ],
+            }
+        )
+    )
+    with pytest.raises(ValueError, match="duplicate manual adjudication"):
+        load_manual_adjudications(artifact)
+
+    with pytest.raises(ValueError, match="unknown case ids"):
+        apply_manual_adjudications(
+            (),
+            (ManualAdjudication(case_id="missing", outcome=GradeOutcome.PASS),),
+        )
 
 
 def test_manual_results_round_trip(tmp_path) -> None:

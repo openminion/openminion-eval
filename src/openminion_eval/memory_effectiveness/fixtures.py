@@ -7,7 +7,7 @@ import json
 from collections.abc import Mapping
 from dataclasses import asdict
 from importlib.resources.abc import Traversable
-from typing import Any
+from typing import Any, cast
 
 from openminion_eval.family_support import require_mapping
 from openminion_eval.memory_effectiveness.resource_io import (
@@ -18,6 +18,7 @@ from openminion_eval.memory_effectiveness.resource_io import (
 from openminion_eval.memory_effectiveness.artifact_payloads import string_tuple
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessCase,
+    MemoryEffectivenessCaseFamily,
     MemoryExpectation,
 )
 
@@ -64,7 +65,7 @@ def hash_memory_effectiveness_cases(cases: tuple[MemoryEffectivenessCase, ...]) 
 def case_from_mapping(data: Mapping[str, Any]) -> MemoryEffectivenessCase:
     return MemoryEffectivenessCase(
         case_id=str(data.get("case_id", "") or "").strip(),
-        family=data.get("family"),  # type: ignore[arg-type]
+        family=cast(MemoryEffectivenessCaseFamily, data.get("family")),
         prompt=str(data.get("prompt", "") or "").strip(),
         teaching_turns=tuple(str(item) for item in data.get("teaching_turns", ())),
         followup_turns=tuple(str(item) for item in data.get("followup_turns", ())),

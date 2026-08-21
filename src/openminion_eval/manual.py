@@ -78,9 +78,7 @@ def load_manual_review_queue(path: str | Path) -> ManualReviewQueue:
         if not isinstance(item, dict):
             raise ValueError("manual review queue items must be mappings")
         tags = item.get("tags", [])
-        if not isinstance(tags, list | tuple) or not all(
-            isinstance(tag, str) for tag in tags
-        ):
+        if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
             raise ValueError("manual review queue tags must be strings")
         parsed.append(
             ManualReviewItem(
@@ -103,7 +101,9 @@ def load_manual_adjudications(path: str | Path) -> tuple[ManualAdjudication, ...
     items = payload.get("adjudications")
     if not isinstance(items, list):
         raise ValueError("manual adjudication artifact requires an adjudications list")
-    return tuple(_adjudication_from_dict(item) for item in items)
+    adjudications = tuple(_adjudication_from_dict(item) for item in items)
+    _index_adjudications(adjudications)
+    return adjudications
 
 
 def load_manual_results(path: str | Path) -> tuple[EvalCaseResult, ...]:
@@ -151,7 +151,13 @@ def apply_manual_adjudications(
     results: Sequence[EvalCaseResult],
     adjudications: Sequence[ManualAdjudication],
 ) -> tuple[EvalCaseResult, ...]:
-    adjudication_by_case = {item.case_id: item for item in adjudications}
+    adjudication_by_case = _index_adjudications(adjudications)
+    result_ids = {result.case_id for result in results}
+    unknown_ids = sorted(adjudication_by_case.keys() - result_ids)
+    if unknown_ids:
+        raise ValueError(
+            f"manual adjudications reference unknown case ids: {unknown_ids}"
+        )
     updated: list[EvalCaseResult] = []
     for result in results:
         adjudication = adjudication_by_case.get(result.case_id)
@@ -169,6 +175,19 @@ def apply_manual_adjudications(
             )
         )
     return tuple(updated)
+
+
+def _index_adjudications(
+    adjudications: Sequence[ManualAdjudication],
+) -> dict[str, ManualAdjudication]:
+    indexed: dict[str, ManualAdjudication] = {}
+    for adjudication in adjudications:
+        if adjudication.case_id in indexed:
+            raise ValueError(
+                f"duplicate manual adjudication case_id: {adjudication.case_id!r}"
+            )
+        indexed[adjudication.case_id] = adjudication
+    return indexed
 
 
 def _adjudication_from_dict(item: Any) -> ManualAdjudication:
