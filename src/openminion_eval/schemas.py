@@ -107,6 +107,7 @@ class EvalCaseTrace:
     expected: str
     duration_ms: float
     executor_error: str | None
+    scorer_error: str | None
     scorer_name: str
     score: float
     scorer_reason: str = ""
@@ -123,6 +124,7 @@ class EvalSummary:
     results: list[EvalResult]
     passed: bool
     threshold: float = 0.80
+    executor_error_count: int = 0
     scorer_error_count: int = 0
 
 

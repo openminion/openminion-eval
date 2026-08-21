@@ -17,6 +17,7 @@ OpenMinion application runtime.
 - `openminion_eval.policy`
 - `openminion_eval.skills`
 - `openminion_eval.goal_trajectory`
+- `openminion_eval.runtime_reliability`
 - `openminion_eval.reporting`
 
 The top-level `openminion_eval` package re-exports the common case, report,
@@ -34,7 +35,18 @@ and builder symbols for these families.
 | Policy | Whether policy gates and denials are reflected structurally. | `PolicyCase`, `PolicyObservation`, `PolicyReport` |
 | Skills | Whether skill selection and skill-quality evidence can be summarized. | `SkillQuality*`, `NLNamedSkill*` report helpers |
 | Goal trajectory | Whether objective-drift and trajectory signals can be replayed. | `GoalTrajectoryBenchmark`, `GoalTrajectoryReport`, `run_benchmark(...)` |
+| Runtime reliability | Whether explicit lifecycle, readiness, transport, and monitoring facts match expectations and carry required identifiers. | `RuntimeReliabilityCase`, `RuntimeReliabilityObservation`, `RuntimeReliabilityReport` |
 | Certification reporting | Whether family signals can update provider certification cells. | `FamilyCertificationSignal`, `apply_family_signals_to_certification_cells(...)` |
+
+Discover the static family surface without importing host runtime code:
+
+```bash
+openminion-eval families list
+```
+
+Runtime-reliability observations remain host-owned structured facts. The family
+does not probe dependencies, authorize remote delivery, infer lifecycle state,
+or import the OpenMinion runtime.
 
 ## Data Boundary
 

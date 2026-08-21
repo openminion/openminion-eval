@@ -26,6 +26,7 @@ External consumers should treat these import roots as the supported public API:
 - `openminion_eval.memory_effectiveness`
 - `openminion_eval.memory_context_scorecard`
 - `openminion_eval.goal_trajectory`
+- `openminion_eval.runtime_reliability`
 - `openminion_eval.reporting`
 - `openminion_eval.suite_artifacts`
 - `openminion_eval.datasets`
@@ -132,9 +133,14 @@ The following top-level exports are part of the current public contract:
   `EvalScorer.score_results(...)` may record `scorer_reason` and
   `scorer_threshold` for trace consumers.
 - manual grading helpers: `build_manual_review_queue(...)`,
-  `load_manual_adjudications(...)`, and `apply_manual_adjudications(...)`
+  `load_manual_review_queue(...)`, `load_manual_results(...)`,
+  `write_manual_results(...)`, `load_manual_adjudications(...)`, and
+  `apply_manual_adjudications(...)`
 - static family registry helpers: `list_builtin_families(...)` and
   `get_builtin_family(...)`
+- runtime-reliability exports such as `RuntimeReliabilityCase`,
+  `RuntimeReliabilityObservation`, `build_runtime_reliability_report(...)`,
+  and `load_runtime_reliability_cases(...)`
 - integration quarantine metadata helpers:
   `build_integration_quarantine_map(...)`, `integration_probe_tiers(...)`, and
   `IntegrationProbeDisposition`

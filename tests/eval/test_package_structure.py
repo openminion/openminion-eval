@@ -13,6 +13,8 @@ def test_package_local_docs_examples_and_release_smoke_exist() -> None:
     assert (root / "docs" / "eval-families.md").is_file()
     assert (root / "docs" / "ci-recipes.md").is_file()
     assert (root / "docs" / "artifacts-and-manual-grading.md").is_file()
+    assert (root / "docs" / "schemas" / "eval-dataset.v1.schema.json").is_file()
+    assert (root / "docs" / "schemas" / "manual-review.v1.schema.json").is_file()
     assert (root / "docs" / "source-tree-owner-map.md").is_file()
     assert (root / "docs" / "standalone-claim-alignment.md").is_file()
     assert (root / "examples" / "basic_usage.py").is_file()
@@ -90,5 +92,6 @@ def test_source_tree_owner_map_covers_public_root_modules() -> None:
         "subject_adapters.py",
         "py.typed",
         "integration_quarantine.py",
+        "runtime_reliability/",
     ):
         assert module_name in owner_map

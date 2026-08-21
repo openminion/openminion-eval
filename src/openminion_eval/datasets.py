@@ -137,6 +137,10 @@ def _build_dataset(
         turns = record.get("turns")
         if not isinstance(turns, list):
             raise EvalDatasetValidationError(f"case {case_id} turns must be a list")
+        normalized_turns = [
+            _validated_turn(turn, case_id=case_id, turn_index=turn_index)
+            for turn_index, turn in enumerate(turns)
+        ]
         tags = record.get("tags", [])
         if not isinstance(tags, list) or not all(isinstance(tag, str) for tag in tags):
             raise EvalDatasetValidationError(
@@ -147,7 +151,7 @@ def _build_dataset(
                 case_id=case_id,
                 transcript=EvalTranscript(
                     name=transcript_name,
-                    turns=turns,
+                    turns=normalized_turns,
                     tags=list(tags),
                 ),
             )
@@ -165,6 +169,15 @@ def _required_string(payload: dict[str, Any], key: str, owner: str) -> str:
     if not isinstance(value, str) or not value:
         raise EvalDatasetValidationError(f"{owner} {key} must be a non-empty string")
     return value
+
+
+def _validated_turn(turn: Any, *, case_id: str, turn_index: int) -> dict[str, Any]:
+    owner = f"case {case_id} turn {turn_index}"
+    if not isinstance(turn, dict):
+        raise EvalDatasetValidationError(f"{owner} must be an object")
+    _required_string(turn, "user", owner)
+    _required_string(turn, "expected", owner)
+    return dict(turn)
 
 
 def _ensure_supported_version(version: str) -> None:

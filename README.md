@@ -64,6 +64,7 @@ and should be treated as a scam.
 
 ```bash
 openminion-eval dataset validate eval-dataset.jsonl
+openminion-eval families list
 openminion-eval run eval-dataset.jsonl --out suite-result.json
 openminion-eval report suite suite-result.json --out suite-report.md
 openminion-eval diff baseline.json suite-result.json
@@ -129,8 +130,9 @@ openminion-eval report suite routing-result.json --out routing-report.md
 - deterministic run manifests, suite results, case traces, and baseline diffs
 - Markdown and HTML report rendering
 - manual-review queues and adjudication artifacts
+- portable HTML bundles with copied JSON artifacts and rendered reports
 - red-team and synthetic-golden boundary artifact validation
-- built-in agent-behavior and memory-oriented evaluation families
+- built-in agent-behavior, runtime-reliability, and memory evaluation families
 - partial reruns and opt-in parallel suite execution
 - integration quarantine metadata for distinguishing proof tiers
 
@@ -157,6 +159,7 @@ provider execution, data generation, live runtime setup, and model judging.
 | Policy | Whether explicit policy expectations are satisfied |
 | Skills | Skill selection and rubric-based skill quality |
 | Goal trajectory | Drift and progress across multi-step work |
+| Runtime reliability | Explicit project, dependency, invocation, transport, and infrastructure facts |
 | Memory effectiveness | Saved, retrieved, used, and cited memory traces |
 | Memory context | Ablation, usefulness, influence, and governance gates |
 | Delegated memory | Shared-recall utility plus isolation, revocation, provenance, and re-sharing gates |

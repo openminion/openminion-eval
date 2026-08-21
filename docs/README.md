@@ -49,9 +49,10 @@ This directory holds the public package documentation for standalone
 7. `scripts/release_check.py` is the canonical package release smoke entrypoint.
 8. `python -m openminion_eval.cases` is the package-owned case report CLI.
 9. `openminion-eval dataset`, `openminion-eval scorers`,
-   `openminion-eval report`, and `openminion-eval integration` expose the
-   package-owned dataset authoring, scorer discovery, report rendering, and
-   optional integration-tier inspection surfaces.
+   `openminion-eval families`, `openminion-eval report`, and
+   `openminion-eval integration` expose package-owned dataset authoring,
+   scorer/family discovery, report rendering, and optional integration-tier
+   inspection surfaces.
 10. `docs/artifact-workflows.md` records the package-local artifact workflow
     loop, and `docs/artifact-schemas.md` records the public JSON artifact
     shapes and render commands for downstream CI users.

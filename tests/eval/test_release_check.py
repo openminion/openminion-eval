@@ -53,8 +53,12 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "suite-diff CLI artifact missing" in release_check
     assert "suite-diff report CLI artifact missing" in release_check
     assert "artifact bundle CLI index missing" in release_check
+    assert "artifact bundle copied JSON missing" in release_check
+    assert "artifact bundle rendered report missing" in release_check
     assert "manual queue CLI artifact missing" in release_check
     assert "manual apply CLI artifact missing" in release_check
+    assert "load_manual_results" in release_check
+    assert "load_manual_review_queue" in release_check
     assert "render_memory_scorecard_markdown root export missing" in release_check
     assert "render_delegated_memory_scorecard_markdown root export missing" in (
         release_check
@@ -64,6 +68,11 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     )
     assert "built-in family registry is empty" in release_check
     assert "manual review queue export drifted" in release_check
+    assert "manual review queue IO smoke failed" in release_check
+    assert "manual results IO smoke failed" in release_check
+    assert "runtime reliability scoring smoke failed" in release_check
+    assert "build_runtime_reliability_report root export missing" in release_check
+    assert '"families"' in release_check
     assert "py.typed missing from installed wheel" in release_check
     assert "__version__ root export missing" in release_check
     assert '"openminion-eval"' in release_check
@@ -77,6 +86,8 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "default_memory_benchmark_manifest_path root export missing" in release_check
     assert "benchmark adapter packaged sample missing" in release_check
     assert "benchmark adapter packaged sample failed to load" in release_check
+    assert '"--benchmark"' in release_check
+    assert "benchmark score CLI artifact missing" in release_check
     assert "load_memory_effectiveness_cases root export missing" in release_check
     assert (
         "default_memory_effectiveness_cases_path root export missing" in release_check

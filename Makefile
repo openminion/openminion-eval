@@ -7,6 +7,8 @@ PYTHON := $(VENV)/bin/python3.11
 PIP := $(PYTHON) -m pip
 PRE_COMMIT := $(PYTHON) -m pre_commit
 PYTEST := $(PYTHON) -m pytest
+HOST_PYTHON ?= $(WORKSPACE_ROOT)/openminion/.venv/bin/python3.11
+HOST_PYTEST := $(HOST_PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
 PYTHON_ENV := PYTHONDONTWRITEBYTECODE=1
 
@@ -74,7 +76,8 @@ test: $(DEV_STAMP)
 		--ignore="$(REPO_ROOT)/tests/eval/integration/test_trace_flywheel.py"
 
 test-all: $(DEV_STAMP)
-	$(PYTHON_ENV) PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src:$(SOPHIAGRAPH_SRC)" $(PYTEST) -q "$(REPO_ROOT)/tests"
+	@test -x "$(HOST_PYTHON)" || { printf '%s\n' 'OpenMinion integration environment not found; run make dev-install in ../openminion.'; exit 2; }
+	$(PYTHON_ENV) PYTHONPATH="$(REPO_ROOT)/src:$(WORKSPACE_ROOT)/openminion/src:$(SOPHIAGRAPH_SRC)" $(HOST_PYTEST) -q "$(REPO_ROOT)/tests"
 
 release-check: $(DEV_STAMP)
 	$(PYTHON_ENV) $(PYTHON) "$(REPO_ROOT)/scripts/release_check.py"

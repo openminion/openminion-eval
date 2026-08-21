@@ -5,9 +5,9 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass, replace
 import json
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Mapping
 
-from openminion_eval.family_support import report_generated_at
+from openminion_eval.family_support import report_generated_at, require_mapping
 from openminion_eval.paths import skill_fixture_root
 from openminion_eval.skills.constants import (
     CANONICAL_EVAL_FAMILY,
@@ -211,6 +211,131 @@ def _prompt_sensitivity_by_scenario(
     return result
 
 
+def _build_nl_named_skill_attempt(
+    item: Mapping[str, Any],
+    *,
+    scenario: NLNamedSkillScenario,
+    variant: NLNamedSkillPromptVariant,
+    agent_id: str,
+) -> NLNamedSkillAttemptReport:
+    selected_skill_id = str(item.get("selected_skill_id", "") or "").strip()
+    selected_skill_ids = tuple(
+        str(entry).strip()
+        for entry in item.get("selected_skill_ids", [])
+        if str(entry).strip()
+    )
+    selection_accuracy = selected_skill_id == scenario.skill_id
+    selection_confidence = bool(item.get("skill_selected_event")) and selection_accuracy
+    if selection_accuracy:
+        fallback_behavior = FALLBACK_BEHAVIOR_CORRECT
+    elif selected_skill_id:
+        fallback_behavior = FALLBACK_BEHAVIOR_WRONG_SKILL
+    else:
+        fallback_behavior = FALLBACK_BEHAVIOR_EMPTY
+
+    return NLNamedSkillAttemptReport(
+        scenario_id=scenario.scenario_id,
+        skill_id=scenario.skill_id,
+        prompt_variant_id=variant.variant_id,
+        prompt_variant_label=variant.label,
+        prompt=str(item.get("prompt", "") or "").strip(),
+        selected_skill_id=selected_skill_id,
+        selected_skill_ids=selected_skill_ids,
+        assistant_output=assistant_output_from_record(
+            item,
+            agent_id=agent_id,
+            session_id=str(item.get("session_id", "") or "").strip(),
+        ),
+        selection_accuracy=selection_accuracy,
+        selection_confidence=selection_confidence,
+        fallback_behavior=fallback_behavior,
+        artifacts={
+            "transcript": str(item.get("transcript", "") or ""),
+            "events": str(item.get("events", "") or ""),
+        },
+        dimensions={
+            "selection_accuracy": selection_accuracy,
+            "selection_confidence": selection_confidence,
+            "fallback_behavior": fallback_behavior,
+            "prompt_sensitivity": None,
+        },
+    )
+
+
+def _build_nl_named_skill_attempts(
+    target_record: Mapping[str, Any],
+    *,
+    scenarios: tuple[NLNamedSkillScenario, ...],
+    prompt_variants: tuple[NLNamedSkillPromptVariant, ...],
+    agent_id: str,
+    target_label: str,
+) -> list[NLNamedSkillAttemptReport]:
+    scenario_lookup = {scenario.scenario_id: scenario for scenario in scenarios}
+    variant_lookup = {variant.variant_id: variant for variant in prompt_variants}
+    attempts: list[NLNamedSkillAttemptReport] = []
+    seen_keys: set[tuple[str, str]] = set()
+    for raw_item in target_record.get("attempts", []):
+        item = require_mapping(raw_item, context="NL named-skill attempt")
+        scenario_id = str(item.get("scenario_id", "") or "").strip()
+        if scenario_id not in scenario_lookup:
+            raise ValueError(f"unknown NL named-skill scenario: {scenario_id!r}")
+        variant_id = str(item.get("prompt_variant_id", "") or "").strip()
+        if variant_id not in variant_lookup:
+            raise ValueError(f"unknown NL named-skill prompt variant: {variant_id!r}")
+        key = (scenario_id, variant_id)
+        if key in seen_keys:
+            raise ValueError(
+                "duplicate NL named-skill attempt for "
+                f"scenario={scenario_id!r} prompt_variant={variant_id!r}"
+            )
+        seen_keys.add(key)
+        attempts.append(
+            _build_nl_named_skill_attempt(
+                item,
+                scenario=scenario_lookup[scenario_id],
+                variant=variant_lookup[variant_id],
+                agent_id=agent_id,
+            )
+        )
+
+    expected_keys = {
+        (scenario.scenario_id, variant.variant_id)
+        for scenario in scenarios
+        for variant in prompt_variants
+    }
+    if seen_keys != expected_keys:
+        raise ValueError(
+            "NL named-skill attempt coverage mismatch for "
+            f"{target_label}: missing={sorted(expected_keys - seen_keys)} "
+            f"extra={sorted(seen_keys - expected_keys)}"
+        )
+    return attempts
+
+
+def _nl_attempt_counts(
+    attempts: list[NLNamedSkillAttemptReport],
+) -> dict[str, int]:
+    return {
+        "attempt_count": len(attempts),
+        "selection_accuracy_count": sum(
+            1 for attempt in attempts if attempt.selection_accuracy
+        ),
+        "selection_confidence_count": sum(
+            1 for attempt in attempts if attempt.selection_confidence
+        ),
+        "empty_fallback_count": sum(
+            1
+            for attempt in attempts
+            if attempt.fallback_behavior == FALLBACK_BEHAVIOR_EMPTY
+        ),
+        "wrong_skill_count": sum(
+            1
+            for attempt in attempts
+            if attempt.fallback_behavior == FALLBACK_BEHAVIOR_WRONG_SKILL
+        ),
+    }
+
+
 def build_nl_named_skill_target_report(
     target_record: dict[str, Any],
     *,
@@ -222,8 +347,6 @@ def build_nl_named_skill_target_report(
     rubric_dimensions: tuple[NLNamedSkillRubricDimension, ...],
     now_provider: Callable[[], str] = report_generated_at,
 ) -> NLNamedSkillTargetReport:
-    scenario_lookup = {scenario.scenario_id: scenario for scenario in scenarios}
-    variant_lookup = {variant.variant_id: variant for variant in prompt_variants}
     dimension_ids = {dimension.dimension_id for dimension in rubric_dimensions}
     required_dimensions = {
         "selection_accuracy",
@@ -241,145 +364,38 @@ def build_nl_named_skill_target_report(
     agent_id = str(target_record.get("agent_id", "") or "").strip()
     config_path = str(target_record.get("config_path", "") or "").strip()
 
-    attempts: list[NLNamedSkillAttemptReport] = []
-    seen_attempt_keys: set[tuple[str, str]] = set()
-    for item in target_record.get("attempts", []):
-        if not isinstance(item, dict):
-            continue
-        scenario_id = str(item.get("scenario_id", "") or "").strip()
-        if scenario_id not in scenario_lookup:
-            raise ValueError(f"unknown NL named-skill scenario: {scenario_id!r}")
-        prompt_variant_id = str(item.get("prompt_variant_id", "") or "").strip()
-        if prompt_variant_id not in variant_lookup:
-            raise ValueError(
-                f"unknown NL named-skill prompt variant: {prompt_variant_id!r}"
-            )
-        attempt_key = (scenario_id, prompt_variant_id)
-        if attempt_key in seen_attempt_keys:
-            raise ValueError(
-                "duplicate NL named-skill attempt for "
-                f"scenario={scenario_id!r} prompt_variant={prompt_variant_id!r}"
-            )
-        seen_attempt_keys.add(attempt_key)
-        scenario = scenario_lookup[scenario_id]
-        variant = variant_lookup[prompt_variant_id]
-        selected_skill_id = str(item.get("selected_skill_id", "") or "").strip()
-        selected_skill_ids = tuple(
-            str(entry).strip()
-            for entry in item.get("selected_skill_ids", [])
-            if str(entry).strip()
-        )
-        selection_accuracy = selected_skill_id == scenario.skill_id
-        selection_confidence = (
-            bool(item.get("skill_selected_event"))
-            and selected_skill_id == scenario.skill_id
-        )
-        if selection_accuracy:
-            fallback_behavior = FALLBACK_BEHAVIOR_CORRECT
-        elif selected_skill_id:
-            fallback_behavior = FALLBACK_BEHAVIOR_WRONG_SKILL
-        else:
-            fallback_behavior = FALLBACK_BEHAVIOR_EMPTY
-
-        dimensions = {
-            "selection_accuracy": selection_accuracy,
-            "selection_confidence": selection_confidence,
-            "fallback_behavior": fallback_behavior,
-            "prompt_sensitivity": None,
-        }
-        attempts.append(
-            NLNamedSkillAttemptReport(
-                scenario_id=scenario_id,
-                skill_id=scenario.skill_id,
-                prompt_variant_id=prompt_variant_id,
-                prompt_variant_label=variant.label,
-                prompt=str(item.get("prompt", "") or "").strip(),
-                selected_skill_id=selected_skill_id,
-                selected_skill_ids=selected_skill_ids,
-                assistant_output=assistant_output_from_record(
-                    item,
-                    agent_id=agent_id,
-                    session_id=str(item.get("session_id", "") or "").strip(),
-                ),
-                selection_accuracy=selection_accuracy,
-                selection_confidence=selection_confidence,
-                fallback_behavior=fallback_behavior,
-                artifacts={
-                    "transcript": str(item.get("transcript", "") or ""),
-                    "events": str(item.get("events", "") or ""),
-                },
-                dimensions=dimensions,
-            )
-        )
-
-    expected_attempt_keys = {
-        (scenario.scenario_id, variant.variant_id)
-        for scenario in scenarios
-        for variant in prompt_variants
-    }
-    if seen_attempt_keys != expected_attempt_keys:
-        missing = sorted(expected_attempt_keys - seen_attempt_keys)
-        extra = sorted(seen_attempt_keys - expected_attempt_keys)
-        raise ValueError(
-            "NL named-skill attempt coverage mismatch for "
-            f"{target_id or agent_id}: missing={missing} extra={extra}"
-        )
-
+    attempts = _build_nl_named_skill_attempts(
+        target_record,
+        scenarios=scenarios,
+        prompt_variants=prompt_variants,
+        agent_id=agent_id,
+        target_label=target_id or agent_id,
+    )
     sensitivity_map = _prompt_sensitivity_by_scenario(attempts)
-    updated_attempts: list[NLNamedSkillAttemptReport] = []
-    for attempt in attempts:
-        dimensions = dict(attempt.dimensions)
-        dimensions["prompt_sensitivity"] = sensitivity_map[attempt.scenario_id]
-        updated_attempts.append(replace(attempt, dimensions=dimensions))
-
-    variant_summary: dict[str, dict[str, int]] = {}
-    for variant in prompt_variants:
-        relevant = [
-            attempt
-            for attempt in updated_attempts
-            if attempt.prompt_variant_id == variant.variant_id
-        ]
-        variant_summary[variant.variant_id] = {
-            "attempt_count": len(relevant),
-            "selection_accuracy_count": sum(
-                1 for attempt in relevant if attempt.selection_accuracy
-            ),
-            "selection_confidence_count": sum(
-                1 for attempt in relevant if attempt.selection_confidence
-            ),
-            "empty_fallback_count": sum(
-                1
-                for attempt in relevant
-                if attempt.fallback_behavior == FALLBACK_BEHAVIOR_EMPTY
-            ),
-            "wrong_skill_count": sum(
-                1
-                for attempt in relevant
-                if attempt.fallback_behavior == FALLBACK_BEHAVIOR_WRONG_SKILL
-            ),
-        }
-
+    updated_attempts = [
+        replace(
+            attempt,
+            dimensions={
+                **attempt.dimensions,
+                "prompt_sensitivity": sensitivity_map[attempt.scenario_id],
+            },
+        )
+        for attempt in attempts
+    ]
     summary = {
-        "attempt_count": len(updated_attempts),
+        **_nl_attempt_counts(updated_attempts),
         "scenario_count": len(scenarios),
         "prompt_variant_count": len(prompt_variants),
-        "selection_accuracy_count": sum(
-            1 for attempt in updated_attempts if attempt.selection_accuracy
-        ),
-        "selection_confidence_count": sum(
-            1 for attempt in updated_attempts if attempt.selection_confidence
-        ),
-        "empty_fallback_count": sum(
-            1
-            for attempt in updated_attempts
-            if attempt.fallback_behavior == FALLBACK_BEHAVIOR_EMPTY
-        ),
-        "wrong_skill_count": sum(
-            1
-            for attempt in updated_attempts
-            if attempt.fallback_behavior == FALLBACK_BEHAVIOR_WRONG_SKILL
-        ),
-        "variant_summary": variant_summary,
+        "variant_summary": {
+            variant.variant_id: _nl_attempt_counts(
+                [
+                    attempt
+                    for attempt in updated_attempts
+                    if attempt.prompt_variant_id == variant.variant_id
+                ]
+            )
+            for variant in prompt_variants
+        },
         "prompt_sensitivity_by_scenario": sensitivity_map,
     }
 

@@ -16,10 +16,12 @@ from openminion_eval import (
     write_red_team_security_artifact,
     write_synthetic_golden_artifact,
 )
+from openminion_eval.cli import main
 
 
 def _red_team_payload() -> dict:
     return {
+        "artifact_kind": "red-team-security",
         "artifact_version": BOUNDARY_ARTIFACT_VERSION,
         "name": "security-smoke",
         "metadata": {"owner": "host"},
@@ -45,6 +47,7 @@ def _red_team_payload() -> dict:
 
 def _synthetic_payload() -> dict:
     return {
+        "artifact_kind": "synthetic-golden",
         "artifact_version": BOUNDARY_ARTIFACT_VERSION,
         "name": "golden-smoke",
         "goldens": [
@@ -131,6 +134,29 @@ def test_synthetic_golden_artifact_round_trips_with_provenance(
     write_synthetic_golden_artifact(artifact, out_path)
 
     assert load_synthetic_golden_artifact(out_path) == artifact
+
+
+@pytest.mark.parametrize(
+    ("name", "payload", "expected_kind"),
+    [
+        ("red-team.json", _red_team_payload(), "red-team-security"),
+        ("goldens.json", _synthetic_payload(), "synthetic-golden"),
+    ],
+)
+def test_boundary_artifacts_are_validated_by_generic_cli(
+    tmp_path: Path,
+    capsys,
+    name: str,
+    payload: dict,
+    expected_kind: str,
+) -> None:
+    path = _write_payload(tmp_path, name, payload)
+
+    assert main(["artifact", "validate", str(path)]) == 0
+
+    output = json.loads(capsys.readouterr().out)
+    assert output["valid"] is True
+    assert output["artifact_kind"] == expected_kind
 
 
 def test_synthetic_golden_artifact_rejects_missing_provenance(

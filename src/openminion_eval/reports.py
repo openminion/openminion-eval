@@ -48,8 +48,8 @@ def render_suite_result_markdown(
             "",
             "## Transcripts",
             "",
-            "| Transcript | Status | Avg | Min | Max | Turns | Errors |",
-            "| --- | --- | ---: | ---: | ---: | ---: | ---: |",
+            "| Transcript | Status | Avg | Min | Max | Turns | Executor errors | Scorer errors |",
+            "| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |",
         ]
     )
     for summary in result.summaries:
@@ -307,20 +307,33 @@ def render_memory_context_scorecard_html(scorecard: MemoryContextScorecardV1) ->
 
 
 def render_artifact_index_html(items: Sequence[Mapping[str, object]]) -> str:
-    rows = [
-        "| Artifact | Kind | Version | Summary |",
-        "| --- | --- | --- | --- |",
-    ]
+    rows = []
     for item in items:
-        rows.append(
-            "| "
-            f"{_cell(str(item.get('artifact', '')))} | "
-            f"{_cell(str(item.get('artifact_kind', '')))} | "
-            f"{_cell(str(item.get('version', '')))} | "
-            f"{_cell(str(item.get('summary', '')))} |"
+        artifact = escape(str(item.get("artifact", "")), quote=True)
+        report = str(item.get("report", ""))
+        report_link = (
+            f'<a href="{escape(report, quote=True)}">report</a>' if report else ""
         )
-    markdown = "\n".join(["# OpenMinion Eval Artifact Index", "", *rows]) + "\n"
-    return _html_page("OpenMinion Eval Artifact Index", markdown)
+        rows.append(
+            "<tr>"
+            f'<td><a href="{artifact}">{artifact}</a></td>'
+            f"<td>{escape(str(item.get('artifact_kind', '')))}</td>"
+            f"<td>{escape(str(item.get('version', '')))}</td>"
+            f"<td>{escape(str(item.get('summary', '')))}</td>"
+            f"<td>{report_link}</td>"
+            "</tr>"
+        )
+    styles = _html_styles()
+    return (
+        '<!doctype html>\n<html lang="en"><head>'
+        '<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">'
+        f"<title>OpenMinion Eval Artifact Index</title><style>{styles}</style>"
+        "</head><body><h1>OpenMinion Eval Artifact Index</h1>"
+        "<table><thead><tr><th>Artifact</th><th>Kind</th><th>Version</th>"
+        "<th>Summary</th><th>Report</th></tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table></body></html>\n"
+    )
 
 
 def _summary_row(summary: EvalSummary) -> str:
@@ -333,6 +346,7 @@ def _summary_row(summary: EvalSummary) -> str:
         f"{summary.min_score:.3f} | "
         f"{summary.max_score:.3f} | "
         f"{summary.total_turns} | "
+        f"{summary.executor_error_count} | "
         f"{summary.scorer_error_count} |"
     )
 

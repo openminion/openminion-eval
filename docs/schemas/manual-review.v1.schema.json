@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/manual-review.v1.schema.json",
+  "type": "object",
+  "required": ["artifact_kind", "artifact_version"],
+  "properties": {
+    "artifact_version": {"const": "1"},
+    "artifact_kind": {
+      "enum": [
+        "manual-adjudications",
+        "manual-review-queue",
+        "manual-results"
+      ]
+    },
+    "items": {"type": "array", "items": {"$ref": "#/$defs/reviewItem"}},
+    "adjudications": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/adjudication"}
+    },
+    "results": {"type": "array", "items": {"$ref": "#/$defs/result"}},
+    "summary": {"type": "object"}
+  },
+  "anyOf": [
+    {"required": ["items"]},
+    {"required": ["adjudications"]},
+    {"required": ["results"]}
+  ],
+  "$defs": {
+    "reviewItem": {
+      "type": "object",
+      "required": ["case_id", "category", "prompt", "description", "tags"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "category": {"type": "string", "minLength": 1},
+        "prompt": {"type": "string", "minLength": 1},
+        "description": {"type": "string"},
+        "tags": {"type": "array", "items": {"type": "string"}}
+      },
+      "additionalProperties": false
+    },
+    "adjudication": {
+      "type": "object",
+      "required": ["case_id", "outcome"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "outcome": {"enum": ["pass", "fail", "skipped", "ungraded"]},
+        "detail": {"type": "string"}
+      },
+      "additionalProperties": false
+    },
+    "result": {
+      "type": "object",
+      "required": ["case_id", "category", "grade_mode", "outcome"],
+      "properties": {
+        "case_id": {"type": "string", "minLength": 1},
+        "category": {"type": "string", "minLength": 1},
+        "grade_mode": {"enum": ["structural", "manual"]},
+        "outcome": {"enum": ["pass", "fail", "skipped", "ungraded"]},
+        "detail": {"type": "string"},
+        "metadata": {"type": "object"}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

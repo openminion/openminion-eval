@@ -6,9 +6,9 @@ from dataclasses import asdict, dataclass
 import json
 from pathlib import Path
 import re
-from typing import Any, Callable, Iterable
+from typing import Any, Callable, Iterable, Mapping
 
-from openminion_eval.family_support import report_generated_at
+from openminion_eval.family_support import report_generated_at, require_mapping
 from openminion_eval.paths import skill_fixture_root
 from openminion_eval.skills.constants import (
     CANONICAL_EVAL_FAMILY,
@@ -209,6 +209,56 @@ def _response_observations(text: str) -> dict[str, Any]:
     }
 
 
+def _build_skill_quality_scenario_report(
+    result: Mapping[str, Any],
+    *,
+    scenario: SkillQualityScenario,
+    rubric_lookup: dict[str, SkillQualityRubricDimension],
+    agent_id: str,
+    expected_skill_id: str,
+) -> SkillQualityScenarioReport:
+    rubric_slots = []
+    for dimension_id in scenario.evaluation_dimensions:
+        if dimension_id not in rubric_lookup:
+            raise ValueError(
+                f"scenario {scenario.scenario_id!r} references unknown rubric "
+                f"dimension {dimension_id!r}"
+            )
+        dimension = rubric_lookup[dimension_id]
+        rubric_slots.append(
+            {
+                "dimension_id": dimension.dimension_id,
+                "label": dimension.label,
+                "reviewer_prompt": dimension.reviewer_prompt,
+                "scale": list(dimension.scale),
+                "status": SKILL_QUALITY_PENDING_REVIEW_STATUS,
+                "rating": None,
+                "notes": "",
+            }
+        )
+
+    assistant_output = assistant_output_from_record(result, agent_id=agent_id)
+    selected_skill_id = str(result.get("selected_skill_id", "") or "").strip()
+    return SkillQualityScenarioReport(
+        scenario_id=scenario.scenario_id,
+        skill_id=scenario.skill_id,
+        selected_skill_id=selected_skill_id,
+        selected_skill_ids=tuple(
+            str(item).strip()
+            for item in result.get("selected_skill_ids", [])
+            if str(item).strip()
+        ),
+        assistant_output=assistant_output,
+        routing_match=selected_skill_id == expected_skill_id,
+        artifacts={
+            "transcript": str(result.get("transcript", "") or ""),
+            "events": str(result.get("events", "") or ""),
+        },
+        observations=_response_observations(assistant_output),
+        rubric_slots=tuple(rubric_slots),
+    )
+
+
 def build_skill_quality_target_report(
     target_record: dict[str, Any],
     *,
@@ -232,59 +282,25 @@ def build_skill_quality_target_report(
     config_path = str(target_record.get("config_path", "") or "").strip()
     routing_artifact = str(target_record.get("routing_artifact", "") or "").strip()
 
-    for result in target_record.get("results", []):
-        if not isinstance(result, dict):
-            continue
+    for raw_result in target_record.get("results", []):
+        result = require_mapping(raw_result, context="skill-quality result")
         scenario_id = str(result.get("scenario", "") or "").strip()
         expected_skill_id = str(result.get("expected_skill_id", "") or "").strip()
         if not expected_skill_id:
-            continue
+            raise ValueError("skill-quality result requires expected_skill_id")
         if scenario_id not in scenario_lookup:
             raise ValueError(
                 f"routing artifact includes unknown quality scenario {scenario_id!r}"
             )
         if scenario_id in seen_scenarios:
             raise ValueError(f"duplicate quality scenario result for {scenario_id!r}")
-        scenario = scenario_lookup[scenario_id]
-        assistant_output = assistant_output_from_record(result, agent_id=agent_id)
-        selected_skill_ids = tuple(
-            str(item).strip()
-            for item in result.get("selected_skill_ids", [])
-            if str(item).strip()
-        )
-        selected_skill_id = str(result.get("selected_skill_id", "") or "").strip()
-        rubric_slots = []
-        for dimension_id in scenario.evaluation_dimensions:
-            if dimension_id not in rubric_lookup:
-                raise ValueError(
-                    f"scenario {scenario_id!r} references unknown rubric dimension {dimension_id!r}"
-                )
-            dimension = rubric_lookup[dimension_id]
-            rubric_slots.append(
-                {
-                    "dimension_id": dimension.dimension_id,
-                    "label": dimension.label,
-                    "reviewer_prompt": dimension.reviewer_prompt,
-                    "scale": list(dimension.scale),
-                    "status": SKILL_QUALITY_PENDING_REVIEW_STATUS,
-                    "rating": None,
-                    "notes": "",
-                }
-            )
         reports.append(
-            SkillQualityScenarioReport(
-                scenario_id=scenario_id,
-                skill_id=scenario.skill_id,
-                selected_skill_id=selected_skill_id,
-                selected_skill_ids=selected_skill_ids,
-                assistant_output=assistant_output,
-                routing_match=selected_skill_id == expected_skill_id,
-                artifacts={
-                    "transcript": str(result.get("transcript", "") or ""),
-                    "events": str(result.get("events", "") or ""),
-                },
-                observations=_response_observations(assistant_output),
-                rubric_slots=tuple(rubric_slots),
+            _build_skill_quality_scenario_report(
+                result,
+                scenario=scenario_lookup[scenario_id],
+                rubric_lookup=rubric_lookup,
+                agent_id=agent_id,
+                expected_skill_id=expected_skill_id,
             )
         )
         seen_scenarios.add(scenario_id)

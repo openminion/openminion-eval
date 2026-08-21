@@ -269,6 +269,23 @@ def test_build_nl_named_skill_target_report_falls_back_to_preview_without_transc
     assert report.attempts[0].assistant_output == "preview only"
 
 
+def test_build_nl_named_skill_target_report_rejects_non_mapping_attempt() -> None:
+    _, scenarios = load_nl_named_skill_manifest()
+    variant_version, prompt_variants = load_nl_named_skill_prompt_variants()
+    rubric_version, rubric_dimensions = load_nl_named_skill_rubric()
+
+    with pytest.raises(ValueError, match="NL named-skill attempt must be a mapping"):
+        build_nl_named_skill_target_report(
+            {"target_id": "demo-target", "attempts": ["invalid"]},
+            manifest_version="1",
+            scenarios=scenarios[:1],
+            prompt_variant_version=variant_version,
+            prompt_variants=prompt_variants[:1],
+            rubric_version=rubric_version,
+            rubric_dimensions=rubric_dimensions,
+        )
+
+
 def test_build_nl_named_skill_target_report_rejects_duplicate_attempt_pair(
     tmp_path: Path,
 ) -> None:

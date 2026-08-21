@@ -10,9 +10,9 @@ review, boundary contracts, and integration-probe quarantine.
 
 `build_case_traces()` converts an `EvalSuiteResult` into one row per evaluated
 turn. `write_case_traces_jsonl()` writes those rows as input-order-preserving
-JSONL. Suite runs record scorer reason and threshold with the same threshold
-used by the summary pass/fail decision. Trace artifacts must not include host
-runtime paths, tokens, or environment dumps.
+JSONL. Suite runs record executor and scorer failures separately, along with
+the scorer reason and threshold used by the summary pass/fail decision. Trace
+artifacts must not include host runtime paths, tokens, or environment dumps.
 
 ## Manual review queue
 
@@ -39,6 +39,7 @@ Reviewer decisions use a local JSON artifact:
 
 ```json
 {
+  "artifact_kind": "manual-adjudications",
   "artifact_version": "1",
   "adjudications": [
     {"case_id": "manual-demo", "outcome": "pass", "detail": "reviewed"}
@@ -53,8 +54,14 @@ Malformed imports fail deterministically.
 CLI form:
 
 ```bash
-openminion-eval manual apply artifacts/manual-adjudications.json --out artifacts/manual-results.json
+openminion-eval manual apply artifacts/manual-adjudications.json \
+  --results artifacts/manual-results.json \
+  --out artifacts/adjudicated-results.json
 ```
+
+Omit `--results` only when adjudicating the built-in starter-case results.
+`load_manual_results()` and `write_manual_results()` provide the matching
+Python round trip.
 
 ## Boundary artifact contracts
 
@@ -66,6 +73,7 @@ Red-team/security artifacts use package-owned validation:
 
 ```json
 {
+  "artifact_kind": "red-team-security",
   "artifact_version": "1",
   "name": "security-smoke",
   "fixtures": [
@@ -92,6 +100,7 @@ Synthetic goldens must include provenance:
 
 ```json
 {
+  "artifact_kind": "synthetic-golden",
   "artifact_version": "1",
   "name": "golden-smoke",
   "goldens": [

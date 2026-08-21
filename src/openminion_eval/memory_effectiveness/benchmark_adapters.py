@@ -6,7 +6,7 @@ from dataclasses import dataclass
 import hashlib
 import json
 from importlib.resources.abc import Traversable
-from typing import Any, Literal, Mapping, get_args
+from typing import Any, Literal, Mapping, cast, get_args
 
 from openminion_eval.family_support import require_mapping
 from openminion_eval.memory_effectiveness.fixtures import case_from_mapping
@@ -131,7 +131,7 @@ def _source_from_mapping(
             f"expected {fixture_hash!r}, computed {actual_hash!r}"
         )
     return MemoryBenchmarkSource(
-        benchmark_family=data.get("benchmark_family"),  # type: ignore[arg-type]
+        benchmark_family=cast(MemoryBenchmarkFamily, data.get("benchmark_family")),
         source_url=str(data.get("source_url", "") or "").strip(),
         source_revision=str(data.get("source_revision", "") or "").strip(),
         source_license=str(data.get("source_license", "") or "").strip(),

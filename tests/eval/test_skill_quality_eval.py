@@ -211,6 +211,30 @@ def test_build_skill_quality_target_report_falls_back_to_preview_without_transcr
     assert report.scenario_results[0].assistant_output == "preview only"
 
 
+@pytest.mark.parametrize(
+    ("result", "message"),
+    [
+        ("invalid", "skill-quality result must be a mapping"),
+        ({"scenario": "claude-api"}, "requires expected_skill_id"),
+    ],
+)
+def test_build_skill_quality_target_report_rejects_malformed_results(
+    result: object,
+    message: str,
+) -> None:
+    manifest_version, scenarios = load_skill_quality_manifest()
+    rubric_version, rubric_dimensions = load_skill_quality_rubric()
+
+    with pytest.raises(ValueError, match=message):
+        build_skill_quality_target_report(
+            {"target": "demo-target", "results": [result]},
+            manifest_version=manifest_version,
+            scenarios=scenarios[:1],
+            rubric_version=rubric_version,
+            rubric_dimensions=rubric_dimensions,
+        )
+
+
 def test_build_skill_quality_target_report_rejects_duplicate_scenario_result(
     tmp_path: Path,
 ) -> None:

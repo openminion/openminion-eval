@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/eval-dataset.v1.schema.json",
+  "type": "object",
+  "required": ["dataset_version", "name", "cases"],
+  "properties": {
+    "dataset_version": {"const": "1"},
+    "name": {"type": "string", "minLength": 1},
+    "metadata": {"type": "object"},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "turns"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "name": {"type": "string", "minLength": 1},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "turns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["user", "expected"],
+              "properties": {
+                "user": {"type": "string", "minLength": 1},
+                "expected": {"type": "string", "minLength": 1}
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

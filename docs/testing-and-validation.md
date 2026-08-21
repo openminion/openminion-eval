@@ -79,6 +79,15 @@ host OpenMinion checkout, live credentials, or external runtime state. These
 probes remain useful for owners who have that environment, but they are not
 required for ordinary standalone package users.
 
+From the shared workspace, `make test-all` uses the sibling OpenMinion virtual
+environment so host-runtime dependencies are available. Run `make dev-install`
+from `../openminion` first when that environment does not exist. For another
+checkout layout, pass the host interpreter explicitly:
+
+```bash
+make test-all HOST_PYTHON=../openminion/.venv/bin/python3.11
+```
+
 | Probe | Owner boundary | Run when |
 | --- | --- | --- |
 | `tests/eval/test_memory_eval.py` | repo-local memory harness | validating host memory-eval fixtures |

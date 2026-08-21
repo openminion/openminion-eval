@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/openminion/openminion-eval/docs/schemas/synthetic-golden.v1.schema.json",
+  "type": "object",
+  "required": ["artifact_kind", "artifact_version", "name", "goldens"],
+  "properties": {
+    "artifact_kind": {"const": "synthetic-golden"},
+    "artifact_version": {"const": "1"},
+    "name": {"type": "string", "minLength": 1},
+    "metadata": {"type": "object"},
+    "goldens": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "input", "expected_output", "provenance"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "input": {"type": "string", "minLength": 1},
+          "expected_output": {"type": "string", "minLength": 1},
+          "tags": {"type": "array", "items": {"type": "string"}},
+          "metadata": {"type": "object"},
+          "provenance": {
+            "type": "object",
+            "required": ["source", "generated_by", "generated_at", "generation_method"],
+            "properties": {
+              "source": {"type": "string", "minLength": 1},
+              "generated_by": {"type": "string", "minLength": 1},
+              "generated_at": {"type": "string", "minLength": 1},
+              "generation_method": {"type": "string", "minLength": 1},
+              "source_artifact_hash": {"type": ["string", "null"]},
+              "metadata": {"type": "object"}
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": true
+}
