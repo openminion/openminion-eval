@@ -125,7 +125,8 @@ openminion-eval report suite routing-result.json --out routing-report.md
 ## What OpenMinion Eval Provides
 
 - versioned JSON and JSONL dataset contracts with stable hashing
-- runner, scorer, suite, subject, schema, and configuration interfaces
+- runner, scorer, suite, typed sync/async subject, schema, and configuration
+  interfaces
 - CLI, HTTP, and replay subject adapters
 - deterministic run manifests, suite results, case traces, and baseline diffs
 - Markdown and HTML report rendering

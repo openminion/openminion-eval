@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import inspect
-from typing import Any, Callable, ClassVar, Optional, Protocol
+from typing import Any, Callable, ClassVar, Optional, Protocol, TypeAlias
 
 
 EVAL_INTERFACE_VERSION = "v1"
@@ -45,13 +45,22 @@ class EvalRunContext:
 
 
 class EvalSubjectInterface(Protocol):
-    """Subject-under-test execution contract."""
+    """Synchronous subject-under-test execution contract."""
 
     contract_version: ClassVar[str] = EVAL_INTERFACE_VERSION
 
     def run(self, user_input: str, context: EvalRunContext) -> str: ...
 
+
+class AsyncEvalSubjectInterface(Protocol):
+    """Asynchronous subject-under-test execution contract."""
+
+    contract_version: ClassVar[str] = EVAL_INTERFACE_VERSION
+
     async def run_async(self, user_input: str, context: EvalRunContext) -> str: ...
+
+
+EvalSubject: TypeAlias = EvalSubjectInterface | AsyncEvalSubjectInterface
 
 
 class EvalScorerInterface(Protocol):
@@ -193,7 +202,7 @@ def ensure_eval_suite_compatibility(
 
 
 def ensure_eval_subject_compatibility(
-    subject: Any, strict: bool = True
+    subject: object, strict: bool = True
 ) -> tuple[bool, list[str]]:
     """Validate subject-under-test implements sync or async execution."""
     errors: list[str] = []

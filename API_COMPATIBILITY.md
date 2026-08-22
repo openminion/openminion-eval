@@ -49,7 +49,9 @@ The following top-level exports are part of the current public contract:
 - `openminion_eval.EvalScorer`
 - `openminion_eval.EvalScorerInfo`
 - `openminion_eval.EvalScorerSpec`
+- `openminion_eval.EvalSubject`
 - `openminion_eval.EvalSubjectInterface`
+- `openminion_eval.AsyncEvalSubjectInterface`
 - `openminion_eval.CliSubject`
 - `openminion_eval.HttpSubject`
 - `openminion_eval.ReplaySubject`
@@ -144,6 +146,11 @@ The following top-level exports are part of the current public contract:
 - integration quarantine metadata helpers:
   `build_integration_quarantine_map(...)`, `integration_probe_tiers(...)`, and
   `IntegrationProbeDisposition`
+
+`EvalSubject` accepts either the synchronous `EvalSubjectInterface` contract
+or the asynchronous `AsyncEvalSubjectInterface` contract. Subjects may expose
+both methods; synchronous suite runs prefer `run(...)`, while asynchronous
+suite runs prefer `run_async(...)`.
 
 ## Integration quarantine and promotion checklist
 

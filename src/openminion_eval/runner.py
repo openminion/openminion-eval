@@ -2,11 +2,14 @@
 
 import asyncio
 from time import perf_counter
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Coroutine, Optional, cast
 
 from openminion_eval.interfaces import (
+    AsyncEvalSubjectInterface,
     EVAL_INTERFACE_VERSION,
     EvalRunContext,
+    EvalSubject,
+    EvalSubjectInterface,
     ensure_eval_subject_compatibility,
 )
 from openminion_eval.schemas import EvalResult, EvalTranscript
@@ -20,7 +23,7 @@ class EvalRunner:
     def __init__(
         self,
         agent_executor: Optional[Callable[[str], str]] = None,
-        subject: Any | None = None,
+        subject: EvalSubject | None = None,
         run_id: str | None = None,
         seed: int | None = None,
         deterministic: bool = False,
@@ -29,7 +32,17 @@ class EvalRunner:
         if subject is not None:
             ensure_eval_subject_compatibility(subject)
         self._agent_executor = agent_executor or self._default_executor
-        self._subject = subject
+        self._subject_run: Callable[[str, EvalRunContext], str] | None = None
+        self._subject_run_async: (
+            Callable[[str, EvalRunContext], Coroutine[Any, Any, str]] | None
+        ) = None
+        if subject is not None:
+            if callable(getattr(subject, "run", None)):
+                self._subject_run = cast(EvalSubjectInterface, subject).run
+            if callable(getattr(subject, "run_async", None)):
+                self._subject_run_async = cast(
+                    AsyncEvalSubjectInterface, subject
+                ).run_async
         self._run_id = run_id
         self._seed = seed
         self._deterministic = deterministic
@@ -128,20 +141,18 @@ class EvalRunner:
         )
 
     def _execute_sync(self, user_input: str, context: EvalRunContext) -> str:
-        if self._subject is None:
-            return self._agent_executor(user_input)
-        run = getattr(self._subject, "run", None)
-        if callable(run):
-            return str(run(user_input, context))
-        return str(asyncio.run(self._subject.run_async(user_input, context)))
+        if self._subject_run is not None:
+            return str(self._subject_run(user_input, context))
+        if self._subject_run_async is not None:
+            return str(asyncio.run(self._subject_run_async(user_input, context)))
+        return self._agent_executor(user_input)
 
     async def _execute_async(self, user_input: str, context: EvalRunContext) -> str:
-        if self._subject is None:
-            return self._agent_executor(user_input)
-        run_async = getattr(self._subject, "run_async", None)
-        if callable(run_async):
-            return str(await run_async(user_input, context))
-        return str(self._subject.run(user_input, context))
+        if self._subject_run_async is not None:
+            return str(await self._subject_run_async(user_input, context))
+        if self._subject_run is not None:
+            return str(self._subject_run(user_input, context))
+        return self._agent_executor(user_input)
 
     def _context_for(self, *, transcript: EvalTranscript, index: int) -> EvalRunContext:
         return EvalRunContext(

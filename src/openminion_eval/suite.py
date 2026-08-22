@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import asyncio
 from dataclasses import replace
 from typing import Any, Callable, Literal, Optional, Sequence
-from openminion_eval.interfaces import EVAL_INTERFACE_VERSION
+from openminion_eval.interfaces import EVAL_INTERFACE_VERSION, EvalSubject
 from openminion_eval.schemas import (
     EvalResult,
     EvalSummary,
@@ -29,7 +29,7 @@ class EvalSuite:
         runner: Optional[EvalRunner] = None,
         scorer: Optional[EvalScorer] = None,
         threshold: float = 0.80,
-        subject: Any | None = None,
+        subject: EvalSubject | None = None,
         run_id: str | None = None,
         seed: int | None = None,
         deterministic: bool = False,
