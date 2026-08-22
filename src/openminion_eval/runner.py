@@ -1,12 +1,13 @@
 """Eval runner for OpenMinion."""
 
 import asyncio
+from collections.abc import Callable, Coroutine
 from time import perf_counter
-from typing import Any, Callable, Coroutine, Optional, cast
+from typing import Any, cast
 
 from openminion_eval.interfaces import (
-    AsyncEvalSubjectInterface,
     EVAL_INTERFACE_VERSION,
+    AsyncEvalSubjectInterface,
     EvalRunContext,
     EvalSubject,
     EvalSubjectInterface,
@@ -22,7 +23,7 @@ class EvalRunner:
 
     def __init__(
         self,
-        agent_executor: Optional[Callable[[str], str]] = None,
+        agent_executor: Callable[[str], str] | None = None,
         subject: EvalSubject | None = None,
         run_id: str | None = None,
         seed: int | None = None,
@@ -53,23 +54,24 @@ class EvalRunner:
 
     async def replay(self, transcript: EvalTranscript) -> list[EvalResult]:
         """Replay a transcript and return results for each turn."""
-        results = []
-        for i, turn in enumerate(transcript.turns):
-            result = await self._run_turn_async(
-                transcript=transcript, turn=turn, index=i
+        return [
+            await self._run_turn_async(
+                transcript=transcript,
+                turn=turn,
+                index=index,
             )
-            results.append(result)
-        return results
+            for index, turn in enumerate(transcript.turns)
+        ]
 
     def replay_sync(self, transcript: EvalTranscript) -> list[EvalResult]:
-        results = []
-
-        for i, turn in enumerate(transcript.turns):
-            results.append(
-                self._run_turn_sync(transcript=transcript, turn=turn, index=i)
+        return [
+            self._run_turn_sync(
+                transcript=transcript,
+                turn=turn,
+                index=index,
             )
-
-        return results
+            for index, turn in enumerate(transcript.turns)
+        ]
 
     def _run_turn_sync(
         self,
@@ -78,11 +80,24 @@ class EvalRunner:
         turn: dict,
         index: int,
     ) -> EvalResult:
-        return self._record_turn(
-            transcript=transcript,
-            turn=turn,
+        user_input = turn.get("user", "")
+        expected = turn.get("expected", "")
+        context = self._context_for(transcript=transcript, index=index)
+        start = perf_counter()
+        executor_error = None
+        try:
+            actual = self._execute_sync(user_input, context)
+        except Exception as exc:  # noqa: BLE001
+            actual = ""
+            executor_error = str(exc)
+        duration_ms = max((perf_counter() - start) * 1000.0, 0.001)
+        return self._result(
             index=index,
-            execute=lambda user_input, context: self._execute_sync(user_input, context),
+            user_input=user_input,
+            expected=expected,
+            actual=actual,
+            duration_ms=duration_ms,
+            executor_error=executor_error,
         )
 
     async def _run_turn_async(
@@ -99,34 +114,6 @@ class EvalRunner:
         executor_error = None
         try:
             actual = await self._execute_async(user_input, context)
-        except Exception as exc:  # noqa: BLE001
-            actual = ""
-            executor_error = str(exc)
-        duration_ms = max((perf_counter() - start) * 1000.0, 0.001)
-        return self._result(
-            index=index,
-            user_input=user_input,
-            expected=expected,
-            actual=actual,
-            duration_ms=duration_ms,
-            executor_error=executor_error,
-        )
-
-    def _record_turn(
-        self,
-        *,
-        transcript: EvalTranscript,
-        turn: dict,
-        index: int,
-        execute: Callable[[str, EvalRunContext], str],
-    ) -> EvalResult:
-        user_input = turn.get("user", "")
-        expected = turn.get("expected", "")
-        context = self._context_for(transcript=transcript, index=index)
-        start = perf_counter()
-        executor_error = None
-        try:
-            actual = execute(user_input, context)
         except Exception as exc:  # noqa: BLE001
             actual = ""
             executor_error = str(exc)

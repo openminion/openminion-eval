@@ -1,17 +1,19 @@
 """Eval suite for OpenMinion."""
 
-from concurrent.futures import ThreadPoolExecutor
 import asyncio
+from collections.abc import Callable, Sequence
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import replace
-from typing import Any, Callable, Literal, Optional, Sequence
+from typing import Any, Literal
+
 from openminion_eval.interfaces import EVAL_INTERFACE_VERSION, EvalSubject
+from openminion_eval.runner import EvalRunner
 from openminion_eval.schemas import (
     EvalResult,
-    EvalSummary,
     EvalSuiteResult,
+    EvalSummary,
     EvalTranscript,
 )
-from openminion_eval.runner import EvalRunner
 from openminion_eval.scorer import EvalScorer
 from openminion_eval.suite_selection import (
     load_golden_transcripts as load_golden_transcripts,
@@ -26,8 +28,8 @@ class EvalSuite:
 
     def __init__(
         self,
-        runner: Optional[EvalRunner] = None,
-        scorer: Optional[EvalScorer] = None,
+        runner: EvalRunner | None = None,
+        scorer: EvalScorer | None = None,
         threshold: float = 0.80,
         subject: EvalSubject | None = None,
         run_id: str | None = None,

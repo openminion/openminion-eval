@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import inspect
-from typing import Any, Callable, ClassVar, Optional, Protocol, TypeAlias
-
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, ClassVar, Protocol, TypeAlias
 
 EVAL_INTERFACE_VERSION = "v1"
 
@@ -26,7 +26,7 @@ class EvalRunnerInterface(Protocol):
 
     def __init__(
         self,
-        agent_executor: Optional[Callable[[str], str]] = None,
+        agent_executor: Callable[[str], str] | None = None,
     ) -> None: ...
 
     async def replay(self, transcript: Any) -> list[Any]: ...
@@ -79,7 +79,7 @@ class EvalScorerInterface(Protocol):
     def score(
         self,
         result: Any,
-        expected: Optional[str] = None,
+        expected: str | None = None,
         scorer_name: str = "substring_match",
         threshold: float | None = None,
     ) -> Any: ...
@@ -99,8 +99,8 @@ class EvalSuiteInterface(Protocol):
 
     def __init__(
         self,
-        runner: Optional[Any] = None,
-        scorer: Optional[Any] = None,
+        runner: Any | None = None,
+        scorer: Any | None = None,
         threshold: float = 0.80,
     ) -> None: ...
 
@@ -108,7 +108,7 @@ class EvalSuiteInterface(Protocol):
         self,
         transcripts: list[Any],
         scorer_name: str = "substring_match",
-        on_case: Optional[Callable[[Any], None]] = None,
+        on_case: Callable[[Any], None] | None = None,
     ) -> Any: ...
 
     def run_single(
@@ -131,11 +131,14 @@ def _validate_contract_and_methods(
         errors.append("Missing contract_version attribute")
     elif obj.contract_version != EVAL_INTERFACE_VERSION:
         errors.append(
-            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, got {obj.contract_version}"
+            "Version mismatch: "
+            f"expected {EVAL_INTERFACE_VERSION}, got {obj.contract_version}"
         )
-    for method in required_methods:
-        if not hasattr(obj, method) or not callable(getattr(obj, method)):
-            errors.append(f"Missing required method: {method}")
+    errors.extend(
+        f"Missing required method: {method}"
+        for method in required_methods
+        if not callable(getattr(obj, method, None))
+    )
     if errors and strict:
         raise EvalInterfaceError(error_code, f"{label} incompatible: {errors}")
     return not errors, errors
@@ -210,7 +213,8 @@ def ensure_eval_subject_compatibility(
         errors.append("Missing contract_version attribute")
     elif subject.contract_version != EVAL_INTERFACE_VERSION:
         errors.append(
-            f"Version mismatch: expected {EVAL_INTERFACE_VERSION}, got {subject.contract_version}"
+            "Version mismatch: "
+            f"expected {EVAL_INTERFACE_VERSION}, got {subject.contract_version}"
         )
     run = getattr(subject, "run", None)
     run_async = getattr(subject, "run_async", None)
