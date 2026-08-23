@@ -2,12 +2,16 @@
 
 import asyncio
 import inspect
+from typing import get_args
 
 import pytest
 from openminion_eval.interfaces import (
+    AsyncEvalSubjectInterface,
     EVAL_INTERFACE_VERSION,
     EvalInterfaceError,
     EvalRunContext,
+    EvalSubject,
+    EvalSubjectInterface,
     ensure_eval_runner_compatibility,
     ensure_eval_scorer_compatibility,
     ensure_eval_subject_compatibility,
@@ -85,6 +89,12 @@ class TestEvalRunnerCompatibilityValidator:
 
 
 class TestEvalSubjectCompatibilityValidator:
+    def test_subject_type_alias_matches_supported_execution_modes(self):
+        assert set(get_args(EvalSubject)) == {
+            EvalSubjectInterface,
+            AsyncEvalSubjectInterface,
+        }
+
     def test_sync_subject_valid_implementation_passes(self):
         class SyncSubject:
             contract_version = EVAL_INTERFACE_VERSION
@@ -271,6 +281,34 @@ def test_eval_runner_executes_async_subject_with_run_context() -> None:
     )
 
     assert results[0].actual == "subject_async:0:hello"
+
+
+def test_eval_runner_preserves_dual_subject_execution_preference() -> None:
+    calls: list[str] = []
+
+    class DualSubject:
+        contract_version = EVAL_INTERFACE_VERSION
+
+        def run(self, user_input: str, _context: EvalRunContext) -> str:
+            calls.append("sync")
+            return f"sync:{user_input}"
+
+        async def run_async(self, user_input: str, _context: EvalRunContext) -> str:
+            calls.append("async")
+            return f"async:{user_input}"
+
+    runner = EvalRunner(subject=DualSubject())
+    transcript = EvalTranscript(
+        name="dual_subject",
+        turns=[{"user": "hello", "expected": "unused"}],
+    )
+
+    sync_result = runner.replay_sync(transcript)
+    async_result = asyncio.run(runner.replay(transcript))
+
+    assert sync_result[0].actual == "sync:hello"
+    assert async_result[0].actual == "async:hello"
+    assert calls == ["sync", "async"]
 
 
 def test_eval_suite_accepts_subject_without_breaking_existing_run_path() -> None:

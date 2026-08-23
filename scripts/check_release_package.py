@@ -114,6 +114,7 @@ from typing import get_args
 
 import openminion_eval
 from openminion_eval import (
+    AsyncEvalSubjectInterface,
     BENCHMARK_ADAPTER_VERSION,
     EVAL_INTERFACE_VERSION,
     EvalCase,
@@ -124,6 +125,7 @@ from openminion_eval import (
     EvalScorer,
     EvalScorerInfo,
     EvalScorerSpec,
+    EvalSubject,
     EvalSubjectInterface,
     CliSubject,
     HttpSubject,
@@ -228,6 +230,13 @@ if EvalRunContext.__name__ != "EvalRunContext":
     raise SystemExit("EvalRunContext root export missing")
 if EvalSubjectInterface.__name__ != "EvalSubjectInterface":
     raise SystemExit("EvalSubjectInterface root export missing")
+if AsyncEvalSubjectInterface.__name__ != "AsyncEvalSubjectInterface":
+    raise SystemExit("AsyncEvalSubjectInterface root export missing")
+if set(get_args(EvalSubject)) != {
+    EvalSubjectInterface,
+    AsyncEvalSubjectInterface,
+}:
+    raise SystemExit("EvalSubject root export drifted")
 if CliSubject.__name__ != "CliSubject":
     raise SystemExit("CliSubject root export missing")
 if HttpSubject.__name__ != "HttpSubject":

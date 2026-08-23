@@ -34,6 +34,8 @@ def test_release_check_covers_docs_and_boundary_contract() -> None:
     assert "EvalScorer root export missing" in release_check
     assert "EvalScorerSpec root export missing" in release_check
     assert "EvalScorerInfo root export missing" in release_check
+    assert "AsyncEvalSubjectInterface root export missing" in release_check
+    assert "EvalSubject root export drifted" in release_check
     assert "threshold-aware scorer metadata drifted" in release_check
     assert "scorer registry metadata drifted" in release_check
     assert "CliSubject root export missing" in release_check

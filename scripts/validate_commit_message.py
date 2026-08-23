@@ -36,11 +36,7 @@ def _read_subject(path: Path) -> str:
 
 def _is_special_case(subject: str) -> bool:
     lowered = subject.lower()
-    return (
-        subject.startswith("Merge ")
-        or subject.startswith('Revert "')
-        or lowered == "initial commit"
-    )
+    return subject.startswith(("Merge ", 'Revert "')) or lowered == "initial commit"
 
 
 def _validate_standard_subject(subject: str) -> str | None:
@@ -81,7 +77,8 @@ def _usage_message() -> str:
         "  <type>(<scope>): <summary>\n\n"
         f"Allowed types: {allowed_types}\n"
         f"Scope examples: {scope_examples}\n"
-        'Special cases allowed: Merge..., Revert "...", Initial commit, fixup!, squash!\n\n'
+        'Special cases allowed: Merge..., Revert "...", Initial commit, '
+        "fixup!, squash!\n\n"
         "Examples:\n"
         "  docs: explain hook installation\n"
         "  feat(routing): add standalone policy routing coverage"

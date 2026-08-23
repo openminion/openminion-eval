@@ -1,7 +1,7 @@
 # OpenMinion Eval Changelog
 
 Status: active
-Last updated: 2026-06-20
+Last updated: 2026-08-22
 
 This file tracks package-facing release notes for `openminion-eval`.
 
@@ -23,6 +23,8 @@ This file tracks package-facing release notes for `openminion-eval`.
   metadata, and reject duplicate or unmatched manual adjudications.
 - Polished the public package docs surface so standalone consumers can follow
   package-local docs without monorepo-only context.
+- Aligned typed sync and async subject contracts with the execution behavior
+  already supported by `EvalRunner` and `EvalSuite`.
 
 ### Notes
 
