@@ -423,6 +423,9 @@ def _retrieval_metrics(
         else 0.0
     )
     noise = max(0, retrieval_count - hit_count)
+    legacy_ids = set(trace.legacy_retrieved_memory_ids)
+    overlap_union = legacy_ids | observed_set
+    capture_count = len(trace.capture_pending_ids) + len(trace.capture_terminal_ids)
     return {
         "expected_count": expected_count,
         "retrieved_count": retrieval_count,
@@ -440,6 +443,29 @@ def _retrieval_metrics(
         if retrieval_count
         else 1.0,
         "citation_precision": citation_precision,
+        "abstained": int(trace.abstained),
+        "stale_recall_count": len(trace.stale_retrieved_memory_ids),
+        "stale_recall_rate": round(
+            len(trace.stale_retrieved_memory_ids) / retrieval_count, 6
+        )
+        if retrieval_count
+        else 0.0,
+        "harmful_recall_count": len(trace.harmful_retrieved_memory_ids),
+        "harmful_recall_rate": round(
+            len(trace.harmful_retrieved_memory_ids) / retrieval_count, 6
+        )
+        if retrieval_count
+        else 0.0,
+        "legacy_overlap": round(len(legacy_ids & observed_set) / len(overlap_union), 6)
+        if overlap_union
+        else 1.0,
+        "capture_completion_rate": round(
+            len(trace.capture_terminal_ids) / capture_count, 6
+        )
+        if capture_count
+        else 1.0,
+        "capture_duplicate_count": len(trace.capture_duplicate_ids),
+        "capture_oldest_pending_ms": trace.capture_oldest_pending_ms,
     }
 
 
@@ -571,8 +597,25 @@ def _structured_expectation_failures(
             expectation.required_transaction_time_refs,
             trace.transaction_time_refs,
         ),
+        (
+            "capture_terminal_missing",
+            expectation.required_capture_terminal_ids,
+            trace.capture_terminal_ids,
+        ),
     ):
         failures.extend(_missing_failures(label, tuple(expected), tuple(observed)))
+    if expectation.expect_abstention and not trace.abstained:
+        failures.append("abstention_missing")
+    if trace.abstained and expectation.required_retrieved_ids:
+        failures.append("unexpected_abstention")
+    if trace.stale_retrieved_memory_ids:
+        failures.append("stale_recall:" + ",".join(trace.stale_retrieved_memory_ids))
+    if trace.harmful_retrieved_memory_ids:
+        failures.append(
+            "harmful_recall:" + ",".join(trace.harmful_retrieved_memory_ids)
+        )
+    if trace.capture_duplicate_ids:
+        failures.append("duplicate_capture:" + ",".join(trace.capture_duplicate_ids))
     trajectory_failure = _trajectory_failure(expectation, trace)
     if trajectory_failure:
         failures.append(trajectory_failure)

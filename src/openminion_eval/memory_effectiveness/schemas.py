@@ -112,6 +112,14 @@ class MemoryEffectivenessTrace:
     transaction_time_refs: tuple[str, ...] = ()
     redaction_status: MemoryTraceRedactionStatus = "sanitized"
     private_trace_refs: tuple[str, ...] = ()
+    legacy_retrieved_memory_ids: tuple[str, ...] = ()
+    stale_retrieved_memory_ids: tuple[str, ...] = ()
+    harmful_retrieved_memory_ids: tuple[str, ...] = ()
+    capture_pending_ids: tuple[str, ...] = ()
+    capture_terminal_ids: tuple[str, ...] = ()
+    capture_duplicate_ids: tuple[str, ...] = ()
+    abstained: bool = False
+    capture_oldest_pending_ms: int | None = None
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "case_id", _require_non_empty(self.case_id, "case_id"))
@@ -134,6 +142,12 @@ class MemoryEffectivenessTrace:
             "valid_time_refs",
             "transaction_time_refs",
             "private_trace_refs",
+            "legacy_retrieved_memory_ids",
+            "stale_retrieved_memory_ids",
+            "harmful_retrieved_memory_ids",
+            "capture_pending_ids",
+            "capture_terminal_ids",
+            "capture_duplicate_ids",
         ):
             object.__setattr__(
                 self,
@@ -151,6 +165,11 @@ class MemoryEffectivenessTrace:
             _REDACTION_STATUSES,
             "redaction_status",
         )
+        if (
+            self.capture_oldest_pending_ms is not None
+            and self.capture_oldest_pending_ms < 0
+        ):
+            raise ValueError("capture_oldest_pending_ms must be nonnegative")
 
 
 @dataclass(frozen=True)
@@ -182,6 +201,8 @@ class MemoryExpectation:
     required_graph_path_ids: tuple[str, ...] = ()
     required_valid_time_refs: tuple[str, ...] = ()
     required_transaction_time_refs: tuple[str, ...] = ()
+    expect_abstention: bool = False
+    required_capture_terminal_ids: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         for field_name in (
@@ -203,6 +224,7 @@ class MemoryExpectation:
             "required_graph_path_ids",
             "required_valid_time_refs",
             "required_transaction_time_refs",
+            "required_capture_terminal_ids",
         ):
             object.__setattr__(
                 self,

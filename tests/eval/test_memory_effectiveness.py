@@ -222,6 +222,64 @@ def test_score_memory_case_blocks_stale_or_private_forbidden_ids() -> None:
     assert result.critical_failures == ("forbidden_memory_used:mem-private-secret",)
 
 
+def test_score_memory_case_reports_recall_and_capture_assurance_metrics() -> None:
+    case = MemoryEffectivenessCase(
+        case_id="precision-assurance",
+        family="stale_and_conflict",
+        prompt="Recall only current memory.",
+        expectations=MemoryExpectation(
+            expect_abstention=True,
+            required_capture_terminal_ids=("capture-1",),
+        ),
+    )
+    result = score_memory_case(
+        case,
+        MemoryEffectivenessTrace(
+            case_id=case.case_id,
+            run_id="precision",
+            memory_mode="enabled",
+            legacy_retrieved_memory_ids=("legacy-only",),
+            capture_terminal_ids=("capture-1",),
+            abstained=True,
+        ),
+    )
+
+    assert result.status == "passed"
+    assert result.retrieval_metrics["abstained"] == 1
+    assert result.retrieval_metrics["legacy_overlap"] == 0.0
+    assert result.retrieval_metrics["capture_completion_rate"] == 1.0
+
+
+def test_score_memory_case_rejects_stale_harmful_and_duplicate_facts() -> None:
+    case = MemoryEffectivenessCase(
+        case_id="precision-negative",
+        family="stale_and_conflict",
+        prompt="Reject known-bad memory.",
+        expectations=MemoryExpectation(),
+    )
+    result = score_memory_case(
+        case,
+        MemoryEffectivenessTrace(
+            case_id=case.case_id,
+            run_id="precision",
+            memory_mode="enabled",
+            retrieved_memory_ids=("stale-1", "harmful-1"),
+            stale_retrieved_memory_ids=("stale-1",),
+            harmful_retrieved_memory_ids=("harmful-1",),
+            capture_duplicate_ids=("capture-1",),
+            capture_oldest_pending_ms=250,
+        ),
+    )
+
+    assert result.status == "failed"
+    assert "stale_recall:stale-1" in result.critical_failures
+    assert "harmful_recall:harmful-1" in result.critical_failures
+    assert "duplicate_capture:capture-1" in result.critical_failures
+    assert result.retrieval_metrics["stale_recall_rate"] == 0.5
+    assert result.retrieval_metrics["harmful_recall_rate"] == 0.5
+    assert result.retrieval_metrics["capture_duplicate_count"] == 1
+
+
 def test_score_memory_case_fails_closed_for_unredacted_live_trace() -> None:
     case = MemoryEffectivenessCase(
         case_id="unsafe-live-trace",

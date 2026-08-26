@@ -117,6 +117,11 @@ def _expectation_from_mapping(data: Mapping[str, Any]) -> MemoryExpectation:
             data,
             "required_transaction_time_refs",
         ),
+        expect_abstention=bool(data.get("expect_abstention", False)),
+        required_capture_terminal_ids=string_tuple(
+            data,
+            "required_capture_terminal_ids",
+        ),
     )
 
 

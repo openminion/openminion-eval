@@ -325,6 +325,20 @@ def _memory_trace_from_dict(data: dict[str, Any]) -> MemoryEffectivenessTrace:
         transaction_time_refs=tuple(data.get("transaction_time_refs", ())),
         redaction_status=_redaction_status(data),
         private_trace_refs=tuple(data.get("private_trace_refs", ())),
+        legacy_retrieved_memory_ids=tuple(data.get("legacy_retrieved_memory_ids", ())),
+        stale_retrieved_memory_ids=tuple(data.get("stale_retrieved_memory_ids", ())),
+        harmful_retrieved_memory_ids=tuple(
+            data.get("harmful_retrieved_memory_ids", ())
+        ),
+        capture_pending_ids=tuple(data.get("capture_pending_ids", ())),
+        capture_terminal_ids=tuple(data.get("capture_terminal_ids", ())),
+        capture_duplicate_ids=tuple(data.get("capture_duplicate_ids", ())),
+        abstained=bool(data.get("abstained", False)),
+        capture_oldest_pending_ms=(
+            int(data["capture_oldest_pending_ms"])
+            if data.get("capture_oldest_pending_ms") is not None
+            else None
+        ),
     )
 
 
