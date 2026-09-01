@@ -15,16 +15,31 @@ from openminion_eval.memory_effectiveness.resource_io import (
     load_json_mapping,
     packaged_resource,
 )
-from openminion_eval.memory_effectiveness.artifact_payloads import string_tuple
+from openminion_eval.memory_effectiveness.artifact_payloads import (
+    canonical_payload_hash,
+    string_tuple,
+)
 from openminion_eval.memory_effectiveness.schemas import (
     MemoryEffectivenessCase,
     MemoryEffectivenessCaseFamily,
+    MemoryEvaluationFixtureSet,
+    MemoryEvaluationPair,
+    MemoryEvaluationRun,
+    MemoryEvaluationSplit,
     MemoryExpectation,
+    MemoryRecallMode,
+    MemoryTraceMode,
 )
 
 FIXTURE_VERSION = "1"
 _RESOURCE_PACKAGE = "openminion_eval.memory_effectiveness.resources"
 _DEFAULT_FIXTURE_NAME = "cases.json"
+MRCA_ACCEPTANCE_ONLY_CASE_IDS = (
+    "noisy-memory-positive",
+    "noisy-memory-distractor-negative",
+    "negative-no-memory-positive",
+    "negative-no-memory-hallucinated-negative",
+)
 
 
 def default_memory_effectiveness_cases_path() -> Traversable:
@@ -36,6 +51,52 @@ def load_memory_effectiveness_cases(
 ) -> tuple[MemoryEffectivenessCase, ...]:
     source = default_memory_effectiveness_cases_path() if path is None else path
     payload = load_json_mapping(source)
+    return _cases_from_payload(payload)
+
+
+def load_memory_evaluation_fixture(
+    path: JsonResource | None = None,
+) -> MemoryEvaluationFixtureSet:
+    source = default_memory_effectiveness_cases_path() if path is None else path
+    payload = load_json_mapping(source)
+    cases = _cases_from_payload(payload)
+    evaluation = require_mapping(payload.get("evaluation"), context="evaluation")
+    hashes = require_mapping(evaluation.get("hashes"), context="evaluation hashes")
+    development_case_ids = string_tuple(evaluation, "development_case_ids")
+    acceptance_case_ids = string_tuple(evaluation, "acceptance_case_ids")
+    acceptance_only_case_ids = string_tuple(evaluation, "acceptance_only_case_ids")
+    if acceptance_only_case_ids != MRCA_ACCEPTANCE_ONLY_CASE_IDS:
+        raise ValueError("MRCA acceptance-only case ids do not match the frozen set")
+    pairs = tuple(
+        _pair_from_mapping(require_mapping(item, context="evaluation pair"))
+        for item in evaluation.get("pairs", ())
+    )
+    expected_hashes = {
+        "fixture_hash": hash_memory_effectiveness_cases(cases),
+        "development_hash": _hash_selected_cases(cases, development_case_ids),
+        "acceptance_hash": _hash_selected_cases(cases, acceptance_case_ids),
+        "resource_hash": _resource_hash(payload),
+    }
+    for key, actual in expected_hashes.items():
+        frozen = str(hashes.get(key, "") or "").strip()
+        if frozen != actual:
+            raise ValueError(
+                f"memory evaluation {key} mismatch: expected {frozen!r}, "
+                f"computed {actual!r}"
+            )
+    return MemoryEvaluationFixtureSet(
+        cases=cases,
+        pairs=pairs,
+        development_case_ids=development_case_ids,
+        acceptance_case_ids=acceptance_case_ids,
+        acceptance_only_case_ids=acceptance_only_case_ids,
+        **expected_hashes,
+    )
+
+
+def _cases_from_payload(
+    payload: Mapping[str, Any],
+) -> tuple[MemoryEffectivenessCase, ...]:
     version = str(payload.get("version", "") or "").strip()
     if version != FIXTURE_VERSION:
         raise ValueError(
@@ -74,6 +135,45 @@ def case_from_mapping(data: Mapping[str, Any]) -> MemoryEffectivenessCase:
             require_mapping(data.get("expectations", {}), context="expectations")
         ),
     )
+
+
+def _pair_from_mapping(data: Mapping[str, Any]) -> MemoryEvaluationPair:
+    return MemoryEvaluationPair(
+        pair_id=str(data.get("pair_id", "") or "").strip(),
+        case_id=str(data.get("case_id", "") or "").strip(),
+        split=cast(MemoryEvaluationSplit, data.get("split")),
+        runs=tuple(
+            MemoryEvaluationRun(
+                run_id=str(run.get("run_id", "") or "").strip(),
+                memory_mode=cast(MemoryTraceMode, run.get("memory_mode")),
+                recall_mode=cast(MemoryRecallMode, run.get("recall_mode")),
+            )
+            for item in data.get("runs", ())
+            for run in (require_mapping(item, context="evaluation run"),)
+        ),
+    )
+
+
+def _hash_selected_cases(
+    cases: tuple[MemoryEffectivenessCase, ...],
+    selected_ids: tuple[str, ...],
+) -> str:
+    by_id = {case.case_id: case for case in cases}
+    try:
+        selected = tuple(by_id[case_id] for case_id in selected_ids)
+    except KeyError as exc:
+        raise ValueError(f"unknown memory evaluation case id: {exc.args[0]!r}") from exc
+    return hash_memory_effectiveness_cases(selected)
+
+
+def _resource_hash(payload: Mapping[str, Any]) -> str:
+    canonical = dict(payload)
+    evaluation = dict(
+        require_mapping(canonical.get("evaluation"), context="evaluation")
+    )
+    evaluation.pop("hashes", None)
+    canonical["evaluation"] = evaluation
+    return canonical_payload_hash(canonical)
 
 
 def _expectation_from_mapping(data: Mapping[str, Any]) -> MemoryExpectation:

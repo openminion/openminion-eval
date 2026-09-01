@@ -16,6 +16,8 @@ MemoryEffectivenessCaseFamily = Literal[
     "negative_no_memory",
 ]
 MemoryTraceMode = Literal["disabled", "enabled"]
+MemoryRecallMode = Literal["legacy", "candidate"]
+MemoryEvaluationSplit = Literal["development", "acceptance"]
 MemoryComponent = Literal["save", "retrieval", "usage", "longitudinal"]
 MemoryCaseStatus = Literal["passed", "failed", "unsupported_by_design"]
 MemoryTrajectoryMatchMode = Literal["strict", "unordered", "subset", "superset"]
@@ -23,6 +25,8 @@ MemoryTraceRedactionStatus = Literal["sanitized", "unredacted", "unknown"]
 
 _FAMILIES = get_args(MemoryEffectivenessCaseFamily)
 _TRACE_MODES = get_args(MemoryTraceMode)
+_RECALL_MODES = get_args(MemoryRecallMode)
+_EVALUATION_SPLITS = get_args(MemoryEvaluationSplit)
 _COMPONENTS = get_args(MemoryComponent)
 _STATUSES = get_args(MemoryCaseStatus)
 _REDACTION_STATUSES = get_args(MemoryTraceRedactionStatus)
@@ -255,6 +259,174 @@ class MemoryEffectivenessCase:
         if not isinstance(self.expectations, MemoryExpectation):
             raise TypeError("expectations must be MemoryExpectation")
         object.__setattr__(self, "tags", tuple(str(tag) for tag in self.tags))
+
+
+@dataclass(frozen=True)
+class MemoryEvaluationRun:
+    run_id: str
+    memory_mode: MemoryTraceMode
+    recall_mode: MemoryRecallMode
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "run_id", _require_non_empty(self.run_id, "run_id"))
+        _require_literal(self.memory_mode, _TRACE_MODES, "memory_mode")
+        _require_literal(self.recall_mode, _RECALL_MODES, "recall_mode")
+
+
+@dataclass(frozen=True)
+class MemoryEvaluationPair:
+    pair_id: str
+    case_id: str
+    split: MemoryEvaluationSplit
+    runs: tuple[MemoryEvaluationRun, ...]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "pair_id", _require_non_empty(self.pair_id, "pair_id"))
+        object.__setattr__(self, "case_id", _require_non_empty(self.case_id, "case_id"))
+        _require_literal(self.split, _EVALUATION_SPLITS, "evaluation split")
+        if len(self.runs) != 2:
+            raise ValueError("evaluation pair must contain exactly two runs")
+        run_ids = tuple(run.run_id for run in self.runs)
+        _normalize_ids(run_ids, "evaluation pair run ids")
+        if len({(run.memory_mode, run.recall_mode) for run in self.runs}) != 2:
+            raise ValueError("evaluation pair runs must have distinct modes")
+
+
+@dataclass(frozen=True)
+class MemoryEvaluationFixtureSet:
+    cases: tuple[MemoryEffectivenessCase, ...]
+    pairs: tuple[MemoryEvaluationPair, ...]
+    development_case_ids: tuple[str, ...]
+    acceptance_case_ids: tuple[str, ...]
+    acceptance_only_case_ids: tuple[str, ...]
+    fixture_hash: str
+    development_hash: str
+    acceptance_hash: str
+    resource_hash: str
+
+    def __post_init__(self) -> None:
+        development = _normalize_ids(self.development_case_ids, "development_case_ids")
+        acceptance = _normalize_ids(self.acceptance_case_ids, "acceptance_case_ids")
+        acceptance_only = _normalize_ids(
+            self.acceptance_only_case_ids, "acceptance_only_case_ids"
+        )
+        object.__setattr__(self, "development_case_ids", development)
+        object.__setattr__(self, "acceptance_case_ids", acceptance)
+        object.__setattr__(self, "acceptance_only_case_ids", acceptance_only)
+        if set(development) & set(acceptance):
+            raise ValueError("development and acceptance case ids must be disjoint")
+        case_ids = {case.case_id for case in self.cases}
+        configured_ids = set(development) | set(acceptance)
+        if configured_ids != case_ids:
+            raise ValueError("development and acceptance ids must partition all cases")
+        if not set(acceptance_only).issubset(acceptance):
+            raise ValueError("acceptance-only case ids must belong to acceptance")
+        pair_ids = tuple(pair.pair_id for pair in self.pairs)
+        _normalize_ids(pair_ids, "pair_ids")
+        for pair in self.pairs:
+            expected_ids = development if pair.split == "development" else acceptance
+            if pair.case_id not in expected_ids:
+                raise ValueError(
+                    f"pair {pair.pair_id!r} case does not belong to {pair.split}"
+                )
+        for field_name in (
+            "fixture_hash",
+            "development_hash",
+            "acceptance_hash",
+            "resource_hash",
+        ):
+            object.__setattr__(
+                self,
+                field_name,
+                _require_non_empty(getattr(self, field_name), field_name),
+            )
+
+
+@dataclass(frozen=True)
+class MemoryCalibrationArtifact:
+    development_case_ids: tuple[str, ...]
+    observed_case_ids: tuple[str, ...]
+    fixture_hash: str
+    development_hash: str
+    resource_hash: str
+    capability_set: tuple[str, ...]
+    score_domain_id: str
+    adapter_hash: str
+    index_hash: str
+    score_components: tuple[str, ...]
+    omission_reason_codes: tuple[str, ...]
+    selected_parameters: tuple[tuple[str, bool | float | int | str], ...]
+
+    def __post_init__(self) -> None:
+        development = _normalize_ids(self.development_case_ids, "development_case_ids")
+        observed = _normalize_ids(self.observed_case_ids, "observed_case_ids")
+        object.__setattr__(self, "development_case_ids", development)
+        object.__setattr__(self, "observed_case_ids", observed)
+        if not set(observed).issubset(development):
+            raise ValueError("calibration may observe development cases only")
+        parameter_names = tuple(name for name, _value in self.selected_parameters)
+        _normalize_ids(parameter_names, "selected parameter names")
+        _validate_frozen_evaluation_identity(self)
+
+
+@dataclass(frozen=True)
+class MemoryAcceptanceArtifact:
+    acceptance_case_ids: tuple[str, ...]
+    fixture_hash: str
+    acceptance_hash: str
+    resource_hash: str
+    capability_set: tuple[str, ...]
+    score_domain_id: str
+    adapter_hash: str
+    index_hash: str
+    score_components: tuple[str, ...]
+    omission_reason_codes: tuple[str, ...]
+    calibration_identity_hash: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "acceptance_case_ids",
+            _normalize_ids(self.acceptance_case_ids, "acceptance_case_ids"),
+        )
+        _validate_frozen_evaluation_identity(self)
+        object.__setattr__(
+            self,
+            "acceptance_hash",
+            _require_non_empty(self.acceptance_hash, "acceptance_hash"),
+        )
+        object.__setattr__(
+            self,
+            "calibration_identity_hash",
+            _require_non_empty(
+                self.calibration_identity_hash, "calibration_identity_hash"
+            ),
+        )
+
+
+def _validate_frozen_evaluation_identity(
+    artifact: MemoryCalibrationArtifact | MemoryAcceptanceArtifact,
+) -> None:
+    for field_name in ("capability_set", "score_components"):
+        values = _normalize_ids(tuple(getattr(artifact, field_name)), field_name)
+        object.__setattr__(artifact, field_name, values)
+    object.__setattr__(
+        artifact,
+        "omission_reason_codes",
+        _normalize_ids(artifact.omission_reason_codes, "omission_reason_codes"),
+    )
+    for field_name in (
+        "fixture_hash",
+        "resource_hash",
+        "score_domain_id",
+        "adapter_hash",
+        "index_hash",
+    ):
+        object.__setattr__(
+            artifact,
+            field_name,
+            _require_non_empty(getattr(artifact, field_name), field_name),
+        )
 
 
 @dataclass(frozen=True)

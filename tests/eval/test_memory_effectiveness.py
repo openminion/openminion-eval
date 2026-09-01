@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import asdict
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,16 @@ from openminion_eval import (
 )
 from openminion_eval.cli import main
 from openminion_eval.memory_effectiveness.fixtures import (
+    MRCA_ACCEPTANCE_ONLY_CASE_IDS,
     default_memory_effectiveness_cases_path,
+    load_memory_evaluation_fixture,
+)
+from openminion_eval.memory_effectiveness.artifact_payloads import (
+    build_memory_acceptance_artifact,
+    build_memory_calibration_artifact,
+)
+from openminion_eval.memory_effectiveness.schemas import (
+    MemoryCalibrationArtifact,
 )
 
 
@@ -135,6 +144,95 @@ def test_memory_effectiveness_loader_accepts_non_filesystem_resource() -> None:
     )
 
 
+def test_memory_evaluation_fixture_freezes_disjoint_pairs_and_hashes() -> None:
+    fixture = load_memory_evaluation_fixture()
+
+    assert not set(fixture.development_case_ids) & set(fixture.acceptance_case_ids)
+    assert fixture.acceptance_only_case_ids == MRCA_ACCEPTANCE_ONLY_CASE_IDS
+    assert {pair.pair_id for pair in fixture.pairs} == {
+        "development-recall-mode",
+        "development-memory-ablation",
+        "acceptance-mrca-distractor",
+        "acceptance-mrca-abstention",
+    }
+    assert {
+        tuple((run.memory_mode, run.recall_mode) for run in pair.runs)
+        for pair in fixture.pairs
+    } >= {
+        (("enabled", "legacy"), ("enabled", "candidate")),
+        (("disabled", "candidate"), ("enabled", "candidate")),
+    }
+    assert len(fixture.fixture_hash) == 64
+    assert len(fixture.development_hash) == 64
+    assert len(fixture.acceptance_hash) == 64
+    assert len(fixture.resource_hash) == 64
+
+
+def test_memory_evaluation_fixture_rejects_overlap_and_hash_drift() -> None:
+    fixture = load_memory_evaluation_fixture()
+    with pytest.raises(ValueError, match="must be disjoint"):
+        replace(
+            fixture,
+            development_case_ids=fixture.development_case_ids
+            + (fixture.acceptance_case_ids[0],),
+        )
+
+    payload = json.loads(default_memory_effectiveness_cases_path().read_text())
+    payload["evaluation"]["hashes"]["resource_hash"] = "changed"
+    with pytest.raises(ValueError, match="resource_hash mismatch"):
+        load_memory_evaluation_fixture(_TextResource(payload))
+
+
+def test_memory_evaluation_artifacts_freeze_identity_and_reject_reuse() -> None:
+    fixture = load_memory_evaluation_fixture()
+    calibration = build_memory_calibration_artifact(
+        fixture,
+        observed_case_ids=fixture.development_case_ids,
+        capability_set=("keyword", "vector"),
+        score_domain_id="candidate-vector.v1",
+        adapter_hash="sha256:adapter",
+        index_hash="sha256:index",
+        score_components=("keyword", "vector", "recency", "trust"),
+        omission_reason_codes=("below_retrieval_confidence",),
+        selected_parameters={"minimum_score": 0.45},
+    )
+    acceptance = build_memory_acceptance_artifact(
+        fixture,
+        calibration,
+        acceptance_case_ids=fixture.acceptance_case_ids,
+    )
+
+    assert acceptance.capability_set == ("keyword", "vector")
+    assert acceptance.score_domain_id == "candidate-vector.v1"
+    assert acceptance.adapter_hash == "sha256:adapter"
+    assert acceptance.index_hash == "sha256:index"
+    assert acceptance.score_components == ("keyword", "vector", "recency", "trust")
+    assert acceptance.omission_reason_codes == ("below_retrieval_confidence",)
+    assert len(acceptance.calibration_identity_hash) == 64
+
+    reused = MemoryCalibrationArtifact(
+        development_case_ids=fixture.development_case_ids
+        + (fixture.acceptance_case_ids[0],),
+        observed_case_ids=(fixture.acceptance_case_ids[0],),
+        fixture_hash=fixture.fixture_hash,
+        development_hash=fixture.development_hash,
+        resource_hash=fixture.resource_hash,
+        capability_set=calibration.capability_set,
+        score_domain_id=calibration.score_domain_id,
+        adapter_hash=calibration.adapter_hash,
+        index_hash=calibration.index_hash,
+        score_components=calibration.score_components,
+        omission_reason_codes=calibration.omission_reason_codes,
+        selected_parameters=calibration.selected_parameters,
+    )
+    with pytest.raises(ValueError, match="observed during calibration"):
+        build_memory_acceptance_artifact(
+            fixture,
+            reused,
+            acceptance_case_ids=fixture.acceptance_case_ids,
+        )
+
+
 def test_score_memory_case_passes_complete_enabled_trace() -> None:
     result = score_memory_case(_repo_convention_case(), _enabled_trace())
 
@@ -241,13 +339,21 @@ def test_score_memory_case_reports_recall_and_capture_assurance_metrics() -> Non
             legacy_retrieved_memory_ids=("legacy-only",),
             capture_terminal_ids=("capture-1",),
             abstained=True,
+            capture_oldest_pending_ms=42,
+            token_count=128,
+            latency_ms=25.5,
         ),
     )
 
     assert result.status == "passed"
     assert result.retrieval_metrics["abstained"] == 1
+    assert result.retrieval_metrics["abstention_score"] == 1.0
     assert result.retrieval_metrics["legacy_overlap"] == 0.0
     assert result.retrieval_metrics["capture_completion_rate"] == 1.0
+    assert result.retrieval_metrics["capture_lag_ms"] == 42
+    assert result.retrieval_metrics["capture_duplicate_rate"] == 0.0
+    assert result.retrieval_metrics["context_token_count"] == 128
+    assert result.retrieval_metrics["latency_ms"] == 25.5
 
 
 def test_score_memory_case_rejects_stale_harmful_and_duplicate_facts() -> None:
