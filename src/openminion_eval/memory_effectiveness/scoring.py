@@ -427,6 +427,7 @@ def _retrieval_metrics(
     overlap_union = legacy_ids | observed_set
     capture_count = len(trace.capture_pending_ids) + len(trace.capture_terminal_ids)
     duplicate_count = len(trace.capture_duplicate_ids)
+    capture_attempt_count = capture_count + duplicate_count
     abstention_correct = trace.abstained == expectation.expect_abstention
     return {
         "expected_count": expected_count,
@@ -468,8 +469,8 @@ def _retrieval_metrics(
         if capture_count
         else 1.0,
         "capture_duplicate_count": duplicate_count,
-        "capture_duplicate_rate": round(duplicate_count / capture_count, 6)
-        if capture_count
+        "capture_duplicate_rate": round(duplicate_count / capture_attempt_count, 6)
+        if capture_attempt_count
         else 0.0,
         "capture_oldest_pending_ms": trace.capture_oldest_pending_ms,
         "capture_lag_ms": trace.capture_oldest_pending_ms,

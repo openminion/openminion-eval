@@ -164,6 +164,15 @@ class MemoryEffectivenessTrace:
         for call in self.tool_calls:
             if not isinstance(call, MemoryTraceToolCall):
                 raise TypeError("tool_calls must contain MemoryTraceToolCall")
+        retrieved_ids = set(self.retrieved_memory_ids)
+        for field_name in (
+            "stale_retrieved_memory_ids",
+            "harmful_retrieved_memory_ids",
+        ):
+            if not set(getattr(self, field_name)).issubset(retrieved_ids):
+                raise ValueError(f"{field_name} must belong to retrieved_memory_ids")
+        if set(self.capture_pending_ids) & set(self.capture_terminal_ids):
+            raise ValueError("capture ids cannot be both pending and terminal")
         _require_literal(
             self.redaction_status,
             _REDACTION_STATUSES,
@@ -288,8 +297,11 @@ class MemoryEvaluationPair:
             raise ValueError("evaluation pair must contain exactly two runs")
         run_ids = tuple(run.run_id for run in self.runs)
         _normalize_ids(run_ids, "evaluation pair run ids")
-        if len({(run.memory_mode, run.recall_mode) for run in self.runs}) != 2:
-            raise ValueError("evaluation pair runs must have distinct modes")
+        first, second = self.runs
+        memory_mode_changed = first.memory_mode != second.memory_mode
+        recall_mode_changed = first.recall_mode != second.recall_mode
+        if memory_mode_changed == recall_mode_changed:
+            raise ValueError("evaluation pair must change exactly one mode")
 
 
 @dataclass(frozen=True)

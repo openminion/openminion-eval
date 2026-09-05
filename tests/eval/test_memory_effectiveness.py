@@ -8,14 +8,20 @@ from typing import Any
 import pytest
 
 from openminion_eval import (
+    MemoryCalibrationArtifact,
     MemoryEffectivenessCase,
     MemoryEffectivenessTrace,
+    MemoryEvaluationPair,
+    MemoryEvaluationRun,
     MemoryExpectation,
     MemoryTraceClaim,
     MemoryTraceToolCall,
+    build_memory_acceptance_artifact,
+    build_memory_calibration_artifact,
     build_memory_scorecard,
     compare_memory_scorecards,
     hash_memory_effectiveness_cases,
+    load_memory_evaluation_fixture,
     load_memory_effectiveness_cases,
     load_memory_scorecard,
     default_memory_benchmark_manifest_path,
@@ -28,14 +34,6 @@ from openminion_eval.cli import main
 from openminion_eval.memory_effectiveness.fixtures import (
     MRCA_ACCEPTANCE_ONLY_CASE_IDS,
     default_memory_effectiveness_cases_path,
-    load_memory_evaluation_fixture,
-)
-from openminion_eval.memory_effectiveness.artifact_payloads import (
-    build_memory_acceptance_artifact,
-    build_memory_calibration_artifact,
-)
-from openminion_eval.memory_effectiveness.schemas import (
-    MemoryCalibrationArtifact,
 )
 
 
@@ -181,6 +179,19 @@ def test_memory_evaluation_fixture_rejects_overlap_and_hash_drift() -> None:
     payload["evaluation"]["hashes"]["resource_hash"] = "changed"
     with pytest.raises(ValueError, match="resource_hash mismatch"):
         load_memory_evaluation_fixture(_TextResource(payload))
+
+
+def test_memory_evaluation_pair_changes_one_mode() -> None:
+    with pytest.raises(ValueError, match="change exactly one mode"):
+        MemoryEvaluationPair(
+            pair_id="confounded",
+            case_id="case",
+            split="development",
+            runs=(
+                MemoryEvaluationRun("baseline", "disabled", "legacy"),
+                MemoryEvaluationRun("candidate", "enabled", "candidate"),
+            ),
+        )
 
 
 def test_memory_evaluation_artifacts_freeze_identity_and_reject_reuse() -> None:
@@ -384,6 +395,27 @@ def test_score_memory_case_rejects_stale_harmful_and_duplicate_facts() -> None:
     assert result.retrieval_metrics["stale_recall_rate"] == 0.5
     assert result.retrieval_metrics["harmful_recall_rate"] == 0.5
     assert result.retrieval_metrics["capture_duplicate_count"] == 1
+    assert result.retrieval_metrics["capture_duplicate_rate"] == 1.0
+
+
+def test_memory_trace_rejects_inconsistent_assurance_ids() -> None:
+    trace = MemoryEffectivenessTrace(
+        case_id="assurance",
+        run_id="run",
+        memory_mode="enabled",
+        retrieved_memory_ids=("retrieved",),
+    )
+
+    with pytest.raises(ValueError, match="must belong to retrieved_memory_ids"):
+        replace(trace, stale_retrieved_memory_ids=("other",))
+    with pytest.raises(ValueError, match="must belong to retrieved_memory_ids"):
+        replace(trace, harmful_retrieved_memory_ids=("other",))
+    with pytest.raises(ValueError, match="both pending and terminal"):
+        replace(
+            trace,
+            capture_pending_ids=("capture",),
+            capture_terminal_ids=("capture",),
+        )
 
 
 def test_score_memory_case_fails_closed_for_unredacted_live_trace() -> None:

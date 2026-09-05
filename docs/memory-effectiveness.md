@@ -125,6 +125,47 @@ When a live trace contains private raw references, mark the trace
 `redaction_status` explicitly and keep raw artifacts outside the public
 scorecard.
 
+Stale and harmful ids must also appear in `retrieved_memory_ids`. Capture ids
+cannot be both pending and terminal. Duplicate capture rate counts duplicate
+attempts as part of the total so the result remains between `0.0` and `1.0`.
+
+## Frozen Evaluation Fixtures
+
+The packaged fixture separates development cases used for calibration from
+acceptance cases used for final evaluation. Paired runs change either
+`memory_mode` or `recall_mode`, never both, so each comparison measures one
+dimension.
+
+```python
+from openminion_eval import (
+    build_memory_acceptance_artifact,
+    build_memory_calibration_artifact,
+    load_memory_evaluation_fixture,
+)
+
+fixture = load_memory_evaluation_fixture()
+calibration = build_memory_calibration_artifact(
+    fixture,
+    observed_case_ids=fixture.development_case_ids,
+    capability_set=("keyword", "vector"),
+    score_domain_id="candidate-vector.v1",
+    adapter_hash="sha256:adapter",
+    index_hash="sha256:index",
+    score_components=("keyword", "vector"),
+    omission_reason_codes=("below_retrieval_confidence",),
+    selected_parameters={"minimum_score": 0.45},
+)
+acceptance = build_memory_acceptance_artifact(
+    fixture,
+    calibration,
+    acceptance_case_ids=fixture.acceptance_case_ids,
+)
+```
+
+The builders reject case reuse and changed fixture identity. They record the
+inputs needed to reproduce an evaluation but do not run a memory backend or
+select calibration parameters.
+
 ## Benchmark Adapter Samples
 
 The package includes small packaged sample manifests for LoCoMo,
