@@ -120,16 +120,16 @@ def _load_forbidden_fields_roster(relative_path: str) -> tuple[str, ...]:
 
     The openminion-eval and openminion checkouts both define a
     top-level ``tests`` package, so ``import tests.brain.*`` is
-    ambiguous depending on sys.path order. Loading the upstream
-    rosters via file path makes the cross-roster guard robust to
-    monorepo layout.
+    ambiguous depending on sys.path order. Resolve the upstream
+    rosters from the imported OpenMinion package instead.
     """
 
     import importlib.util
     from pathlib import Path
 
-    framework_root = Path(__file__).resolve().parents[4]
-    module_path = framework_root / "openminion" / relative_path
+    import openminion
+
+    module_path = Path(openminion.__file__).resolve().parents[2] / relative_path
     spec = importlib.util.spec_from_file_location(
         f"_lrsp_cross_roster_{module_path.stem}",
         module_path,
