@@ -783,8 +783,7 @@ class MemoryEvalHarness:
         adapter: Any,
         session_id: str,
     ) -> list[str]:
-        long_term_scopes = list(adapter._long_term_scopes())
-        return [f"session:{session_id}", *long_term_scopes]
+        return list(adapter.context_scopes(session_id=session_id))
 
 
 __all__ = [
