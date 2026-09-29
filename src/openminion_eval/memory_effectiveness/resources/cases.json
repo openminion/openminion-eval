@@ -188,6 +188,7 @@
       "tags": ["positive"],
       "expectations": {
         "expect_no_memory_claim": true,
+        "expect_abstention": true,
         "description": "The correct behavior is no fake memory claim."
       }
     },
@@ -202,5 +203,109 @@
         "description": "Inventing a memory id is a critical failure."
       }
     }
-  ]
+  ],
+  "evaluation": {
+    "development_case_ids": [
+      "preference-style-positive",
+      "preference-wrong-namespace-negative",
+      "repo-convention-positive",
+      "repo-convention-no-memory-negative",
+      "procedure-release-positive",
+      "procedure-stale-negative",
+      "graph-relation-positive",
+      "graph-relation-unsupported-negative",
+      "stale-correction-positive",
+      "stale-leak-negative",
+      "privacy-private-export-positive",
+      "privacy-secret-leak-negative"
+    ],
+    "acceptance_case_ids": [
+      "noisy-memory-positive",
+      "noisy-memory-distractor-negative",
+      "negative-no-memory-positive",
+      "negative-no-memory-hallucinated-negative"
+    ],
+    "acceptance_only_case_ids": [
+      "noisy-memory-positive",
+      "noisy-memory-distractor-negative",
+      "negative-no-memory-positive",
+      "negative-no-memory-hallucinated-negative"
+    ],
+    "pairs": [
+      {
+        "pair_id": "development-recall-mode",
+        "case_id": "repo-convention-positive",
+        "split": "development",
+        "runs": [
+          {
+            "run_id": "legacy",
+            "memory_mode": "enabled",
+            "recall_mode": "legacy"
+          },
+          {
+            "run_id": "candidate",
+            "memory_mode": "enabled",
+            "recall_mode": "candidate"
+          }
+        ]
+      },
+      {
+        "pair_id": "development-memory-ablation",
+        "case_id": "procedure-release-positive",
+        "split": "development",
+        "runs": [
+          {
+            "run_id": "memory-off",
+            "memory_mode": "disabled",
+            "recall_mode": "candidate"
+          },
+          {
+            "run_id": "memory-on",
+            "memory_mode": "enabled",
+            "recall_mode": "candidate"
+          }
+        ]
+      },
+      {
+        "pair_id": "acceptance-mrca-distractor",
+        "case_id": "noisy-memory-positive",
+        "split": "acceptance",
+        "runs": [
+          {
+            "run_id": "legacy",
+            "memory_mode": "enabled",
+            "recall_mode": "legacy"
+          },
+          {
+            "run_id": "candidate",
+            "memory_mode": "enabled",
+            "recall_mode": "candidate"
+          }
+        ]
+      },
+      {
+        "pair_id": "acceptance-mrca-abstention",
+        "case_id": "negative-no-memory-positive",
+        "split": "acceptance",
+        "runs": [
+          {
+            "run_id": "memory-off",
+            "memory_mode": "disabled",
+            "recall_mode": "candidate"
+          },
+          {
+            "run_id": "memory-on",
+            "memory_mode": "enabled",
+            "recall_mode": "candidate"
+          }
+        ]
+      }
+    ],
+    "hashes": {
+      "fixture_hash": "b235529a99e5cc335333dbe32c8eeaffd2fe9ba95f90abf49b0f893140af57b2",
+      "development_hash": "abafe88211d1719b929dcaf04bf7d44f5e676509726c847349187040e51f6cbb",
+      "acceptance_hash": "e1ae552532a367c94f3f62c86264e9dac1cc90966e529216eddb771617d824ea",
+      "resource_hash": "f3269d9e4caaab041daa106c5eff1cdb3aceb6b5183f2d81f35e31ca5d9514a7"
+    }
+  }
 }

@@ -4,9 +4,9 @@
   "case_category": "multi_session_recall",
   "fixture_hash": "0d812b68038e164c890ff506612b507b7115b7d6c95627a76803391d9bf61e96",
   "fixture_version": "sample-1",
-  "source_license": "source-controlled-sample",
-  "source_revision": "sample-local",
-  "source_url": "https://github.com/mem0ai/memory-benchmarks",
+  "source_license": "synthetic-local-fixture",
+  "source_revision": "openminion-eval-sample-1",
+  "source_url": "https://github.com/xiaowu0162/LongMemEval",
   "cases": [
     {
       "case_id": "longmemeval-sample-recall-001",

@@ -100,6 +100,11 @@ The following top-level exports are part of the current public contract:
   `load_memory_effectiveness_cases(...)`,
   `default_memory_effectiveness_cases_path(...)`, and
   `write_memory_scorecard(...)`
+- memory evaluation exports such as `MemoryEvaluationFixtureSet`,
+  `MemoryEvaluationPair`, `MemoryEvaluationRun`, `MemoryCalibrationArtifact`,
+  `MemoryAcceptanceArtifact`, `load_memory_evaluation_fixture(...)`,
+  `build_memory_calibration_artifact(...)`, and
+  `build_memory_acceptance_artifact(...)`
 - delegated memory exports such as `DelegatedMemoryEvalCase`,
   `DelegatedMemoryEvalTrace`, `build_delegated_memory_scorecard(...)`,
   `compare_delegated_memory_scorecards(...)`,
@@ -230,6 +235,8 @@ Public-contract confidence should be enforced by tests that cover:
 20. integration quarantine tiers and requirement metadata.
 21. delegated multi-agent memory cases, traces, scorecards, packaged fixtures,
     and deterministic critical-failure scoring.
+22. frozen memory development/acceptance fixtures, calibration identity, and
+    one-dimension paired-run contracts.
 
 ## Non-goals
 

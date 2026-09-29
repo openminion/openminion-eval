@@ -1,7 +1,7 @@
 # OpenMinion Eval Changelog
 
 Status: active
-Last updated: 2026-08-22
+Last updated: 2026-09-04
 
 This file tracks package-facing release notes for `openminion-eval`.
 
@@ -14,6 +14,8 @@ This file tracks package-facing release notes for `openminion-eval`.
   for the public dataset, memory, manual-review, and boundary artifacts.
 - Added package-local public contributor references for testing, engineering
   patterns, agent bootstrap, and code-quality enforcement.
+- Added frozen memory development/acceptance fixtures, paired recall and
+  memory-mode runs, and calibration/acceptance identity artifacts.
 
 ### Changed
 
@@ -25,6 +27,8 @@ This file tracks package-facing release notes for `openminion-eval`.
   package-local docs without monorepo-only context.
 - Aligned typed sync and async subject contracts with the execution behavior
   already supported by `EvalRunner` and `EvalSuite`.
+- Tightened memory assurance metrics and paired runs so invalid trace
+  relationships and confounded comparisons fail at their public boundaries.
 
 ### Notes
 

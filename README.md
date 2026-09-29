@@ -134,6 +134,8 @@ openminion-eval report suite routing-result.json --out routing-report.md
 - portable HTML bundles with copied JSON artifacts and rendered reports
 - red-team and synthetic-golden boundary artifact validation
 - built-in agent-behavior, runtime-reliability, and memory evaluation families
+- frozen development/acceptance memory fixtures and calibration identity
+  artifacts
 - partial reruns and opt-in parallel suite execution
 - integration quarantine metadata for distinguishing proof tiers
 

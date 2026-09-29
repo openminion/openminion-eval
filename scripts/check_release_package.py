@@ -143,6 +143,9 @@ from openminion_eval import (
     GradeMode,
     MemoryEffectivenessCase,
     MemoryEffectivenessTrace,
+    MemoryEvaluationFixtureSet,
+    MemoryEvaluationPair,
+    MemoryEvaluationRun,
     MemoryBenchmarkSource,
     MemoryExpectation,
     MEMORY_CONTEXT_SCORECARD_VERSION,
@@ -157,6 +160,8 @@ from openminion_eval import (
     build_integration_quarantine_map,
     build_suite_diff_artifact,
     build_memory_context_scorecard,
+    build_memory_acceptance_artifact,
+    build_memory_calibration_artifact,
     build_memory_scorecard,
     build_runtime_reliability_report,
     build_run_manifest,
@@ -175,6 +180,7 @@ from openminion_eval import (
     load_suite_diff,
     load_replay_subject,
     load_memory_context_scorecard_fixtures,
+    load_memory_evaluation_fixture,
     load_memory_effectiveness_cases,
     load_manual_results,
     load_manual_review_queue,
@@ -255,6 +261,12 @@ if MemoryEffectivenessCase.__name__ != "MemoryEffectivenessCase":
     raise SystemExit("MemoryEffectivenessCase root export missing")
 if MemoryEffectivenessTrace.__name__ != "MemoryEffectivenessTrace":
     raise SystemExit("MemoryEffectivenessTrace root export missing")
+if MemoryEvaluationFixtureSet.__name__ != "MemoryEvaluationFixtureSet":
+    raise SystemExit("MemoryEvaluationFixtureSet root export missing")
+if MemoryEvaluationPair.__name__ != "MemoryEvaluationPair":
+    raise SystemExit("MemoryEvaluationPair root export missing")
+if MemoryEvaluationRun.__name__ != "MemoryEvaluationRun":
+    raise SystemExit("MemoryEvaluationRun root export missing")
 if MemoryBenchmarkSource.__name__ != "MemoryBenchmarkSource":
     raise SystemExit("MemoryBenchmarkSource root export missing")
 if BENCHMARK_ADAPTER_VERSION != "1":
@@ -462,6 +474,25 @@ if len(load_nl_named_skill_manifest()[1]) != 10:
 memory_cases = load_memory_effectiveness_cases()
 if len(memory_cases) != 16:
     raise SystemExit("memory effectiveness fixture count drifted")
+memory_fixture = load_memory_evaluation_fixture()
+calibration = build_memory_calibration_artifact(
+    memory_fixture,
+    observed_case_ids=memory_fixture.development_case_ids,
+    capability_set=("keyword", "vector"),
+    score_domain_id="candidate-vector.v1",
+    adapter_hash="sha256:adapter",
+    index_hash="sha256:index",
+    score_components=("keyword", "vector"),
+    omission_reason_codes=("below_retrieval_confidence",),
+    selected_parameters={"minimum_score": 0.45},
+)
+acceptance = build_memory_acceptance_artifact(
+    memory_fixture,
+    calibration,
+    acceptance_case_ids=memory_fixture.acceptance_case_ids,
+)
+if acceptance.acceptance_case_ids != memory_fixture.acceptance_case_ids:
+    raise SystemExit("memory evaluation artifact smoke failed")
 delegated_cases = load_delegated_memory_cases()
 if len(delegated_cases) != 8 or not default_delegated_memory_cases_path().is_file():
     raise SystemExit("delegated memory packaged fixture drifted")

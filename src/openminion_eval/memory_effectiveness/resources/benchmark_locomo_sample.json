@@ -4,9 +4,9 @@
   "case_category": "temporal",
   "fixture_hash": "47c36a2823729955680c27f053994037918c0b2f151b1d141d784a6f23eec4d6",
   "fixture_version": "sample-1",
-  "source_license": "source-controlled-sample",
-  "source_revision": "sample-local",
-  "source_url": "https://github.com/mem0ai/memory-benchmarks",
+  "source_license": "synthetic-local-fixture",
+  "source_revision": "openminion-eval-sample-1",
+  "source_url": "https://github.com/snap-research/locomo",
   "cases": [
     {
       "case_id": "locomo-sample-temporal-001",

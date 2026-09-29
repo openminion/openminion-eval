@@ -4,9 +4,9 @@
   "case_category": "extraction_quality",
   "fixture_hash": "ea817719ca417f242f3e50eba86cb7e90abbee179dcac6a3b5c21c9f756697c9",
   "fixture_version": "sample-1",
-  "source_license": "source-controlled-sample",
-  "source_revision": "sample-local",
-  "source_url": "https://github.com/mem0ai/memory-benchmarks",
+  "source_license": "synthetic-local-fixture",
+  "source_revision": "openminion-eval-sample-1",
+  "source_url": "https://github.com/mohammadtavakoli78/BEAM",
   "cases": [
     {
       "case_id": "beam-sample-extraction-001",
