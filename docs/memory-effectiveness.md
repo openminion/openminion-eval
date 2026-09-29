@@ -184,11 +184,14 @@ print(sample.cases[0].case_id)
 print(manifest.name)
 ```
 
-These samples are adapters, not redistributed benchmark datasets. Full
-benchmark corpora stay with their upstream owners. Each imported manifest must
-declare `source_url`, `source_revision`, `source_license`, `fixture_version`,
-and a `fixture_hash` over the case payloads so downstream evidence can cite the
-exact source snapshot used.
+These samples are synthetic adapter fixtures, not redistributed benchmark
+subsets and not official benchmark results. Their `source_url` identifies the
+official benchmark owner for attribution only; `source_revision` identifies
+the local OpenMinion Eval fixture revision. Full benchmark corpora stay with
+their upstream owners. Each imported manifest must declare `source_url`,
+`source_revision`, `source_license`, `fixture_version`, and a `fixture_hash`
+over the case payloads so downstream evidence can cite the exact source
+snapshot used.
 
 ## Paired Runs
 
