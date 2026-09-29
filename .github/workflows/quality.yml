@@ -71,7 +71,8 @@ jobs:
         run: |
           set -euo pipefail
           if [[ "${GITHUB_EVENT_NAME}" == "pull_request" ]]; then
-            commits="$(git rev-list --reverse "${PR_BASE_SHA}..${PR_HEAD_SHA}")"
+            merge_base="$(git merge-base "${PR_BASE_SHA}" "${PR_HEAD_SHA}")"
+            commits="$(git rev-list --reverse "${merge_base}..${PR_HEAD_SHA}")"
           elif [[ -n "${BEFORE_SHA}" && "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]]; then
             commits="$(git rev-list --reverse "${BEFORE_SHA}..HEAD")"
           elif [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF_NAME}" != "${DEFAULT_BRANCH}" ]]; then
