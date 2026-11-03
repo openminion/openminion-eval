@@ -1,5 +1,9 @@
 # Contributing to openminion-eval
 
+All contributors and coding agents must follow the
+[comment and docstring review](CODE_QUALITY.md#comment-and-docstring-review)
+before requesting review.
+
 Thanks for contributing. This document is self-contained: everything you
 need to set up, test, and submit a change lives in this repository.
 
